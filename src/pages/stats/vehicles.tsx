@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { ArrowLeftIcon, TruckIcon, ExclamationTriangleIcon, ArrowUpIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, TruckIcon, ExclamationTriangleIcon, ArrowUpIcon, ChevronUpIcon, ChevronDownIcon, UserGroupIcon, ClockIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber, formatDateTime } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
@@ -219,7 +219,7 @@ export default function VehicleStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(carStats.summary.totalUsers)}</p>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <TruckIcon className="h-6 w-6 text-blue-600" />
+                      <UserGroupIcon className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -237,11 +237,13 @@ export default function VehicleStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(carStats.summary.totalCount1Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <TruckIcon className="h-6 w-6 text-purple-600" />
+                      <ClockIcon className="h-6 w-6 text-purple-600" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-xs text-slate-500">过去1小时</span>
+                    <span className="text-xs text-slate-500">
+                      平均每人: {(carStats.summary.totalCount1Hour / carStats.summary.totalUsers).toFixed(1)}个请求
+                    </span>
                   </div>
                 </div>
 
@@ -253,11 +255,13 @@ export default function VehicleStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(carStats.summary.totalCount24Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <TruckIcon className="h-6 w-6 text-orange-600" />
+                      <CalendarDaysIcon className="h-6 w-6 text-orange-600" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-xs text-slate-500">过去24小时</span>
+                    <span className="text-xs text-slate-500">
+                      平均每人: {(carStats.summary.totalCount24Hour / carStats.summary.totalUsers).toFixed(1)}个请求
+                    </span>
                   </div>
                 </div>
           </div>
