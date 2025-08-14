@@ -28,6 +28,15 @@ export default function Home() {
       ...QUERY_CONFIG,
     }
   );
+
+  const { data: hourlyStatsSummary } = api.stats.getHourlyStatsSummary.useQuery(
+    undefined,
+    {
+      // 启用轮询，每60秒更新一次数据
+      refetchInterval: POLLING_INTERVALS.HOME_SUMMARY,
+      ...QUERY_CONFIG,
+    }
+  );
   const dataModules = [
     {
       title: "用户统计",
@@ -63,7 +72,15 @@ export default function Home() {
     },
     {
       title: "按小时统计",
-      description: "查看按小时维度的各项数据统计",
+      description: hourlyStatsSummary
+        ? (
+            <>
+              今日请求: {formatNumber(hourlyStatsSummary.summary.todayTotal)} | 用户: {formatNumber(hourlyStatsSummary.summary.todayUsers)}
+              <br />
+              昨日请求: {formatNumber(hourlyStatsSummary.summary.yesterdayTotal)} | 用户: {formatNumber(hourlyStatsSummary.summary.yesterdayUsers)}
+            </>
+          )
+        : "查看按小时维度的各项数据统计",
       icon: ClockIcon,
       href: "/stats/hourly",
       color: "from-green-500 to-green-600",

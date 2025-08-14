@@ -347,7 +347,7 @@ export default function VehicleStats() {
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}>
-                                {car.isActive ? '活跃' : '非活跃'}
+                                {car.isActive ? '智驾' : '车祸'}
                               </span>
                             </td>
                           </tr>
