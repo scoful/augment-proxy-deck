@@ -6,6 +6,9 @@ import { formatNumber, formatDateTime } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
 import HourlyTrendChart from "@/components/HourlyTrendChart";
 import HourlyBarChart from "@/components/HourlyBarChart";
+import HourlyAreaChart from "@/components/HourlyAreaChart";
+import GrowthRateChart from "@/components/GrowthRateChart";
+import GrowthRadarChart from "@/components/GrowthRadarChart";
 import { useState, useEffect } from "react";
 
 export default function HourlyStats() {
@@ -132,10 +135,19 @@ export default function HourlyStats() {
                       <ClockIcon className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <span className="text-xs text-slate-500">
-                      vs 昨日: {hourlyStats.summary.todayTotal > hourlyStats.summary.yesterdayTotal ? '+' : ''}{((hourlyStats.summary.todayTotal - hourlyStats.summary.yesterdayTotal) / hourlyStats.summary.yesterdayTotal * 100).toFixed(1)}%
-                    </span>
+                  <div className="mt-4 space-y-1">
+                    <div className="text-xs text-slate-500">
+                      vs 昨日总数: {hourlyStats.summary.todayTotal > hourlyStats.summary.yesterdayTotal ? '+' : ''}{((hourlyStats.summary.todayTotal - hourlyStats.summary.yesterdayTotal) / hourlyStats.summary.yesterdayTotal * 100).toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      vs 昨日同比: {(() => {
+                        const currentHour = new Date().getHours();
+                        const todayUpToNow = hourlyStats.today.slice(0, currentHour + 1).reduce((sum, item) => sum + item.count, 0);
+                        const yesterdayUpToSameTime = hourlyStats.yesterday.slice(0, currentHour + 1).reduce((sum, item) => sum + item.count, 0);
+                        const realTimeGrowth = yesterdayUpToSameTime > 0 ? ((todayUpToNow - yesterdayUpToSameTime) / yesterdayUpToSameTime * 100).toFixed(1) : '0';
+                        return `${todayUpToNow > yesterdayUpToSameTime ? '+' : ''}${realTimeGrowth}%`;
+                      })()}
+                    </div>
                   </div>
                 </div>
 
@@ -190,6 +202,63 @@ export default function HourlyStats() {
                 </div>
           </div>
 
+              {/* Charts Section */}
+              <div className="space-y-8 mb-8">
+                {/* 第一行：今日vs昨日请求趋势 + 每小时增长率分析 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* 请求趋势折线图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">今日vs昨日请求趋势</h3>
+                    <HourlyTrendChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+
+                  {/* 增长率柱状图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">每小时增长率分析</h3>
+                    <GrowthRateChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+                </div>
+
+                {/* 第二行：今日vs昨日请求量对比 + 请求量趋势面积图 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* 请求量对比柱状图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">今日vs昨日请求量对比</h3>
+                    <HourlyBarChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+
+                  {/* 面积图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">请求量趋势面积图</h3>
+                    <HourlyAreaChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+                </div>
+
+                {/* 第三行：24小时增长率雷达 */}
+                <div className="grid grid-cols-1 gap-8">
+                  {/* 增长率雷达图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">24小时增长率雷达</h3>
+                    <GrowthRadarChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Hourly Data Tables */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* 今日数据 */}
@@ -208,9 +277,6 @@ export default function HourlyStats() {
                             请求数
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            用户数
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             活跃度
                           </th>
                         </tr>
@@ -226,9 +292,6 @@ export default function HourlyStats() {
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
                                 {formatNumber(data.count)}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
-                                {formatNumber(data.uniqueUsers)}
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${activity.color}`}>
@@ -259,9 +322,6 @@ export default function HourlyStats() {
                             请求数
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            用户数
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             活跃度
                           </th>
                         </tr>
@@ -278,9 +338,6 @@ export default function HourlyStats() {
                               <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
                                 {formatNumber(data.count)}
                               </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
-                                {formatNumber(data.uniqueUsers)}
-                              </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${activity.color}`}>
                                   {activity.level}
@@ -292,27 +349,6 @@ export default function HourlyStats() {
                       </tbody>
                     </table>
                   </div>
-                </div>
-              </div>
-
-              {/* Charts Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                {/* 请求趋势折线图 */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">今日vs昨日请求趋势</h3>
-                  <HourlyTrendChart
-                    todayData={hourlyStats.today}
-                    yesterdayData={hourlyStats.yesterday}
-                  />
-                </div>
-
-                {/* 用户活跃度柱状图 */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">用户活跃度对比</h3>
-                  <HourlyBarChart
-                    todayData={hourlyStats.today}
-                    yesterdayData={hourlyStats.yesterday}
-                  />
                 </div>
               </div>
 

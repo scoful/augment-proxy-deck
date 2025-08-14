@@ -9,33 +9,50 @@ interface HourlyBarChartProps {
 }
 
 export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarChartProps) {
-  // 合并今日和昨日数据
+  // 合并今日和昨日数据，计算差值
   const chartData = todayData.map((today, index) => {
     const yesterday = yesterdayData[index];
-    const hour = new Date(today.hour).toLocaleTimeString('zh-CN', { 
-      hour: '2-digit', 
+    const hour = new Date(today.hour).toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: false 
+      hour12: false
     });
-    
+
+    const todayCount = today.count;
+    const yesterdayCount = yesterday?.count || 0;
+    const difference = todayCount - yesterdayCount;
+
     return {
       hour,
-      今日用户: today.uniqueUsers,
-      昨日用户: yesterday?.uniqueUsers || 0,
+      今日请求: todayCount,
+      昨日请求: yesterdayCount,
+      差值: difference,
+      增长率: yesterdayCount > 0 ? ((difference / yesterdayCount) * 100).toFixed(1) : '0',
     };
   });
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0]?.payload;
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg">
           <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
-              {`${entry.dataKey}: ${entry.value.toLocaleString()}人`}
+              {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
           ))}
+          {data && (
+            <>
+              <p className="text-sm text-slate-600">
+                差值: {data.差值 > 0 ? '+' : ''}{data.差值.toLocaleString()}
+              </p>
+              <p className="text-sm text-slate-600">
+                增长率: {data.增长率}%
+              </p>
+            </>
+          )}
         </div>
       );
     }
@@ -68,17 +85,17 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Bar 
-            dataKey="今日用户" 
-            fill="#10b981" 
+          <Bar
+            dataKey="今日请求"
+            fill="#3b82f6"
             radius={[2, 2, 0, 0]}
-            name="今日用户"
+            name="今日请求"
           />
-          <Bar 
-            dataKey="昨日用户" 
-            fill="#d1d5db" 
+          <Bar
+            dataKey="昨日请求"
+            fill="#94a3b8"
             radius={[2, 2, 0, 0]}
-            name="昨日用户"
+            name="昨日请求"
           />
         </BarChart>
       </ResponsiveContainer>

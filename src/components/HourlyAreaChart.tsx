@@ -1,14 +1,14 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { type HourlyData } from '@/server/api/routers/stats';
 
-interface HourlyTrendChartProps {
+interface HourlyAreaChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
 }
 
-export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTrendChartProps) {
+export default function HourlyAreaChart({ todayData, yesterdayData }: HourlyAreaChartProps) {
   // 获取当前时间
   const currentHour = new Date().getHours();
 
@@ -33,16 +33,21 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
     };
   });
 
-  // 分割数据为过去和未来
+  // 分割数据：已发生的数据和未来数据
   const pastData = chartData.filter(d => !d.isFuture);
   const futureData = chartData.filter(d => d.isFuture);
 
-  // 如果有未来数据，添加连接点
+  // 如果有未来数据，需要在过去数据的最后一个点和未来数据的第一个点之间建立连接
   const allData = chartData;
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const todayValue = payload.find((p: any) => p.dataKey === '今日请求')?.value || 0;
+      const yesterdayValue = payload.find((p: any) => p.dataKey === '昨日请求')?.value || 0;
+      const difference = todayValue - yesterdayValue;
+      const percentage = yesterdayValue > 0 ? ((difference / yesterdayValue) * 100).toFixed(1) : '0';
+      
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg">
           <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
@@ -51,6 +56,14 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
           ))}
+          <div className="border-t border-slate-200 mt-2 pt-2">
+            <p className="text-sm text-slate-600">
+              差值: {difference > 0 ? '+' : ''}{difference.toLocaleString()}
+            </p>
+            <p className="text-sm text-slate-600">
+              增长率: {percentage}%
+            </p>
+          </div>
         </div>
       );
     }
@@ -60,7 +73,7 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
   return (
     <div className="w-full h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <AreaChart
           data={allData}
           margin={{
             top: 20,
@@ -69,6 +82,20 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
             bottom: 20,
           }}
         >
+          <defs>
+            <linearGradient id="todayGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+            </linearGradient>
+            <linearGradient id="todayFutureGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+            </linearGradient>
+            <linearGradient id="yesterdayGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.6}/>
+              <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.1}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis
             dataKey="hour"
@@ -84,49 +111,34 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
           <Tooltip content={<CustomTooltip />} />
           <Legend />
 
-          {/* 今日请求 - 完整数据，动态样式 */}
-          <Line
+          {/* 昨日数据 - 始终实线 */}
+          <Area
+            type="monotone"
+            dataKey="昨日请求"
+            stackId="1"
+            stroke="#94a3b8"
+            fill="url(#yesterdayGradient)"
+            strokeWidth={2}
+          />
+
+          {/* 今日数据 - 根据时间动态样式 */}
+          <Area
             type="monotone"
             dataKey="今日请求"
+            stackId="2"
             stroke="#3b82f6"
+            fill="url(#todayGradient)"
             strokeWidth={2}
-            dot={(props: any) => {
-              const { payload } = props;
-              const isFuture = payload?.isFuture;
-              return (
-                <circle
-                  cx={props.cx}
-                  cy={props.cy}
-                  r={isFuture ? 3 : 4}
-                  fill="#3b82f6"
-                  fillOpacity={isFuture ? 0.5 : 1}
-                  strokeWidth={2}
-                  stroke="#3b82f6"
-                />
-              );
-            }}
-            activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
             strokeDasharray={(entry: any, index: number) => {
               const dataPoint = allData[index];
               return dataPoint?.isFuture ? "5 5" : "0";
             }}
-            strokeOpacity={(entry: any, index: number) => {
+            fillOpacity={(entry: any, index: number) => {
               const dataPoint = allData[index];
-              return dataPoint?.isFuture ? 0.5 : 1;
+              return dataPoint?.isFuture ? 0.3 : 1;
             }}
           />
-
-          {/* 昨日请求 - 始终虚线 */}
-          <Line
-            type="monotone"
-            dataKey="昨日请求"
-            stroke="#94a3b8"
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={{ fill: '#94a3b8', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: '#94a3b8', strokeWidth: 2 }}
-          />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
