@@ -6,12 +6,16 @@ import {
   ChartBarIcon
 } from "@heroicons/react/24/outline";
 import Layout from "@/components/Layout";
+import { api } from "@/utils/api";
 
 export default function Home() {
+  const { data: userStatsSummary } = api.stats.getUserStatsSummary.useQuery();
   const dataModules = [
     {
       title: "用户统计",
-      description: "查看用户注册、活跃度等相关统计数据",
+      description: userStatsSummary
+        ? `24小时活跃用户: ${userStatsSummary.summary.totalUsers24Hour} | 总请求: ${userStatsSummary.summary.totalCount24Hour}`
+        : "查看用户注册、活跃度等相关统计数据",
       icon: UserGroupIcon,
       href: "/stats/users",
       color: "from-blue-500 to-blue-600",
@@ -85,6 +89,13 @@ export default function Home() {
           <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
           <span className="text-sm text-slate-600">系统运行正常</span>
         </div>
+        {userStatsSummary && (
+          <div className="mt-4">
+            <span className="text-xs text-slate-500">
+              数据更新时间: {new Date(userStatsSummary.updatedAt).toLocaleString('zh-CN')}
+            </span>
+          </div>
+        )}
       </div>
     </Layout>
   );

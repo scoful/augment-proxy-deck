@@ -1,8 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
-import { ArrowLeftIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon } from "@heroicons/react/24/outline";
+import { api } from "@/utils/api";
+import { useState } from "react";
 
 export default function UserStats() {
+  const [limit, setLimit] = useState(100);
+  const { data: userStats, isLoading, error } = api.stats.getUserStats.useQuery({ limit });
   return (
     <>
       <Head>
@@ -32,89 +36,257 @@ export default function UserStats() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* Stats Cards */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">总用户数</p>
-                  <p className="text-3xl font-bold text-slate-800">12,345</p>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <UserGroupIcon className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span className="text-sm text-green-600">+12.5%</span>
-                <span className="text-sm text-slate-500 ml-1">较上月</span>
-              </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-slate-600">加载中...</span>
             </div>
+          )}
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">活跃用户</p>
-                  <p className="text-3xl font-bold text-slate-800">8,901</p>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <UserGroupIcon className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span className="text-sm text-green-600">+8.2%</span>
-                <span className="text-sm text-slate-500 ml-1">较上月</span>
-              </div>
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
+              <p className="text-red-800">加载数据失败: {error.message}</p>
             </div>
+          )}
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">新增用户</p>
-                  <p className="text-3xl font-bold text-slate-800">1,234</p>
+          {/* Data Display */}
+          {userStats && (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">1小时活跃用户</p>
+                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalUsers1Hour}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <ClockIcon className="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-xs text-slate-500">过去1小时</span>
+                  </div>
                 </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <UserGroupIcon className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span className="text-sm text-green-600">+15.3%</span>
-                <span className="text-sm text-slate-500 ml-1">较上月</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">留存率</p>
-                  <p className="text-3xl font-bold text-slate-800">72.1%</p>
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">24小时活跃用户</p>
+                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalUsers24Hour}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <UserGroupIcon className="h-6 w-6 text-green-600" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-xs text-slate-500">过去24小时</span>
+                  </div>
                 </div>
-                <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <UserGroupIcon className="h-6 w-6 text-orange-600" />
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">1小时总请求</p>
+                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalCount1Hour}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <ClockIcon className="h-6 w-6 text-purple-600" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-xs text-slate-500">过去1小时</span>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">24小时总请求</p>
+                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalCount24Hour}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <UserGroupIcon className="h-6 w-6 text-orange-600" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-xs text-slate-500">过去24小时</span>
+                  </div>
                 </div>
               </div>
-              <div className="mt-4">
-                <span className="text-sm text-red-600">-2.1%</span>
-                <span className="text-sm text-slate-500 ml-1">较上月</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Charts Placeholder */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">用户增长趋势</h3>
-              <div className="h-64 bg-slate-50 rounded-lg flex items-center justify-center">
-                <p className="text-slate-500">图表区域 - 待接入数据</p>
+              {/* Update Time */}
+              <div className="mb-6 text-center">
+                <span className="text-sm text-slate-500">
+                  数据更新时间: {new Date(userStats.updatedAt).toLocaleString('zh-CN')}
+                </span>
               </div>
-            </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">用户活跃度分布</h3>
-              <div className="h-64 bg-slate-50 rounded-lg flex items-center justify-center">
-                <p className="text-slate-500">图表区域 - 待接入数据</p>
+              {/* Top Users Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                {/* Top Users - 24 Hour */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrophyIcon className="h-5 w-5 text-yellow-600" />
+                    <h3 className="text-lg font-semibold text-slate-800">24小时排行榜</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {userStats.topUsers.slice(0, 10).map((user, index) => (
+                      <div key={user.userId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                            index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                            index === 1 ? 'bg-gray-100 text-gray-800' :
+                            index === 2 ? 'bg-orange-100 text-orange-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">{user.displayName}</p>
+                            <p className="text-xs text-slate-500">ID: {user.userId}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-slate-800">{user.count24Hour}</p>
+                          <p className="text-xs text-slate-500">请求数</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top Users - 1 Hour */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <ClockIcon className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-slate-800">1小时排行榜</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {userStats.topUsers
+                      .filter(user => user.count1Hour > 0)
+                      .sort((a, b) => b.count1Hour - a.count1Hour)
+                      .slice(0, 10)
+                      .map((user, index) => (
+                        <div key={user.userId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                              index === 1 ? 'bg-gray-100 text-gray-800' :
+                              index === 2 ? 'bg-orange-100 text-orange-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-800">{user.displayName}</p>
+                              <p className="text-xs text-slate-500">ID: {user.userId}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-slate-800">{user.count1Hour}</p>
+                            <p className="text-xs text-slate-500">请求数</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* All Users Table */}
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-800">所有用户详情</h3>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="limit" className="text-sm text-slate-600">显示条数:</label>
+                    <select
+                      id="limit"
+                      value={limit}
+                      onChange={(e) => setLimit(Number(e.target.value))}
+                      className="border border-slate-300 rounded px-2 py-1 text-sm"
+                    >
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={200}>200</option>
+                      <option value={500}>500</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                          用户信息
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                          1小时请求数
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                          24小时请求数
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                          1小时排名
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                          24小时排名
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-200">
+                      {userStats.allUsers.map((user, index) => (
+                        <tr key={user.userId} className="hover:bg-slate-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-slate-900">
+                                {user.displayName}
+                              </div>
+                              <div className="text-sm text-slate-500">
+                                ID: {user.userId}
+                              </div>
+                              {(user.firstName || user.lastName) && (
+                                <div className="text-xs text-slate-400">
+                                  {user.firstName} {user.lastName}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              user.count1Hour > 0
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}>
+                              {user.count1Hour}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                            <span className="font-semibold">{user.count24Hour}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            {user.rank1Hour > 0 ? `#${user.rank1Hour}` : '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              user.rank24Hour <= 3
+                                ? "bg-yellow-100 text-yellow-800"
+                                : user.rank24Hour <= 10
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}>
+                              #{user.rank24Hour}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </>

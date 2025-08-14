@@ -64,6 +64,51 @@ pnpm lint
 pnpm typecheck
 ```
 
+## 功能特性
+
+### 已实现功能 ✅
+
+1. **首页数据展示**
+   - 3个数据模块入口卡片
+   - 实时显示用户统计概览
+   - 响应式设计
+
+2. **用户统计页面** (`/stats/users`)
+   - 实时数据获取 (API: `https://proxy.poolhub.me/api/stats`)
+   - 1小时和24小时活跃用户统计
+   - 用户排行榜 (1小时和24小时)
+   - 完整用户列表表格
+   - 可调节显示条数 (50/100/200/500)
+
+3. **技术实现**
+   - tRPC API 路由 (`/api/stats`)
+   - TypeScript 类型安全
+   - 错误处理和加载状态
+   - 数据验证 (Zod)
+
+### 待开发功能 ⏳
+
+- 黑车统计页面的真实数据接入
+- 按小时统计页面的真实数据接入
+- 图表组件集成
+- 数据缓存优化
+
+## API 接口
+
+### 用户统计 API
+
+- **路由**: `api.stats.getUserStats`
+- **参数**: `{ limit: number }` (默认: 100)
+- **返回**: 用户统计完整数据
+- **外部API**: `https://proxy.poolhub.me/api/stats?limit={limit}`
+
+### 用户统计摘要 API
+
+- **路由**: `api.stats.getUserStatsSummary`
+- **参数**: 无
+- **返回**: 仅摘要信息
+- **用途**: 首页快速概览
+
 ## Learn More
 
 To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
