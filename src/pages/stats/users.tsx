@@ -16,7 +16,7 @@ export default function UserStats() {
   const { data: userStats, isLoading, error, isFetching } = api.stats.getUserStats.useQuery(
     { limit },
     {
-      // 启用轮询，每30秒更新一次数据
+      // 启用轮询，每60秒更新一次数据
       refetchInterval: POLLING_INTERVALS.USER_STATS,
       ...QUERY_CONFIG,
     }
@@ -139,30 +139,13 @@ export default function UserStats() {
                   </span>
                   <div className="flex items-center gap-1 text-xs text-slate-400">
                     <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span>每30秒自动更新</span>
+                    <span>每60秒自动更新</span>
                   </div>
                 </div>
               </div>
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-                {/* 用户总数 */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600">用户总数</p>
-                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.allUsers.length)}</p>
-                    </div>
-                    <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <UserGroupIcon className="h-6 w-6 text-indigo-600" />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <span className="text-xs text-slate-500">
-                      24h活跃率: {formatPercentage(userStats.summary.totalUsers24Hour, userStats.allUsers.length)}
-                    </span>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* 1小时活跃用户 */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between">

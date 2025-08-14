@@ -4,8 +4,8 @@
 
 // API 轮询间隔配置（毫秒）
 export const POLLING_INTERVALS = {
-  // 用户统计页面 - 30秒更新一次
-  USER_STATS: 30 * 1000,
+  // 用户统计页面 - 60秒更新一次
+  USER_STATS: 60 * 1000,
   
   // 首页摘要 - 60秒更新一次
   HOME_SUMMARY: 60 * 1000,
