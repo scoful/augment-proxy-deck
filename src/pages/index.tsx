@@ -7,14 +7,23 @@ import {
 } from "@heroicons/react/24/outline";
 import Layout from "@/components/Layout";
 import { api } from "@/utils/api";
+import { formatDateTime, formatNumber } from "@/utils/formatters";
+import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
 
 export default function Home() {
-  const { data: userStatsSummary } = api.stats.getUserStatsSummary.useQuery();
+  const { data: userStatsSummary, isFetching } = api.stats.getUserStatsSummary.useQuery(
+    undefined,
+    {
+      // 启用轮询，每60秒更新一次数据（首页更新频率可以稍低）
+      refetchInterval: POLLING_INTERVALS.HOME_SUMMARY,
+      ...QUERY_CONFIG,
+    }
+  );
   const dataModules = [
     {
       title: "用户统计",
       description: userStatsSummary
-        ? `24小时活跃用户: ${userStatsSummary.summary.totalUsers24Hour} | 总请求: ${userStatsSummary.summary.totalCount24Hour}`
+        ? `24小时活跃用户: ${formatNumber(userStatsSummary.summary.totalUsers24Hour)} | 总请求: ${formatNumber(userStatsSummary.summary.totalCount24Hour)}`
         : "查看用户注册、活跃度等相关统计数据",
       icon: UserGroupIcon,
       href: "/stats/users",
@@ -70,7 +79,7 @@ export default function Home() {
                   <IconComponent className="h-12 w-12 text-white/90" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">{module.title}</h3>
-                <p className="text-white/90 leading-relaxed">
+                <p className="text-white/90 leading-relaxed text-sm">
                   {module.description}
                 </p>
               </div>
@@ -90,10 +99,20 @@ export default function Home() {
           <span className="text-sm text-slate-600">系统运行正常</span>
         </div>
         {userStatsSummary && (
-          <div className="mt-4">
+          <div className="mt-4 flex items-center justify-center gap-4">
             <span className="text-xs text-slate-500">
-              数据更新时间: {new Date(userStatsSummary.updatedAt).toLocaleString('zh-CN')}
+              数据更新时间: {formatDateTime(userStatsSummary.updatedAt)}
             </span>
+            <div className="flex items-center gap-1 text-xs text-slate-400">
+              <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+              <span>每60秒自动更新</span>
+            </div>
+            {isFetching && (
+              <div className="flex items-center gap-1 text-xs text-blue-600">
+                <div className="h-1.5 w-1.5 bg-blue-500 rounded-full animate-pulse" />
+                <span>更新中...</span>
+              </div>
+            )}
           </div>
         )}
       </div>

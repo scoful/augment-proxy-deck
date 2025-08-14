@@ -2,11 +2,20 @@ import Head from "next/head";
 import Link from "next/link";
 import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
+import { formatDisplayName, formatNumber, formatDateTime } from "@/utils/formatters";
+import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
 import { useState } from "react";
 
 export default function UserStats() {
   const [limit, setLimit] = useState(100);
-  const { data: userStats, isLoading, error } = api.stats.getUserStats.useQuery({ limit });
+  const { data: userStats, isLoading, error, isFetching } = api.stats.getUserStats.useQuery(
+    { limit },
+    {
+      // 启用轮询，每30秒更新一次数据
+      refetchInterval: POLLING_INTERVALS.USER_STATS,
+      ...QUERY_CONFIG,
+    }
+  );
   return (
     <>
       <Head>
@@ -29,6 +38,12 @@ export default function UserStats() {
               <div className="flex items-center gap-3">
                 <UserGroupIcon className="h-8 w-8 text-blue-600" />
                 <h1 className="text-2xl font-bold text-slate-800">用户统计</h1>
+                {isFetching && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
+                    <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="text-xs text-blue-600">更新中...</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -60,7 +75,7 @@ export default function UserStats() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600">1小时活跃用户</p>
-                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalUsers1Hour}</p>
+                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.summary.totalUsers1Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
                       <ClockIcon className="h-6 w-6 text-blue-600" />
@@ -75,7 +90,7 @@ export default function UserStats() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600">24小时活跃用户</p>
-                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalUsers24Hour}</p>
+                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.summary.totalUsers24Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                       <UserGroupIcon className="h-6 w-6 text-green-600" />
@@ -90,7 +105,7 @@ export default function UserStats() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600">1小时总请求</p>
-                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalCount1Hour}</p>
+                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.summary.totalCount1Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
                       <ClockIcon className="h-6 w-6 text-purple-600" />
@@ -105,7 +120,7 @@ export default function UserStats() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600">24小时总请求</p>
-                      <p className="text-3xl font-bold text-slate-800">{userStats.summary.totalCount24Hour}</p>
+                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.summary.totalCount24Hour)}</p>
                     </div>
                     <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
                       <UserGroupIcon className="h-6 w-6 text-orange-600" />
@@ -119,9 +134,15 @@ export default function UserStats() {
 
               {/* Update Time */}
               <div className="mb-6 text-center">
-                <span className="text-sm text-slate-500">
-                  数据更新时间: {new Date(userStats.updatedAt).toLocaleString('zh-CN')}
-                </span>
+                <div className="flex items-center justify-center gap-4">
+                  <span className="text-sm text-slate-500">
+                    数据更新时间: {formatDateTime(userStats.updatedAt)}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <span>每30秒自动更新</span>
+                  </div>
+                </div>
               </div>
 
               {/* Top Users Section */}
@@ -145,7 +166,9 @@ export default function UserStats() {
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium text-slate-800">{user.displayName}</p>
+                            <p className="font-medium text-slate-800" title={user.displayName}>
+                              {formatDisplayName(user.displayName)}
+                            </p>
                             <p className="text-xs text-slate-500">ID: {user.userId}</p>
                           </div>
                         </div>
@@ -181,7 +204,9 @@ export default function UserStats() {
                               {index + 1}
                             </div>
                             <div>
-                              <p className="font-medium text-slate-800">{user.displayName}</p>
+                              <p className="font-medium text-slate-800" title={user.displayName}>
+                                {formatDisplayName(user.displayName)}
+                              </p>
                               <p className="text-xs text-slate-500">ID: {user.userId}</p>
                             </div>
                           </div>
@@ -240,8 +265,8 @@ export default function UserStats() {
                         <tr key={user.userId} className="hover:bg-slate-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-slate-900">
-                                {user.displayName}
+                              <div className="text-sm font-medium text-slate-900" title={user.displayName}>
+                                {formatDisplayName(user.displayName)}
                               </div>
                               <div className="text-sm text-slate-500">
                                 ID: {user.userId}
