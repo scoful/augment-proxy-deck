@@ -54,7 +54,7 @@ export default function HourlyAreaChart({
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
       const todayValue =
         payload.find((p: any) => p.dataKey === "今日请求")?.value || 0;
       const yesterdayValue =

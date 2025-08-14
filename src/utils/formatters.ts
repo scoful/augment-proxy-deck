@@ -99,7 +99,7 @@ export function formatRelativeTime(dateString: string): string {
 export function formatPercentage(
   numerator: number,
   denominator: number,
-  decimals: number = 1,
+  decimals = 1,
 ): string {
   if (denominator === 0) return "0%";
   const percentage = (numerator / denominator) * 100;

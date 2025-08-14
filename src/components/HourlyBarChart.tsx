@@ -48,7 +48,7 @@ export default function HourlyBarChart({
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
       const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">

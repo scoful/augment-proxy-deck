@@ -91,7 +91,7 @@ export default function PeakValleyChart({
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
