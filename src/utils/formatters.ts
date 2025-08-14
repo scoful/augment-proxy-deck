@@ -12,7 +12,7 @@ export function formatDisplayName(displayName: string): string {
   // 如果星号超过配置的最大数量，进行省略处理
   if (asteriskCount > DISPLAY_CONFIG.MAX_ASTERISK_COUNT) {
     // 保留开头和结尾的部分，中间用省略号代替
-    const parts = displayName.split(' ');
+    const parts = displayName.split(" ");
     if (parts.length > 1) {
       // 如果有空格分隔，保留第一部分和最后的ID部分
       const firstPart = parts[0];
@@ -20,7 +20,7 @@ export function formatDisplayName(displayName: string): string {
 
       // 如果第一部分星号太多，也要截断
       if (firstPart && firstPart.length > 10) {
-        const truncatedFirst = firstPart.substring(0, 8) + '...';
+        const truncatedFirst = firstPart.substring(0, 8) + "...";
         return `${truncatedFirst} ${lastPart}`;
       }
 
@@ -28,7 +28,9 @@ export function formatDisplayName(displayName: string): string {
     } else {
       // 没有空格的情况，直接截断
       if (displayName.length > DISPLAY_CONFIG.MAX_DISPLAY_NAME_LENGTH) {
-        return displayName.substring(0, DISPLAY_CONFIG.TRUNCATED_LENGTH) + '...';
+        return (
+          displayName.substring(0, DISPLAY_CONFIG.TRUNCATED_LENGTH) + "..."
+        );
       }
     }
   }
@@ -42,7 +44,7 @@ export function formatDisplayName(displayName: string): string {
  * @returns 格式化后的字符串
  */
 export function formatNumber(num: number): string {
-  return num.toLocaleString('zh-CN');
+  return num.toLocaleString("zh-CN");
 }
 
 /**
@@ -51,13 +53,13 @@ export function formatNumber(num: number): string {
  * @returns 格式化后的日期时间字符串
  */
 export function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  return new Date(dateString).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
@@ -75,7 +77,7 @@ export function formatRelativeTime(dateString: string): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMinutes < 1) {
-    return '刚刚';
+    return "刚刚";
   } else if (diffMinutes < 60) {
     return `${diffMinutes}分钟前`;
   } else if (diffHours < 24) {
@@ -94,8 +96,12 @@ export function formatRelativeTime(dateString: string): string {
  * @param decimals 小数位数，默认1位
  * @returns 格式化后的百分比字符串
  */
-export function formatPercentage(numerator: number, denominator: number, decimals: number = 1): string {
-  if (denominator === 0) return '0%';
+export function formatPercentage(
+  numerator: number,
+  denominator: number,
+  decimals: number = 1,
+): string {
+  if (denominator === 0) return "0%";
   const percentage = (numerator / denominator) * 100;
   return `${percentage.toFixed(decimals)}%`;
 }

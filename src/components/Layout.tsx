@@ -12,13 +12,13 @@ interface LayoutProps {
   showBackButton?: boolean;
 }
 
-export default function Layout({ 
-  children, 
-  title, 
-  description, 
-  pageTitle, 
+export default function Layout({
+  children,
+  title,
+  description,
+  pageTitle,
   pageIcon: PageIcon,
-  showBackButton = false 
+  showBackButton = false,
 }: LayoutProps) {
   return (
     <>
@@ -29,13 +29,13 @@ export default function Layout({
       </Head>
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200">
+        <header className="border-b border-slate-200 bg-white shadow-sm">
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center gap-4">
               {showBackButton && (
-                <Link 
+                <Link
                   href="/"
-                  className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
+                  className="flex items-center gap-2 text-slate-600 transition-colors hover:text-slate-800"
                 >
                   <ArrowLeftIcon className="h-5 w-5" />
                   <span>返回首页</span>
@@ -51,7 +51,9 @@ export default function Layout({
                   {pageTitle}
                 </h1>
                 {!showBackButton && (
-                  <span className="text-sm text-slate-500 ml-2">数据展示平台</span>
+                  <span className="ml-2 text-sm text-slate-500">
+                    数据展示平台
+                  </span>
                 )}
               </div>
             </div>
@@ -59,9 +61,7 @@ export default function Layout({
         </header>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-12">
-          {children}
-        </div>
+        <div className="container mx-auto px-4 py-12">{children}</div>
       </main>
     </>
   );

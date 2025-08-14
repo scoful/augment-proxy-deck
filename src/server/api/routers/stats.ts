@@ -91,18 +91,18 @@ export const statsRouter = createTRPCRouter({
     .query(async ({ input }) => {
       try {
         const response = await fetch(
-          `https://proxy.poolhub.me/api/stats?limit=${input.limit}`
+          `https://proxy.poolhub.me/api/stats?limit=${input.limit}`,
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // 验证数据结构
         const validatedData = UserStatsResponseSchema.parse(data);
-        
+
         return validatedData;
       } catch (error) {
         console.error("Failed to fetch user stats:", error);
@@ -111,125 +111,112 @@ export const statsRouter = createTRPCRouter({
     }),
 
   // 获取用户统计摘要（仅摘要信息）
-  getUserStatsSummary: publicProcedure
-    .query(async () => {
-      try {
-        const response = await fetch(
-          "https://proxy.poolhub.me/api/stats?limit=1"
-        );
+  getUserStatsSummary: publicProcedure.query(async () => {
+    try {
+      const response = await fetch(
+        "https://proxy.poolhub.me/api/stats?limit=1",
+      );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const validatedData = UserStatsResponseSchema.parse(data);
-
-        return {
-          summary: validatedData.summary,
-          updatedAt: validatedData.updatedAt,
-        };
-      } catch (error) {
-        console.error("Failed to fetch user stats summary:", error);
-        throw new Error("Failed to fetch user statistics summary");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }),
+
+      const data = await response.json();
+      const validatedData = UserStatsResponseSchema.parse(data);
+
+      return {
+        summary: validatedData.summary,
+        updatedAt: validatedData.updatedAt,
+      };
+    } catch (error) {
+      console.error("Failed to fetch user stats summary:", error);
+      throw new Error("Failed to fetch user statistics summary");
+    }
+  }),
 
   // 获取黑车统计数据
-  getCarStats: publicProcedure
-    .query(async () => {
-      try {
-        const response = await fetch(
-          "https://proxy.poolhub.me/api/car-stats"
-        );
+  getCarStats: publicProcedure.query(async () => {
+    try {
+      const response = await fetch("https://proxy.poolhub.me/api/car-stats");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // 验证数据结构
-        const validatedData = CarStatsResponseSchema.parse(data);
-
-        return validatedData;
-      } catch (error) {
-        console.error("Failed to fetch car stats:", error);
-        throw new Error("Failed to fetch car statistics");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }),
+
+      const data = await response.json();
+
+      // 验证数据结构
+      const validatedData = CarStatsResponseSchema.parse(data);
+
+      return validatedData;
+    } catch (error) {
+      console.error("Failed to fetch car stats:", error);
+      throw new Error("Failed to fetch car statistics");
+    }
+  }),
 
   // 获取黑车统计摘要（仅摘要信息）
-  getCarStatsSummary: publicProcedure
-    .query(async () => {
-      try {
-        const response = await fetch(
-          "https://proxy.poolhub.me/api/car-stats"
-        );
+  getCarStatsSummary: publicProcedure.query(async () => {
+    try {
+      const response = await fetch("https://proxy.poolhub.me/api/car-stats");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const validatedData = CarStatsResponseSchema.parse(data);
-
-        return {
-          summary: validatedData.summary,
-          updatedAt: validatedData.updatedAt,
-        };
-      } catch (error) {
-        console.error("Failed to fetch car stats summary:", error);
-        throw new Error("Failed to fetch car statistics summary");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }),
+
+      const data = await response.json();
+      const validatedData = CarStatsResponseSchema.parse(data);
+
+      return {
+        summary: validatedData.summary,
+        updatedAt: validatedData.updatedAt,
+      };
+    } catch (error) {
+      console.error("Failed to fetch car stats summary:", error);
+      throw new Error("Failed to fetch car statistics summary");
+    }
+  }),
 
   // 获取按小时统计数据
-  getHourlyStats: publicProcedure
-    .query(async () => {
-      try {
-        const response = await fetch(
-          "https://proxy.poolhub.me/api/hourly-stats"
-        );
+  getHourlyStats: publicProcedure.query(async () => {
+    try {
+      const response = await fetch("https://proxy.poolhub.me/api/hourly-stats");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // 验证数据结构
-        const validatedData = HourlyStatsResponseSchema.parse(data);
-
-        return validatedData;
-      } catch (error) {
-        console.error("Failed to fetch hourly stats:", error);
-        throw new Error("Failed to fetch hourly statistics");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }),
+
+      const data = await response.json();
+
+      // 验证数据结构
+      const validatedData = HourlyStatsResponseSchema.parse(data);
+
+      return validatedData;
+    } catch (error) {
+      console.error("Failed to fetch hourly stats:", error);
+      throw new Error("Failed to fetch hourly statistics");
+    }
+  }),
 
   // 获取按小时统计摘要（仅摘要信息）
-  getHourlyStatsSummary: publicProcedure
-    .query(async () => {
-      try {
-        const response = await fetch(
-          "https://proxy.poolhub.me/api/hourly-stats"
-        );
+  getHourlyStatsSummary: publicProcedure.query(async () => {
+    try {
+      const response = await fetch("https://proxy.poolhub.me/api/hourly-stats");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const validatedData = HourlyStatsResponseSchema.parse(data);
-
-        return {
-          summary: validatedData.summary,
-          updatedAt: validatedData.updatedAt,
-        };
-      } catch (error) {
-        console.error("Failed to fetch hourly stats summary:", error);
-        throw new Error("Failed to fetch hourly statistics summary");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }),
+
+      const data = await response.json();
+      const validatedData = HourlyStatsResponseSchema.parse(data);
+
+      return {
+        summary: validatedData.summary,
+        updatedAt: validatedData.updatedAt,
+      };
+    } catch (error) {
+      console.error("Failed to fetch hourly stats summary:", error);
+      throw new Error("Failed to fetch hourly statistics summary");
+    }
+  }),
 });

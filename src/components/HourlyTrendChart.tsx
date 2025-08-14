@@ -1,14 +1,26 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { type HourlyData } from '@/server/api/routers/stats';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { type HourlyData } from "@/server/api/routers/stats";
 
 interface HourlyTrendChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
 }
 
-export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTrendChartProps) {
+export default function HourlyTrendChart({
+  todayData,
+  yesterdayData,
+}: HourlyTrendChartProps) {
   // 获取当前时间
   const currentHour = new Date().getHours();
 
@@ -16,10 +28,10 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
   const chartData = todayData.map((today, index) => {
     const yesterday = yesterdayData[index];
     const dataHour = new Date(today.hour).getHours();
-    const hour = new Date(today.hour).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    const hour = new Date(today.hour).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
 
     // 判断是否为未来时间
@@ -34,8 +46,8 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
   });
 
   // 分割数据为过去和未来
-  const pastData = chartData.filter(d => !d.isFuture);
-  const futureData = chartData.filter(d => d.isFuture);
+  const pastData = chartData.filter((d) => !d.isFuture);
+  const futureData = chartData.filter((d) => d.isFuture);
 
   // 如果有未来数据，添加连接点
   const allData = chartData;
@@ -44,7 +56,7 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg">
+        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
@@ -58,7 +70,7 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
   };
 
   return (
-    <div className="w-full h-80">
+    <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={allData}
@@ -105,7 +117,7 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
                 />
               );
             }}
-            activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+            activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
             strokeDasharray={(entry: any, index: number) => {
               const dataPoint = allData[index];
               return dataPoint?.isFuture ? "5 5" : "0";
@@ -123,8 +135,8 @@ export default function HourlyTrendChart({ todayData, yesterdayData }: HourlyTre
             stroke="#94a3b8"
             strokeWidth={2}
             strokeDasharray="5 5"
-            dot={{ fill: '#94a3b8', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: '#94a3b8', strokeWidth: 2 }}
+            dot={{ fill: "#94a3b8", strokeWidth: 2, r: 4 }}
+            activeDot={{ r: 6, stroke: "#94a3b8", strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

@@ -1,21 +1,33 @@
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { type HourlyData } from '@/server/api/routers/stats';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { type HourlyData } from "@/server/api/routers/stats";
 
 interface HourlyBarChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
 }
 
-export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarChartProps) {
+export default function HourlyBarChart({
+  todayData,
+  yesterdayData,
+}: HourlyBarChartProps) {
   // 合并今日和昨日数据，计算差值
   const chartData = todayData.map((today, index) => {
     const yesterday = yesterdayData[index];
-    const hour = new Date(today.hour).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    const hour = new Date(today.hour).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
 
     const todayCount = today.count;
@@ -27,7 +39,10 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
       今日请求: todayCount,
       昨日请求: yesterdayCount,
       差值: difference,
-      增长率: yesterdayCount > 0 ? ((difference / yesterdayCount) * 100).toFixed(1) : '0',
+      增长率:
+        yesterdayCount > 0
+          ? ((difference / yesterdayCount) * 100).toFixed(1)
+          : "0",
     };
   });
 
@@ -36,7 +51,7 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
     if (active && payload && payload.length) {
       const data = payload[0]?.payload;
       return (
-        <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg">
+        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
@@ -46,11 +61,10 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
           {data && (
             <>
               <p className="text-sm text-slate-600">
-                差值: {data.差值 > 0 ? '+' : ''}{data.差值.toLocaleString()}
+                差值: {data.差值 > 0 ? "+" : ""}
+                {data.差值.toLocaleString()}
               </p>
-              <p className="text-sm text-slate-600">
-                增长率: {data.增长率}%
-              </p>
+              <p className="text-sm text-slate-600">增长率: {data.增长率}%</p>
             </>
           )}
         </div>
@@ -60,7 +74,7 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
   };
 
   return (
-    <div className="w-full h-80">
+    <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
@@ -72,13 +86,13 @@ export default function HourlyBarChart({ todayData, yesterdayData }: HourlyBarCh
           }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-          <XAxis 
-            dataKey="hour" 
+          <XAxis
+            dataKey="hour"
             stroke="#64748b"
             fontSize={12}
             interval="preserveStartEnd"
           />
-          <YAxis 
+          <YAxis
             stroke="#64748b"
             fontSize={12}
             tickFormatter={(value) => value.toLocaleString()}
