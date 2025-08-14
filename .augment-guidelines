@@ -1,0 +1,205 @@
+# Project Quick Reference Guide
+
+## Key Principles
+1. **Type Safety**: All API calls have full type inference
+2. **Access Control**: Use `protectedProcedure` to secure authenticated operations
+3. **Input Validation**: Validate all user input with Zod
+4. **Error Handling**: Unified error handling mechanism
+5. **Performance Optimization**: Proper use of React Query caching
+6. **Code Consistency**: Follow ESLint + Prettier standards
+
+## Technology Stack Overview
+- **Framework**: Next.js 15 (Primarily Pages Router)
+- **Language**: TypeScript (Strict Mode)
+- **API**: tRPC (Type-safe)
+- **Database**: Prisma + PostgreSQL
+- **Authentication**: NextAuth.js v5
+- **Styling**: Tailwind CSS v4
+- **Package Management**: pnpm
+
+## Core Specification Highlights
+
+### 1. File Structure
+```
+src/
+├── app/                  # Next.js App Router
+│   └── api/              # App Router API routes
+├── pages/                # Next.js Pages Router (Main routing)
+│   ├── _app.tsx          # App entry point
+│   ├── index.tsx         # Home page
+│   └── api/              # Pages Router API routes
+├── server/               # Server-side code
+│   ├── api/              # tRPC API definitions
+│   │   ├── root.ts       # API root route
+│   │   ├── trpc.ts       # tRPC configuration
+│   │   └── routers/      # API route modules
+│   ├── auth/             # Authentication configuration
+│   └── db.ts             # Database connection
+├── styles/               # Global styles
+├── utils/                # Utility functions
+└── env.js                # Environment variable configuration
+```
+
+### 2. Naming Conventions
+- **Components**: `PascalCase` (UserProfile.tsx)
+- **Pages**: `camelCase` (index.tsx, userProfile.tsx)
+- **Utilities**: `camelCase` (api.ts, formatDate.ts)
+- **Types**: `PascalCase` + interface/type
+
+### 3. TypeScript Essentials
+```typescript
+// ✅ Use type-only imports
+import { type NextPage } from "next";
+
+// ✅ Use path aliases
+import { api } from "@/utils/api";
+
+// ✅ Strict type definitions
+interface UserProps {
+  user: User;
+  onEdit?: (id: string) => void;
+}
+```
+
+### 4. React Component Patterns
+```typescript
+// ✅ Function declaration + types
+export default function HomePage() {
+  const { data: sessionData } = useSession();
+  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+
+  return (
+    <>
+      <Head>
+        <title>Page Title | Smart GTD</title>
+      </Head>
+      <main className="container mx-auto px-4 py-8">
+        {/* Content */}
+      </main>
+    </>
+  );
+}
+```
+
+### 5. tRPC API Patterns
+```typescript
+export const exampleRouter = createTRPCRouter({
+  // Public query
+  getAll: publicProcedure
+    .input(z.object({ limit: z.number().default(10) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.example.findMany({
+        take: input.limit,
+        orderBy: { createdAt: "desc" },
+      });
+    }),
+
+  // Protected operation
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1).max(100),
+      content: z.string().min(1)
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.example.create({
+        data: {
+          ...input,
+          createdById: ctx.session.user.id,
+        },
+      });
+    }),
+});
+```
+
+### 6. Prisma Model Patterns
+```prisma
+model Example {
+    id        String   @id @default(cuid())
+    title     String
+    content   String
+    status    Status   @default(DRAFT)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+
+    @@index([createdById])
+    @@index([status])
+}
+```
+
+### 7. Custom Hook Patterns
+```typescript
+export function useExampleData() {
+  const utils = api.useUtils();
+
+  const { data, isLoading } = api.example.getAll.useQuery();
+
+  const createMutation = api.example.create.useMutation({
+    onSuccess: () => {
+      void utils.example.getAll.invalidate();
+    },
+  });
+
+  return {
+    data,
+    isLoading,
+    create: createMutation.mutate,
+    isCreating: createMutation.isPending,
+  };
+}
+```
+
+### 8. Error Handling
+```typescript
+// Client-side
+function handleError(error: TRPCClientError<AppRouter>) {
+  if (error.data?.code === "UNAUTHORIZED") {
+    void signIn();
+    return;
+  }
+  toast.error(error.message || "Operation failed");
+}
+
+// Server-side
+if (!record) {
+  throw new TRPCError({
+    code: "NOT_FOUND",
+    message: "Record not found",
+  });
+}
+```
+
+### 9. Tailwind CSS Standards
+```typescript
+// ✅ Group by functionality, mobile-first
+<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-900 to-gray-900">
+  <button className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 sm:px-6 sm:py-3">
+    Button
+  </button>
+</div>
+```
+
+### 10. Environment Variables
+```typescript
+// src/env.js
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.string().url(),
+    GITHUB_ID: z.string(),
+    GITHUB_SECRET: z.string(),
+  },
+  client: {
+    // NEXT_PUBLIC_VAR: z.string(),
+  },
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    GITHUB_ID: process.env.GITHUB_ID,
+    GITHUB_SECRET: process.env.GITHUB_SECRET,
+  },
+});
+```
+
+---
