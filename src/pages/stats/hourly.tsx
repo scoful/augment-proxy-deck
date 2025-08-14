@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { ArrowLeftIcon, ClockIcon, ChartBarIcon, ArrowUpIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ClockIcon, ChartBarIcon, ArrowUpIcon, CalendarDaysIcon, ArrowTrendingUpIcon, UserGroupIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber, formatDateTime } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
@@ -9,6 +9,8 @@ import HourlyBarChart from "@/components/HourlyBarChart";
 import HourlyAreaChart from "@/components/HourlyAreaChart";
 import GrowthRateChart from "@/components/GrowthRateChart";
 import GrowthRadarChart from "@/components/GrowthRadarChart";
+import CumulativeChart from "@/components/CumulativeChart";
+import DensityHeatmap from "@/components/DensityHeatmap";
 import { useState, useEffect } from "react";
 
 export default function HourlyStats() {
@@ -132,7 +134,7 @@ export default function HourlyStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(hourlyStats.summary.todayTotal)}</p>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <ClockIcon className="h-6 w-6 text-blue-600" />
+                      <ArrowTrendingUpIcon className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
                   <div className="mt-4 space-y-1">
@@ -175,7 +177,7 @@ export default function HourlyStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(hourlyStats.summary.todayUsers)}</p>
                     </div>
                     <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <ChartBarIcon className="h-6 w-6 text-green-600" />
+                      <UserGroupIcon className="h-6 w-6 text-green-600" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -193,7 +195,7 @@ export default function HourlyStats() {
                       <p className="text-3xl font-bold text-slate-800">{formatNumber(hourlyStats.summary.yesterdayUsers)}</p>
                     </div>
                     <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <ChartBarIcon className="h-6 w-6 text-orange-600" />
+                      <UsersIcon className="h-6 w-6 text-orange-600" />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -252,6 +254,30 @@ export default function HourlyStats() {
                   <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4">24小时增长率雷达</h3>
                     <GrowthRadarChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+                </div>
+
+                {/* 第四行：累积请求对比 */}
+                <div className="grid grid-cols-1 gap-8">
+                  {/* 累积请求对比图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">累积请求对比</h3>
+                    <CumulativeChart
+                      todayData={hourlyStats.today}
+                      yesterdayData={hourlyStats.yesterday}
+                    />
+                  </div>
+                </div>
+
+                {/* 第五行：请求密度热力图 */}
+                <div className="grid grid-cols-1 gap-8">
+                  {/* 请求密度热力图 */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">请求密度热力图</h3>
+                    <DensityHeatmap
                       todayData={hourlyStats.today}
                       yesterdayData={hourlyStats.yesterday}
                     />
