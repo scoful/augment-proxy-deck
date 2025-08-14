@@ -86,3 +86,16 @@ export function formatRelativeTime(dateString: string): string {
     return formatDateTime(dateString);
   }
 }
+
+/**
+ * 格式化百分比
+ * @param numerator 分子
+ * @param denominator 分母
+ * @param decimals 小数位数，默认1位
+ * @returns 格式化后的百分比字符串
+ */
+export function formatPercentage(numerator: number, denominator: number, decimals: number = 1): string {
+  if (denominator === 0) return '0%';
+  const percentage = (numerator / denominator) * 100;
+  return `${percentage.toFixed(decimals)}%`;
+}

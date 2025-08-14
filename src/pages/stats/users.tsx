@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
-import { formatDisplayName, formatNumber, formatDateTime } from "@/utils/formatters";
+import { formatDisplayName, formatNumber, formatDateTime, formatPercentage } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
 import { useState } from "react";
 
@@ -70,7 +70,25 @@ export default function UserStats() {
           {userStats && (
             <>
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+                {/* 用户总数 */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">用户总数</p>
+                      <p className="text-3xl font-bold text-slate-800">{formatNumber(userStats.allUsers.length)}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <UserGroupIcon className="h-6 w-6 text-indigo-600" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-xs text-slate-500">
+                      24h活跃率: {formatPercentage(userStats.summary.totalUsers24Hour, userStats.allUsers.length)}
+                    </span>
+                  </div>
+                </div>
+                {/* 1小时活跃用户 */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between">
                     <div>
@@ -86,6 +104,7 @@ export default function UserStats() {
                   </div>
                 </div>
 
+                {/* 24小时活跃用户 */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between">
                     <div>
@@ -101,6 +120,7 @@ export default function UserStats() {
                   </div>
                 </div>
 
+                {/* 1小时总请求 */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between">
                     <div>
@@ -116,6 +136,7 @@ export default function UserStats() {
                   </div>
                 </div>
 
+                {/* 24小时总请求 */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between">
                     <div>
