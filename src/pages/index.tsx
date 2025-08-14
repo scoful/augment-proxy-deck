@@ -19,6 +19,15 @@ export default function Home() {
       ...QUERY_CONFIG,
     }
   );
+
+  const { data: carStatsSummary } = api.stats.getCarStatsSummary.useQuery(
+    undefined,
+    {
+      // 启用轮询，每60秒更新一次数据
+      refetchInterval: POLLING_INTERVALS.HOME_SUMMARY,
+      ...QUERY_CONFIG,
+    }
+  );
   const dataModules = [
     {
       title: "用户统计",
@@ -38,7 +47,15 @@ export default function Home() {
     },
     {
       title: "黑车统计",
-      description: "监控和分析黑车相关数据统计",
+      description: carStatsSummary
+        ? (
+            <>
+              车辆总数: {formatNumber(carStatsSummary.summary.totalCars)} | 活跃: {formatNumber(carStatsSummary.summary.activeCars)}
+              <br />
+              24h请求: {formatNumber(carStatsSummary.summary.totalCount24Hour)} | 用户: {formatNumber(carStatsSummary.summary.totalUsers)}
+            </>
+          )
+        : "监控和分析黑车相关数据统计",
       icon: TruckIcon,
       href: "/stats/vehicles",
       color: "from-red-500 to-red-600",
