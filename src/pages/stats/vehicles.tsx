@@ -16,7 +16,7 @@ export default function VehicleStats() {
   const { data: carStats, isLoading, error, isFetching } = api.stats.getCarStats.useQuery(
     undefined,
     {
-      // 启用轮询，每30秒更新一次数据
+      // 启用轮询，每60秒更新一次数据
       refetchInterval: POLLING_INTERVALS.VEHICLE_STATS,
       ...QUERY_CONFIG,
     }
@@ -186,7 +186,7 @@ export default function VehicleStats() {
                   </span>
                   <div className="flex items-center gap-1 text-xs text-slate-400">
                     <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span>每30秒自动更新</span>
+                    <span>每60秒自动更新</span>
                   </div>
                 </div>
               </div>

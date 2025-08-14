@@ -10,8 +10,8 @@ export const POLLING_INTERVALS = {
   // 首页摘要 - 60秒更新一次
   HOME_SUMMARY: 60 * 1000,
   
-  // 黑车统计页面 - 30秒更新一次
-  VEHICLE_STATS: 30 * 1000,
+  // 黑车统计页面 - 60秒更新一次
+  VEHICLE_STATS: 60 * 1000,
   
   // 按小时统计页面 - 60秒更新一次（数据变化较慢）
   HOURLY_STATS: 60 * 1000,
