@@ -23,7 +23,13 @@ export default function Home() {
     {
       title: "用户统计",
       description: userStatsSummary
-        ? `24小时活跃用户: ${formatNumber(userStatsSummary.summary.totalUsers24Hour)} | 总请求: ${formatNumber(userStatsSummary.summary.totalCount24Hour)}`
+        ? (
+            <>
+              1h活跃: {formatNumber(userStatsSummary.summary.totalUsers1Hour)} | 1h请求: {formatNumber(userStatsSummary.summary.totalCount1Hour)}
+              <br />
+              24h活跃: {formatNumber(userStatsSummary.summary.totalUsers24Hour)} | 24h请求: {formatNumber(userStatsSummary.summary.totalCount24Hour)}
+            </>
+          )
         : "查看用户注册、活跃度等相关统计数据",
       icon: UserGroupIcon,
       href: "/stats/users",
@@ -79,9 +85,9 @@ export default function Home() {
                   <IconComponent className="h-12 w-12 text-white/90" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">{module.title}</h3>
-                <p className="text-white/90 leading-relaxed text-sm">
+                <div className="text-white/90 leading-relaxed text-sm">
                   {module.description}
-                </p>
+                </div>
               </div>
 
               {/* Decorative background pattern */}

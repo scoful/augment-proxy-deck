@@ -1,13 +1,18 @@
 import Head from "next/head";
 import Link from "next/link";
-import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatDisplayName, formatNumber, formatDateTime, formatPercentage } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
-import { useState } from "react";
+
+import { useState, useEffect, useRef } from "react";
 
 export default function UserStats() {
-  const [limit, setLimit] = useState(100);
+  const [limit, setLimit] = useState(200);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const { data: userStats, isLoading, error, isFetching } = api.stats.getUserStats.useQuery(
     { limit },
     {
@@ -16,6 +21,63 @@ export default function UserStats() {
       ...QUERY_CONFIG,
     }
   );
+
+  // 监听滚动事件，显示/隐藏回到顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 监听快捷键，Ctrl+F 聚焦搜索框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // 回到顶部函数
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 过滤用户数据
+  const filteredUsers = userStats?.allUsers.filter(user => {
+    if (!searchQuery.trim()) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      user.displayName.toLowerCase().includes(query) ||
+      user.userId.toLowerCase().includes(query) ||
+      user.firstName.toLowerCase().includes(query) ||
+      user.lastName.toLowerCase().includes(query)
+    );
+  }) || [];
+
+  // 高亮搜索关键词
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-200 px-1 rounded">
+          {part}
+        </mark>
+      ) : part
+    );
+  };
   return (
     <>
       <Head>
@@ -69,6 +131,19 @@ export default function UserStats() {
           {/* Data Display */}
           {userStats && (
             <>
+              {/* Update Time Info */}
+              <div className="mb-6 text-center">
+                <div className="flex items-center justify-center gap-4">
+                  <span className="text-sm text-slate-500">
+                    数据更新时间: {formatDateTime(userStats.updatedAt)}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <span>每30秒自动更新</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
                 {/* 用户总数 */}
@@ -153,18 +228,7 @@ export default function UserStats() {
                 </div>
               </div>
 
-              {/* Update Time */}
-              <div className="mb-6 text-center">
-                <div className="flex items-center justify-center gap-4">
-                  <span className="text-sm text-slate-500">
-                    数据更新时间: {formatDateTime(userStats.updatedAt)}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-slate-400">
-                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span>每30秒自动更新</span>
-                  </div>
-                </div>
-              </div>
+
 
               {/* Top Users Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -243,22 +307,60 @@ export default function UserStats() {
 
               {/* All Users Table */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-800">所有用户详情</h3>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="limit" className="text-sm text-slate-600">显示条数:</label>
-                    <select
-                      id="limit"
-                      value={limit}
-                      onChange={(e) => setLimit(Number(e.target.value))}
-                      className="border border-slate-300 rounded px-2 py-1 text-sm"
-                    >
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                      <option value={200}>200</option>
-                      <option value={500}>500</option>
-                    </select>
+                <div className="px-6 py-4 border-b border-slate-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-800">
+                      所有用户详情
+                      {searchQuery && (
+                        <span className="ml-2 text-sm text-slate-500">
+                          (找到 {filteredUsers.length} 个结果)
+                        </span>
+                      )}
+                    </h3>
+                    <div className="flex items-center gap-4">
+                      {/* 搜索框 */}
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="search" className="text-sm text-slate-600">搜索:</label>
+                        <input
+                          ref={searchInputRef}
+                          id="search"
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="用户名、ID、姓名..."
+                          className="border border-slate-300 rounded px-3 py-1 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery("")}
+                            className="text-slate-400 hover:text-slate-600 text-sm"
+                            title="清除搜索"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 显示条数 */}
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="limit" className="text-sm text-slate-600">显示条数:</label>
+                        <select
+                          id="limit"
+                          value={limit}
+                          onChange={(e) => setLimit(Number(e.target.value))}
+                          className="border border-slate-300 rounded px-2 py-1 text-sm"
+                        >
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                          <option value={200}>200</option>
+                          <option value={500}>500</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
+                  <p className="text-xs text-slate-500">
+                    💡 使用搜索功能快速查找特定用户，支持用户名、ID、姓名搜索 | 快捷键: Ctrl+F (Mac: Cmd+F)
+                  </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -282,51 +384,59 @@ export default function UserStats() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
-                      {userStats.allUsers.map((user, index) => (
-                        <tr key={user.userId} className="hover:bg-slate-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-slate-900" title={user.displayName}>
-                                {formatDisplayName(user.displayName)}
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                ID: {user.userId}
-                              </div>
-                              {(user.firstName || user.lastName) && (
-                                <div className="text-xs text-slate-400">
-                                  {user.firstName} {user.lastName}
+                      {filteredUsers.length > 0 ? (
+                        filteredUsers.map((user, index) => (
+                          <tr key={user.userId} className="hover:bg-slate-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-slate-900" title={user.displayName}>
+                                  {highlightText(formatDisplayName(user.displayName), searchQuery)}
                                 </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              user.count1Hour > 0
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}>
-                              {user.count1Hour}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                            <span className="font-semibold">{user.count24Hour}</span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                            {user.rank1Hour > 0 ? `#${user.rank1Hour}` : '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              user.rank24Hour <= 3
-                                ? "bg-yellow-100 text-yellow-800"
-                                : user.rank24Hour <= 10
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}>
-                              #{user.rank24Hour}
-                            </span>
+                                <div className="text-sm text-slate-500">
+                                  ID: {highlightText(user.userId, searchQuery)}
+                                </div>
+                                {(user.firstName || user.lastName) && (
+                                  <div className="text-xs text-slate-400">
+                                    {highlightText(`${user.firstName} ${user.lastName}`, searchQuery)}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.count1Hour > 0
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}>
+                                {user.count1Hour}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                              <span className="font-semibold">{user.count24Hour}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                              {user.rank1Hour > 0 ? `#${user.rank1Hour}` : '-'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.rank24Hour <= 3
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : user.rank24Hour <= 10
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}>
+                                #{user.rank24Hour}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                            {searchQuery ? `没有找到包含 "${searchQuery}" 的用户` : '暂无数据'}
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -334,6 +444,17 @@ export default function UserStats() {
             </>
           )}
         </div>
+
+        {/* 回到顶部按钮 */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-30"
+            aria-label="回到顶部"
+          >
+            <ArrowUpIcon className="h-5 w-5" />
+          </button>
+        )}
       </main>
     </>
   );
