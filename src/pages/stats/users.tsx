@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, UserGroupIcon, ClockIcon, TrophyIcon, ArrowUpIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatDisplayName, formatNumber, formatDateTime, formatPercentage } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
@@ -11,6 +11,8 @@ export default function UserStats() {
   const [limit, setLimit] = useState(200);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<keyof UserStats | null>('count24Hour');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { data: userStats, isLoading, error, isFetching } = api.stats.getUserStats.useQuery(
@@ -50,18 +52,47 @@ export default function UserStats() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 过滤用户数据
-  const filteredUsers = userStats?.allUsers.filter(user => {
-    if (!searchQuery.trim()) return true;
+  // 排序功能
+  const handleSort = (field: keyof UserStats) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
 
-    const query = searchQuery.toLowerCase();
-    return (
-      user.displayName.toLowerCase().includes(query) ||
-      user.userId.toLowerCase().includes(query) ||
-      user.firstName.toLowerCase().includes(query) ||
-      user.lastName.toLowerCase().includes(query)
-    );
-  }) || [];
+  // 过滤和排序用户数据
+  const filteredUsers = userStats?.allUsers
+    .filter(user => {
+      if (!searchQuery.trim()) return true;
+
+      const query = searchQuery.toLowerCase();
+      return (
+        user.displayName.toLowerCase().includes(query) ||
+        user.userId.toLowerCase().includes(query) ||
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => {
+      if (!sortField) return 0;
+
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    }) || [];
 
   // 高亮搜索关键词
   const highlightText = (text: string, query: string) => {
@@ -78,6 +109,23 @@ export default function UserStats() {
       ) : part
     );
   };
+
+  // 可排序表头组件
+  const SortableHeader = ({ field, children }: { field: keyof UserStats; children: React.ReactNode }) => (
+    <th
+      className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          sortDirection === 'asc' ?
+            <ChevronUpIcon className="h-3 w-3" /> :
+            <ChevronDownIcon className="h-3 w-3" />
+        )}
+      </div>
+    </th>
+  );
   return (
     <>
       <Head>
@@ -349,21 +397,11 @@ export default function UserStats() {
                   <table className="w-full">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          用户信息
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          1小时请求数
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          24小时请求数
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          1小时排名
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          24小时排名
-                        </th>
+                        <SortableHeader field="displayName">用户信息</SortableHeader>
+                        <SortableHeader field="count1Hour">1小时请求数</SortableHeader>
+                        <SortableHeader field="count24Hour">24小时请求数</SortableHeader>
+                        <SortableHeader field="rank1Hour">1小时排名</SortableHeader>
+                        <SortableHeader field="rank24Hour">24小时排名</SortableHeader>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
