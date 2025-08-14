@@ -1,19 +1,68 @@
-# Create T3 App
+# Augment Proxy Deck
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+数据展示平台 - 基于 [T3 Stack](https://create.t3.gg/) 构建的数据统计和分析平台。
 
-## What's next? How do I make an app with this?
+## 项目概述
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Augment Proxy Deck 是一个数据展示和统计分析平台，提供以下功能模块：
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- **用户统计**: 查看用户注册、活跃度等相关统计数据
+- **黑车统计**: 监控和分析黑车相关数据统计
+- **按小时统计**: 查看按小时维度的各项数据统计
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## 项目结构
+
+```
+src/
+├── components/          # 可复用组件
+│   └── Layout.tsx      # 页面布局组件
+├── pages/              # 页面路由
+│   ├── index.tsx       # 首页 - 数据模块入口
+│   └── stats/          # 统计页面
+│       ├── users.tsx   # 用户统计页面
+│       ├── vehicles.tsx # 黑车统计页面
+│       └── hourly.tsx  # 按小时统计页面
+├── server/             # 服务端代码
+├── styles/             # 样式文件
+└── utils/              # 工具函数
+```
+
+## 技术栈
+
+- **框架**: [Next.js 15](https://nextjs.org) - React 全栈框架
+- **语言**: TypeScript - 类型安全的 JavaScript
+- **API**: [tRPC](https://trpc.io) - 端到端类型安全的 API
+- **样式**: [Tailwind CSS v4](https://tailwindcss.com) - 实用优先的 CSS 框架
+- **图标**: [Heroicons](https://heroicons.com) - 精美的 SVG 图标
+- **状态管理**: [TanStack Query](https://tanstack.com/query) - 数据获取和缓存
+- **包管理**: pnpm - 快速、节省磁盘空间的包管理器
+
+## 开发指南
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 启动开发服务器
+
+```bash
+pnpm dev
+```
+
+### 构建项目
+
+```bash
+pnpm build
+```
+
+### 代码检查
+
+```bash
+pnpm lint
+pnpm typecheck
+```
 
 ## Learn More
 
