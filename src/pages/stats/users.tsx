@@ -314,19 +314,17 @@ export default function UserStats() {
                         className="flex items-center justify-between rounded-lg bg-slate-50 p-3"
                       >
                         <div className="flex items-center gap-3">
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                              index === 0
-                                ? "bg-yellow-100 text-yellow-800"
-                                : index === 1
-                                  ? "bg-gray-100 text-gray-800"
-                                  : index === 2
-                                    ? "bg-orange-100 text-orange-800"
-                                    : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {index + 1}
-                          </div>
+                          {index < 3 ? (
+                            <div className="flex h-8 w-8 items-center justify-center text-xl">
+                              {index === 0 && "🥇"}
+                              {index === 1 && "🥈"}
+                              {index === 2 && "🥉"}
+                            </div>
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-800">
+                              {index + 1}
+                            </div>
+                          )}
                           <div>
                             <p
                               className="font-medium text-slate-800"
@@ -369,19 +367,17 @@ export default function UserStats() {
                           className="flex items-center justify-between rounded-lg bg-slate-50 p-3"
                         >
                           <div className="flex items-center gap-3">
-                            <div
-                              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                                index === 0
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : index === 1
-                                    ? "bg-gray-100 text-gray-800"
-                                    : index === 2
-                                      ? "bg-orange-100 text-orange-800"
-                                      : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {index + 1}
-                            </div>
+                            {index < 3 ? (
+                              <div className="flex h-8 w-8 items-center justify-center text-xl">
+                                {index === 0 && "🥇"}
+                                {index === 1 && "🥈"}
+                                {index === 2 && "🥉"}
+                              </div>
+                            ) : (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-800">
+                                {index + 1}
+                              </div>
+                            )}
                             <div>
                               <p
                                 className="font-medium text-slate-800"
