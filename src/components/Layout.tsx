@@ -1,7 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeftIcon, ChartBarIcon } from "@heroicons/react/24/outline";
 import { type ReactNode } from "react";
+import { APP_CONFIG } from "@/config/version.js";
 
 interface LayoutProps {
   children: ReactNode;
@@ -45,15 +47,24 @@ export default function Layout({
                 {showBackButton ? (
                   <PageIcon className="h-8 w-8 text-blue-600" />
                 ) : (
-                  <ChartBarIcon className="h-8 w-8 text-blue-600" />
+                  <Image
+                    src="/favicon.ico"
+                    alt="Augment Proxy Deck"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8"
+                  />
                 )}
                 <h1 className="text-2xl font-bold text-slate-800">
                   {pageTitle}
                 </h1>
                 {!showBackButton && (
-                  <span className="ml-2 text-sm text-slate-500">
-                    数据展示平台
-                  </span>
+                  <div className="ml-2 flex items-center gap-2">
+                    <span className="text-sm text-slate-500">数据展示平台</span>
+                    <span className="text-xs text-slate-400">
+                      {APP_CONFIG.version}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
