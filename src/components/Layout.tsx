@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeftIcon, ChartBarIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { type ReactNode } from "react";
 import { APP_CONFIG } from "@/config/version.js";
 

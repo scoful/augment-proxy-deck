@@ -78,7 +78,10 @@ export default function CumulativeChart({
 
   // 基于当前进度预测今日最终结果
   const progressRatio = (currentHour + 1) / 24;
-  const predictedTodayTotal = Math.round(todayCurrentTotal / progressRatio);
+  const predictedTodayTotal =
+    todayCurrentTotal === 0 || progressRatio < 0.05 // 避免在早期时间预测过大
+      ? todayCurrentTotal
+      : Math.round(todayCurrentTotal / progressRatio);
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
@@ -134,12 +137,16 @@ export default function CumulativeChart({
                 : "text-red-600"
             }
           >
-            {predictedTodayTotal > yesterdayFinalTotal ? "+" : ""}
-            {(
-              ((predictedTodayTotal - yesterdayFinalTotal) /
-                yesterdayFinalTotal) *
-              100
-            ).toFixed(1)}
+            {yesterdayFinalTotal === 0
+              ? predictedTodayTotal > 0
+                ? "+∞"
+                : "0"
+              : (predictedTodayTotal > yesterdayFinalTotal ? "+" : "") +
+                (
+                  ((predictedTodayTotal - yesterdayFinalTotal) /
+                    yesterdayFinalTotal) *
+                  100
+                ).toFixed(1)}
             %
           </div>
         </div>

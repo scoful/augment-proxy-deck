@@ -493,7 +493,7 @@ export default function UserStats() {
                     </thead>
                     <tbody className="divide-y divide-slate-200 bg-white">
                       {filteredUsers.length > 0 ? (
-                        filteredUsers.map((user, index) => (
+                        filteredUsers.map((user) => (
                           <tr key={user.userId} className="hover:bg-slate-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>

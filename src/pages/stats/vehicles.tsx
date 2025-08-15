@@ -385,7 +385,7 @@ export default function VehicleStats() {
                     </thead>
                     <tbody className="divide-y divide-slate-200 bg-white">
                       {filteredAndSortedCars.length > 0 ? (
-                        filteredAndSortedCars.map((car, index) => (
+                        filteredAndSortedCars.map((car) => (
                           <tr key={car.carId} className="hover:bg-slate-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="font-mono text-sm font-medium text-slate-900">

@@ -62,6 +62,9 @@ export default function HourlyStats() {
 
   // 计算活跃度等级
   const getActivityLevel = (count: number, maxCount: number) => {
+    if (maxCount === 0 || count === 0) {
+      return { level: "无", color: "bg-gray-100 text-gray-800" };
+    }
     const ratio = count / maxCount;
     if (ratio >= 0.7) return { level: "高", color: "bg-red-100 text-red-800" };
     if (ratio >= 0.4)
@@ -154,20 +157,27 @@ export default function HourlyStats() {
                   </div>
                   <div className="mt-4 space-y-1">
                     <div className="text-xs text-slate-500">
-                      今日峰值: {formatNumber(Math.max(...hourlyStats.today.map((d) => d.count)))}
+                      今日峰值:{" "}
+                      {formatNumber(
+                        Math.max(0, ...hourlyStats.today.map((d) => d.count)),
+                      )}
                     </div>
                     <div className="text-xs text-slate-500">
                       vs 昨日总数:{" "}
-                      {hourlyStats.summary.todayTotal >
-                      hourlyStats.summary.yesterdayTotal
-                        ? "+"
-                        : ""}
-                      {(
-                        ((hourlyStats.summary.todayTotal -
-                          hourlyStats.summary.yesterdayTotal) /
-                          hourlyStats.summary.yesterdayTotal) *
-                        100
-                      ).toFixed(1)}
+                      {hourlyStats.summary.yesterdayTotal === 0
+                        ? hourlyStats.summary.todayTotal > 0
+                          ? "+∞"
+                          : "0"
+                        : (hourlyStats.summary.todayTotal >
+                          hourlyStats.summary.yesterdayTotal
+                            ? "+"
+                            : "") +
+                          (
+                            ((hourlyStats.summary.todayTotal -
+                              hourlyStats.summary.yesterdayTotal) /
+                              hourlyStats.summary.yesterdayTotal) *
+                            100
+                          ).toFixed(1)}
                       %
                     </div>
                     <div className="text-xs text-slate-500">
@@ -180,14 +190,16 @@ export default function HourlyStats() {
                         const yesterdayUpToSameTime = hourlyStats.yesterday
                           .slice(0, currentHour + 1)
                           .reduce((sum, item) => sum + item.count, 0);
-                        const realTimeGrowth =
-                          yesterdayUpToSameTime > 0
-                            ? (
-                                ((todayUpToNow - yesterdayUpToSameTime) /
-                                  yesterdayUpToSameTime) *
-                                100
-                              ).toFixed(1)
-                            : "0";
+
+                        if (yesterdayUpToSameTime === 0) {
+                          return todayUpToNow > 0 ? "+∞%" : "0%";
+                        }
+
+                        const realTimeGrowth = (
+                          ((todayUpToNow - yesterdayUpToSameTime) /
+                            yesterdayUpToSameTime) *
+                          100
+                        ).toFixed(1);
                         return `${todayUpToNow > yesterdayUpToSameTime ? "+" : ""}${realTimeGrowth}%`;
                       })()}
                     </div>
@@ -209,7 +221,13 @@ export default function HourlyStats() {
                   </div>
                   <div className="mt-4 space-y-1">
                     <div className="text-xs text-slate-500">
-                      昨日峰值: {formatNumber(Math.max(...hourlyStats.yesterday.map((d) => d.count)))}
+                      昨日峰值:{" "}
+                      {formatNumber(
+                        Math.max(
+                          0,
+                          ...hourlyStats.yesterday.map((d) => d.count),
+                        ),
+                      )}
                     </div>
                     <div className="text-xs text-slate-500">对比基准</div>
                   </div>
@@ -383,6 +401,7 @@ export default function HourlyStats() {
                       <tbody className="divide-y divide-slate-200 bg-white">
                         {hourlyStats.today.map((data, index) => {
                           const maxCount = Math.max(
+                            0,
                             ...hourlyStats.today.map((d) => d.count),
                           );
                           const activity = getActivityLevel(
@@ -437,6 +456,7 @@ export default function HourlyStats() {
                       <tbody className="divide-y divide-slate-200 bg-white">
                         {hourlyStats.yesterday.map((data, index) => {
                           const maxCount = Math.max(
+                            0,
                             ...hourlyStats.yesterday.map((d) => d.count),
                           );
                           const activity = getActivityLevel(
