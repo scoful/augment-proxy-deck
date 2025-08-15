@@ -154,6 +154,9 @@ export default function HourlyStats() {
                   </div>
                   <div className="mt-4 space-y-1">
                     <div className="text-xs text-slate-500">
+                      今日峰值: {formatNumber(Math.max(...hourlyStats.today.map((d) => d.count)))}
+                    </div>
+                    <div className="text-xs text-slate-500">
                       vs 昨日总数:{" "}
                       {hourlyStats.summary.todayTotal >
                       hourlyStats.summary.yesterdayTotal
@@ -204,8 +207,11 @@ export default function HourlyStats() {
                       <CalendarDaysIcon className="h-6 w-6 text-purple-600" />
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <span className="text-xs text-slate-500">对比基准</span>
+                  <div className="mt-4 space-y-1">
+                    <div className="text-xs text-slate-500">
+                      昨日峰值: {formatNumber(Math.max(...hourlyStats.yesterday.map((d) => d.count)))}
+                    </div>
+                    <div className="text-xs text-slate-500">对比基准</div>
                   </div>
                 </div>
 

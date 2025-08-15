@@ -22,6 +22,10 @@ export default function DensityHeatmap({
   const maxValue = Math.max(...allValues);
   const minValue = Math.min(...allValues.filter((v) => v > 0));
 
+  // 计算今日和昨日的峰值
+  const todayPeakValue = Math.max(...todayData.map((d) => d.count));
+  const yesterdayPeakValue = Math.max(...yesterdayData.map((d) => d.count));
+
   // 获取密度等级和颜色
   const getDensityLevel = (value: number) => {
     if (value === 0) return { level: 0, color: "#f8fafc", label: "无请求" };
@@ -43,12 +47,14 @@ export default function DensityHeatmap({
         const hour = new Date(data.hour).getHours();
         const isFuture = hour > currentHour;
         const density = getDensityLevel(data.count);
+        const isPeak = data.count === todayPeakValue && data.count > 0;
 
         return {
           hour,
           value: data.count,
           density,
           isFuture,
+          isPeak,
           hourLabel: hour.toString().padStart(2, "0") + ":00",
         };
       }),
@@ -58,12 +64,14 @@ export default function DensityHeatmap({
       hours: yesterdayData.map((data) => {
         const hour = new Date(data.hour).getHours();
         const density = getDensityLevel(data.count);
+        const isPeak = data.count === yesterdayPeakValue && data.count > 0;
 
         return {
           hour,
           value: data.count,
           density,
           isFuture: false,
+          isPeak,
           hourLabel: hour.toString().padStart(2, "0") + ":00",
         };
       }),
@@ -96,7 +104,7 @@ export default function DensityHeatmap({
         </div>
 
         {/* 热力图主体 */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4 py-8">
           {heatmapData.map((dayData) => (
             <div key={dayData.day} className="flex items-center gap-2">
               {/* 日期标签 */}
@@ -114,8 +122,14 @@ export default function DensityHeatmap({
                       backgroundColor: hourData.density.color,
                       fontSize: "8px",
                     }}
-                    title={`${dayData.day} ${hourData.hourLabel}: ${hourData.value.toLocaleString()}请求 (${hourData.density.label})`}
+                    title={`${dayData.day} ${hourData.hourLabel}: ${hourData.value.toLocaleString()}请求 (${hourData.density.label})${hourData.isPeak ? " 🏆 峰值" : ""}`}
                   >
+                    {/* 峰值标识 */}
+                    {hourData.isPeak && (
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xl">
+                        👑
+                      </div>
+                    )}
                     <span className="font-medium text-slate-700">
                       {hourData.hour}
                     </span>
