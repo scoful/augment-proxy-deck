@@ -16,6 +16,7 @@ import {
   formatDateTime,
 } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
+import { type UserStats as UserStatsType } from "@/server/api/routers/stats";
 
 import { useState, useEffect, useRef } from "react";
 
@@ -23,7 +24,7 @@ export default function UserStats() {
   const [limit, setLimit] = useState(200);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<keyof UserStats | null>(
+  const [sortField, setSortField] = useState<keyof UserStatsType | null>(
     "count24Hour",
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -72,7 +73,7 @@ export default function UserStats() {
   };
 
   // 排序功能
-  const handleSort = (field: keyof UserStats) => {
+  const handleSort = (field: keyof UserStatsType) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -137,7 +138,7 @@ export default function UserStats() {
     field,
     children,
   }: {
-    field: keyof UserStats;
+    field: keyof UserStatsType;
     children: React.ReactNode;
   }) => (
     <th

@@ -114,14 +114,7 @@ export default function HourlyTrendChart({
               );
             }}
             activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
-            strokeDasharray={(entry: any, index: number) => {
-              const dataPoint = allData[index];
-              return dataPoint?.isFuture ? "5 5" : "0";
-            }}
-            strokeOpacity={(entry: any, index: number) => {
-              const dataPoint = allData[index];
-              return dataPoint?.isFuture ? 0.5 : 1;
-            }}
+            strokeOpacity={0.8}
           />
 
           {/* 昨日请求 - 始终虚线 */}

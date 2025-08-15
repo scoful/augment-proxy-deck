@@ -61,20 +61,35 @@ export default function PeakValleyChart({
       const next = values[i + 1];
 
       // 峰值：比前后都高，且值大于平均值
-      if (curr > prev && curr > next && curr > 0) {
+      if (
+        curr !== undefined &&
+        prev !== undefined &&
+        next !== undefined &&
+        curr > prev &&
+        curr > next &&
+        curr > 0 &&
+        data[i]
+      ) {
         peaks.push({
-          hour: data[i].hour,
+          hour: data[i]!.hour,
           value: curr,
-          hourIndex: data[i].hourIndex,
+          hourIndex: data[i]!.hourIndex,
         });
       }
 
       // 谷值：比前后都低
-      if (curr < prev && curr < next) {
+      if (
+        curr !== undefined &&
+        prev !== undefined &&
+        next !== undefined &&
+        curr < prev &&
+        curr < next &&
+        data[i]
+      ) {
         valleys.push({
-          hour: data[i].hour,
+          hour: data[i]!.hour,
           value: curr,
-          hourIndex: data[i].hourIndex,
+          hourIndex: data[i]!.hourIndex,
         });
       }
     }

@@ -13,6 +13,7 @@ import {
 import { api } from "@/utils/api";
 import { formatNumber, formatDateTime } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
+import { type CarStats } from "@/server/api/routers/stats";
 import { useState, useEffect, useRef } from "react";
 
 export default function VehicleStats() {

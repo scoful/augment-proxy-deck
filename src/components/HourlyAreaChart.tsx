@@ -159,14 +159,7 @@ export default function HourlyAreaChart({
             stroke="#3b82f6"
             fill="url(#todayGradient)"
             strokeWidth={2}
-            strokeDasharray={(entry: any, index: number) => {
-              const dataPoint = allData[index];
-              return dataPoint?.isFuture ? "5 5" : "0";
-            }}
-            fillOpacity={(entry: any, index: number) => {
-              const dataPoint = allData[index];
-              return dataPoint?.isFuture ? 0.3 : 1;
-            }}
+            fillOpacity={0.8}
           />
         </AreaChart>
       </ResponsiveContainer>
