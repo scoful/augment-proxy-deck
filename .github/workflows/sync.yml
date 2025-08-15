@@ -1,0 +1,117 @@
+name: Upstream Sync
+
+# Configuration Section: Modify these variables for a new project
+env:
+  UPSTREAM_REPO: "scoful/augment-proxy-deck" # Upstream repository in format 'owner/repo'
+  UPSTREAM_URL: "https://github.com/scoful/augment-proxy-deck.git" # Upstream repository clone URL
+  COMPARE_FILE: "src/config/version.js" # File to compare for sync necessity
+  WORKFLOW_FILE: "sync.yml" # Name of this workflow file
+  BRANCH: "main" # Target branch to push changes
+  ISSUE_LABEL: "🚨 Sync Fail" # Label for sync failure issues
+  ISSUE_TITLE: "🚨 同步失败 | Sync Fail" # Title for sync failure issues
+
+permissions:
+  contents: write
+  issues: write
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  sync_latest_from_upstream:
+    name: Sync latest commits from upstream repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for self-reference
+        id: self_check
+        run: |
+          CURRENT_REPO="${{github.repository}}"
+          if [ "${{env.UPSTREAM_REPO}}" = "$CURRENT_REPO" ]; then
+            echo "Self-reference detected: upstream (${{env.UPSTREAM_REPO}}) matches current repository ($CURRENT_REPO). Aborting workflow."
+            echo "abort=true" >> $GITHUB_OUTPUT
+          else
+            echo "No self-reference detected."
+            echo "abort=false" >> $GITHUB_OUTPUT
+          fi
+      - uses: actions/checkout@v4
+        if: steps.self_check.outputs.abort == 'false'
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+      - name: Set up Git
+        if: steps.self_check.outputs.abort == 'false'
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+      - name: Check if sync is needed
+        if: steps.self_check.outputs.abort == 'false'
+        id: check
+        run: |
+          # Clone upstream repository
+          git clone ${{env.UPSTREAM_URL}} temp
+          # Calculate hash of upstream file
+          if [ -f temp/${{env.COMPARE_FILE}} ]; then
+            UPSTREAM_HASH=$(sha256sum temp/${{env.COMPARE_FILE}} | awk '{print $1}')
+          else
+            echo "Warning: ${{env.COMPARE_FILE}} not found in upstream. Assuming no sync needed."
+            UPSTREAM_HASH=""
+          fi
+          # Calculate hash of local file
+          if [ -f ${{env.COMPARE_FILE}} ]; then
+            LOCAL_HASH=$(sha256sum ${{env.COMPARE_FILE}} | awk '{print $1}')
+          else
+            echo "Warning: ${{env.COMPARE_FILE}} not found locally. Triggering sync."
+            LOCAL_HASH=""
+          fi
+          # Compare hashes
+          if [ "$UPSTREAM_HASH" = "$LOCAL_HASH" ] && [ -n "$UPSTREAM_HASH" ]; then
+            echo "No sync needed, ${{env.COMPARE_FILE}} contents match."
+            echo "needs_sync=false" >> $GITHUB_OUTPUT
+          else
+            echo "Sync needed, ${{env.COMPARE_FILE}} differs (upstream=$UPSTREAM_HASH, local=$LOCAL_HASH)."
+            echo "needs_sync=true" >> $GITHUB_OUTPUT
+          fi
+          # Cleanup
+          rm -rf temp
+      - name: Clean issue notice
+        if: steps.self_check.outputs.abort == 'false' && steps.check.outputs.needs_sync == 'true'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'close-issues'
+          labels: '${{env.ISSUE_LABEL}}'
+      - name: Sync upstream changes
+        if: steps.self_check.outputs.abort == 'false' && steps.check.outputs.needs_sync == 'true'
+        id: sync
+        run: |
+          cp -r .github/workflows/${{env.WORKFLOW_FILE}} /tmp/${{env.WORKFLOW_FILE}}
+          find . -maxdepth 1 -not -path './.git' -not -path . -exec rm -rf {} \;
+          git clone ${{env.UPSTREAM_URL}} temp
+          rsync -av --exclude='.git' --exclude='.github/workflows/${{env.WORKFLOW_FILE}}' temp/ .
+          rm -rf temp
+          mkdir -p .github/workflows && mv /tmp/${{env.WORKFLOW_FILE}} .github/workflows/${{env.WORKFLOW_FILE}}
+          git add .
+          git commit -m "Sync with ${{env.UPSTREAM_REPO}}" || true
+          if ! git push origin ${{env.BRANCH}}; then
+            echo "Push failed."
+            echo "error_logs=$(git push origin ${{env.BRANCH}} 2>&1)" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+      - name: Sync check
+        if: steps.self_check.outputs.abort == 'false' && steps.check.outputs.needs_sync == 'true' && failure()
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-issue'
+          title: '${{env.ISSUE_TITLE}}'
+          labels: '${{env.ISSUE_LABEL}}'
+          body: |
+            Failed to sync with upstream repository [${{env.UPSTREAM_REPO}}][upstream]. Please check the error logs below and manually sync if necessary.
+            无法与上游仓库 [${{env.UPSTREAM_REPO}}][upstream] 同步。请查看下面的错误日志，并根据需要手动同步。
+            **Error Logs:**
+            ```
+            ${{steps.sync.outputs.error_logs || 'No detailed logs captured.'}}
+            ```
+            [upstream]: ${{env.UPSTREAM_URL}}
+      - name: Cleanup
+        if: always()
+        run: rm -f sync_error.log push_error.log
