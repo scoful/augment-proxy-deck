@@ -1,7 +1,6 @@
 import { type AppType } from "next/app";
 import { Geist } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-
+import { Analytics } from "@vercel/analytics/next";
 import { api } from "@/utils/api";
 
 import "@/styles/globals.css";
