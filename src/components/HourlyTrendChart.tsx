@@ -40,14 +40,10 @@ export default function HourlyTrendChart({
     return {
       hour,
       今日请求: today.count,
-      昨日请求: yesterday?.count || 0,
+      昨日请求: yesterday?.count ?? 0,
       isFuture,
     };
   });
-
-  // 分割数据为过去和未来
-  const pastData = chartData.filter((d) => !d.isFuture);
-  const futureData = chartData.filter((d) => d.isFuture);
 
   // 如果有未来数据，添加连接点
   const allData = chartData;

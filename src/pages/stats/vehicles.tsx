@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowLeftIcon,
   TruckIcon,
-  ExclamationTriangleIcon,
   ArrowUpIcon,
   ChevronUpIcon,
   ChevronDownIcon,
@@ -106,7 +105,7 @@ export default function VehicleStats() {
         }
 
         return 0;
-      }) || [];
+      }) ?? [];
 
   // 高亮搜索关键词
   const highlightText = (text: string, query: string) => {

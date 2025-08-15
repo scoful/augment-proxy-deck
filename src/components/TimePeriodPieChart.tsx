@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
 interface TimePeriodPieChartProps {
@@ -30,7 +23,7 @@ export default function TimePeriodPieChart({
   const todayCategories = todayData.reduce(
     (acc, data) => {
       const category = categorizeByCount(data.count);
-      acc[category] = (acc[category] || 0) + 1;
+      acc[category] = (acc[category] ?? 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
@@ -40,7 +33,7 @@ export default function TimePeriodPieChart({
   const yesterdayCategories = yesterdayData.reduce(
     (acc, data) => {
       const category = categorizeByCount(data.count);
-      acc[category] = (acc[category] || 0) + 1;
+      acc[category] = (acc[category] ?? 0) + 1;
       return acc;
     },
     {} as Record<string, number>,

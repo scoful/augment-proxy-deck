@@ -12,6 +12,18 @@ import {
 } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
 interface HourlyAreaChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
@@ -40,25 +52,21 @@ export default function HourlyAreaChart({
     return {
       hour,
       今日请求: today.count,
-      昨日请求: yesterday?.count || 0,
+      昨日请求: yesterday?.count ?? 0,
       isFuture,
     };
   });
-
-  // 分割数据：已发生的数据和未来数据
-  const pastData = chartData.filter((d) => !d.isFuture);
-  const futureData = chartData.filter((d) => d.isFuture);
 
   // 如果有未来数据，需要在过去数据的最后一个点和未来数据的第一个点之间建立连接
   const allData = chartData;
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       const todayValue =
-        payload.find((p: any) => p.dataKey === "今日请求")?.value || 0;
+        payload.find((p) => p.dataKey === "今日请求")?.value ?? 0;
       const yesterdayValue =
-        payload.find((p: any) => p.dataKey === "昨日请求")?.value || 0;
+        payload.find((p) => p.dataKey === "昨日请求")?.value ?? 0;
       const difference = todayValue - yesterdayValue;
       const percentage =
         yesterdayValue > 0
@@ -67,8 +75,8 @@ export default function HourlyAreaChart({
 
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          <p className="font-medium text-slate-800">{`时间: ${label ?? ""}`}</p>
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
@@ -128,7 +136,7 @@ export default function HourlyAreaChart({
           <YAxis
             stroke="#64748b"
             fontSize={12}
-            tickFormatter={(value) => value.toLocaleString()}
+            tickFormatter={(value: number) => value.toLocaleString()}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

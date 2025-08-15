@@ -12,6 +12,23 @@ import {
 } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+  payload: {
+    增长率: number;
+    今日请求: number;
+    昨日请求: number;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
 interface GrowthRadarChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
@@ -27,7 +44,7 @@ export default function GrowthRadarChart({
     const hour = new Date(today.hour).getHours();
 
     const todayCount = today.count;
-    const yesterdayCount = yesterday?.count || 0;
+    const yesterdayCount = yesterday?.count ?? 0;
     const difference = todayCount - yesterdayCount;
     const growthRate =
       yesterdayCount > 0 ? (difference / yesterdayCount) * 100 : 0;
@@ -45,19 +62,19 @@ export default function GrowthRadarChart({
   });
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
-          <p className="text-sm text-slate-600">增长率: {data.增长率}%</p>
+          <p className="font-medium text-slate-800">{`时间: ${label ?? ""}`}</p>
+          <p className="text-sm text-slate-600">增长率: {data?.增长率 ?? 0}%</p>
           <div className="mt-2 border-t border-slate-200 pt-2">
             <p className="text-sm text-slate-600">
-              今日请求: {data.今日请求.toLocaleString()}
+              今日请求: {(data?.今日请求 ?? 0).toLocaleString()}
             </p>
             <p className="text-sm text-slate-600">
-              昨日请求: {data.昨日请求.toLocaleString()}
+              昨日请求: {(data?.昨日请求 ?? 0).toLocaleString()}
             </p>
           </div>
         </div>

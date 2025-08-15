@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowLeftIcon,
   ClockIcon,
-  ChartBarIcon,
   ArrowUpIcon,
   CalendarDaysIcon,
   ArrowTrendingUpIcon,

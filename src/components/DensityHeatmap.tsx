@@ -39,7 +39,7 @@ export default function DensityHeatmap({
   const heatmapData = [
     {
       day: "今日",
-      hours: todayData.map((data, index) => {
+      hours: todayData.map((data) => {
         const hour = new Date(data.hour).getHours();
         const isFuture = hour > currentHour;
         const density = getDensityLevel(data.count);
@@ -55,7 +55,7 @@ export default function DensityHeatmap({
     },
     {
       day: "昨日",
-      hours: yesterdayData.map((data, index) => {
+      hours: yesterdayData.map((data) => {
         const hour = new Date(data.hour).getHours();
         const density = getDensityLevel(data.count);
 
@@ -69,12 +69,6 @@ export default function DensityHeatmap({
       }),
     },
   ];
-
-  // 时间段标签
-  const timeLabels = Array.from(
-    { length: 24 },
-    (_, i) => i.toString().padStart(2, "0") + ":00",
-  );
 
   return (
     <div className="w-full">
@@ -103,7 +97,7 @@ export default function DensityHeatmap({
 
         {/* 热力图主体 */}
         <div className="flex flex-col gap-2">
-          {heatmapData.map((dayData, dayIndex) => (
+          {heatmapData.map((dayData) => (
             <div key={dayData.day} className="flex items-center gap-2">
               {/* 日期标签 */}
               <div className="w-12 text-right text-sm font-medium text-slate-700">

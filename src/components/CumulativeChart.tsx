@@ -13,6 +13,22 @@ import {
 } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+  payload: {
+    今日当前: number;
+    昨日当前: number;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
 interface CumulativeChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
@@ -40,7 +56,7 @@ export default function CumulativeChart({
 
     // 累积计算
     todayCumulative += today.count;
-    yesterdayCumulative += yesterday?.count || 0;
+    yesterdayCumulative += yesterday?.count ?? 0;
 
     const isFuture = dataHour > currentHour;
 
@@ -49,7 +65,7 @@ export default function CumulativeChart({
       今日累积: todayCumulative,
       昨日累积: yesterdayCumulative,
       今日当前: today.count,
-      昨日当前: yesterday?.count || 0,
+      昨日当前: yesterday?.count ?? 0,
       isFuture,
       hourIndex: dataHour,
     };
@@ -57,22 +73,21 @@ export default function CumulativeChart({
 
   // 预测今日最终数据
   const currentData = chartData[currentHour];
-  const yesterdayFinalTotal = chartData[chartData.length - 1]?.昨日累积 || 0;
-  const todayCurrentTotal = currentData?.今日累积 || 0;
-  const yesterdayAtSameTime = currentData?.昨日累积 || 0;
+  const yesterdayFinalTotal = chartData[chartData.length - 1]?.昨日累积 ?? 0;
+  const todayCurrentTotal = currentData?.今日累积 ?? 0;
 
   // 基于当前进度预测今日最终结果
   const progressRatio = (currentHour + 1) / 24;
   const predictedTodayTotal = Math.round(todayCurrentTotal / progressRatio);
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          <p className="font-medium text-slate-800">{`时间: ${label ?? ""}`}</p>
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
@@ -172,7 +187,7 @@ export default function CumulativeChart({
           <YAxis
             stroke="#64748b"
             fontSize={12}
-            tickFormatter={(value) => value.toLocaleString()}
+            tickFormatter={(value: number) => value.toLocaleString()}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

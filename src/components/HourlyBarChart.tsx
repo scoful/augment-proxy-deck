@@ -12,6 +12,22 @@ import {
 } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+  payload: {
+    差值: number;
+    增长率: string;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
 interface HourlyBarChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
@@ -31,7 +47,7 @@ export default function HourlyBarChart({
     });
 
     const todayCount = today.count;
-    const yesterdayCount = yesterday?.count || 0;
+    const yesterdayCount = yesterday?.count ?? 0;
     const difference = todayCount - yesterdayCount;
 
     return {
@@ -47,13 +63,13 @@ export default function HourlyBarChart({
   });
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
+          <p className="font-medium text-slate-800">{`时间: ${label ?? ""}`}</p>
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
@@ -61,10 +77,12 @@ export default function HourlyBarChart({
           {data && (
             <>
               <p className="text-sm text-slate-600">
-                差值: {data.差值 > 0 ? "+" : ""}
-                {data.差值.toLocaleString()}
+                差值: {(data.差值 ?? 0) > 0 ? "+" : ""}
+                {(data.差值 ?? 0).toLocaleString()}
               </p>
-              <p className="text-sm text-slate-600">增长率: {data.增长率}%</p>
+              <p className="text-sm text-slate-600">
+                增长率: {data.增长率 ?? "0"}%
+              </p>
             </>
           )}
         </div>
@@ -95,7 +113,7 @@ export default function HourlyBarChart({
           <YAxis
             stroke="#64748b"
             fontSize={12}
-            tickFormatter={(value) => value.toLocaleString()}
+            tickFormatter={(value: number) => value.toLocaleString()}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

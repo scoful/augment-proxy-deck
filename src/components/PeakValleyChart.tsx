@@ -39,7 +39,7 @@ export default function PeakValleyChart({
     return {
       hour,
       今日请求: today.count,
-      昨日请求: yesterday?.count || 0,
+      昨日请求: yesterday?.count ?? 0,
       isFuture,
       hourIndex: dataHour,
     };

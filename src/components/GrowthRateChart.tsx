@@ -12,6 +12,24 @@ import {
 } from "recharts";
 import { type HourlyData } from "@/server/api/routers/stats";
 
+interface TooltipPayload {
+  color: string;
+  dataKey: string;
+  value: number;
+  payload: {
+    增长率: number;
+    今日请求: number;
+    昨日请求: number;
+    差值: number;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
 interface GrowthRateChartProps {
   todayData: HourlyData[];
   yesterdayData: HourlyData[];
@@ -35,7 +53,7 @@ export default function GrowthRateChart({
     });
 
     const todayCount = today.count;
-    const yesterdayCount = yesterday?.count || 0;
+    const yesterdayCount = yesterday?.count ?? 0;
     const difference = todayCount - yesterdayCount;
     const growthRate =
       yesterdayCount > 0 ? (difference / yesterdayCount) * 100 : 0;
@@ -54,25 +72,25 @@ export default function GrowthRateChart({
   });
 
   // 自定义Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-slate-800">{`时间: ${label}`}</p>
+          <p className="font-medium text-slate-800">{`时间: ${label ?? ""}`}</p>
           <p className="text-sm" style={{ color: payload[0]?.color }}>
-            增长率: {data.增长率}%
+            增长率: {data?.增长率 ?? 0}%
           </p>
           <div className="mt-2 border-t border-slate-200 pt-2">
             <p className="text-sm text-slate-600">
-              今日请求: {data.今日请求.toLocaleString()}
+              今日请求: {(data?.今日请求 ?? 0).toLocaleString()}
             </p>
             <p className="text-sm text-slate-600">
-              昨日请求: {data.昨日请求.toLocaleString()}
+              昨日请求: {(data?.昨日请求 ?? 0).toLocaleString()}
             </p>
             <p className="text-sm text-slate-600">
-              差值: {data.差值 > 0 ? "+" : ""}
-              {data.差值.toLocaleString()}
+              差值: {(data?.差值 ?? 0) > 0 ? "+" : ""}
+              {(data?.差值 ?? 0).toLocaleString()}
             </p>
           </div>
         </div>
@@ -83,7 +101,6 @@ export default function GrowthRateChart({
 
   // 根据增长率和时间确定颜色
   const getBarColor = (value: number, isFuture: boolean) => {
-    const baseOpacity = isFuture ? 0.4 : 1;
     if (value > 50) return isFuture ? "#ef444480" : "#ef4444"; // 红色 - 高增长
     if (value > 0) return isFuture ? "#10b98180" : "#10b981"; // 绿色 - 正增长
     if (value > -25) return isFuture ? "#f59e0b80" : "#f59e0b"; // 橙色 - 轻微下降

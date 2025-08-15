@@ -14,7 +14,6 @@ import {
   formatDisplayName,
   formatNumber,
   formatDateTime,
-  formatPercentage,
 } from "@/utils/formatters";
 import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
 
@@ -113,7 +112,7 @@ export default function UserStats() {
         }
 
         return 0;
-      }) || [];
+      }) ?? [];
 
   // 高亮搜索关键词
   const highlightText = (text: string, query: string) => {

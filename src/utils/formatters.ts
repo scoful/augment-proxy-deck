@@ -7,7 +7,7 @@ import { DISPLAY_CONFIG } from "./config";
  */
 export function formatDisplayName(displayName: string): string {
   // 计算星号数量
-  const asteriskCount = (displayName.match(/\*/g) || []).length;
+  const asteriskCount = (displayName.match(/\*/g) ?? []).length;
 
   // 如果星号超过配置的最大数量，进行省略处理
   if (asteriskCount > DISPLAY_CONFIG.MAX_ASTERISK_COUNT) {
