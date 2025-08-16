@@ -25,7 +25,7 @@ try {
   }
 
   const [, major, minor, patch] = versionMatch;
-  const newPatch = parseInt(patch || '0') + 1;
+  const newPatch = parseInt(patch || "0") + 1;
   const newVersion = `v${major}.${minor}.${newPatch}`;
 
   // 替换版本号
@@ -38,9 +38,12 @@ try {
   writeFileSync(versionFilePath, newContent, "utf8");
 
   const oldVersionMatch = versionMatch[0].match(/v?\d+\.\d+\.\d+/);
-  const oldVersion = oldVersionMatch ? oldVersionMatch[0] : 'unknown';
+  const oldVersion = oldVersionMatch ? oldVersionMatch[0] : "unknown";
   console.log(`✅ 版本号已更新: ${oldVersion} → ${newVersion}`);
 } catch (error) {
-  console.error("❌ 版本更新失败:", error instanceof Error ? error.message : String(error));
+  console.error(
+    "❌ 版本更新失败:",
+    error instanceof Error ? error.message : String(error),
+  );
   process.exit(1);
 }

@@ -21,9 +21,9 @@ function getCurrentVersion() {
     throw new Error("无法解析版本号格式");
   }
   return {
-    major: parseInt(match[1] || '0'),
-    minor: parseInt(match[2] || '0'),
-    patch: parseInt(match[3] || '0'),
+    major: parseInt(match[1] || "0"),
+    minor: parseInt(match[2] || "0"),
+    patch: parseInt(match[3] || "0"),
     full: `v${match[1]}.${match[2]}.${match[3]}`,
   };
 }
@@ -103,6 +103,9 @@ try {
       process.exit(1);
   }
 } catch (error) {
-  console.error("❌ 版本操作失败:", error instanceof Error ? error.message : String(error));
+  console.error(
+    "❌ 版本操作失败:",
+    error instanceof Error ? error.message : String(error),
+  );
   process.exit(1);
 }

@@ -1,4 +1,4 @@
 export const APP_CONFIG = {
-  version: "v0.1.6",
+  version: "v0.1.7",
   name: "Augment Proxy Deck",
 };

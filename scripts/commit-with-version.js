@@ -46,6 +46,9 @@ try {
     console.log("✅ 提交完成！");
   }
 } catch (error) {
-  console.error("❌ 提交失败:", error instanceof Error ? error.message : String(error));
+  console.error(
+    "❌ 提交失败:",
+    error instanceof Error ? error.message : String(error),
+  );
   process.exit(1);
 }

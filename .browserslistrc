@@ -20,7 +20,7 @@ Chrome >= 70
 # 移动端WebView
 ChromeAndroid >= 80
 FirefoxAndroid >= 78
-SafariMobile >= 12
+iOS >= 12
 
 # 排除过旧的浏览器
 not IE 11

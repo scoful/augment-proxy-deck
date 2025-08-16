@@ -264,7 +264,8 @@ export default function VehicleStats() {
                       {carStats.summary.totalCars === 0
                         ? "0 人"
                         : (
-                            carStats.summary.totalUsers / carStats.summary.totalCars
+                            carStats.summary.totalUsers /
+                            carStats.summary.totalCars
                           ).toFixed(1) + " 人"}
                     </span>
                   </div>
