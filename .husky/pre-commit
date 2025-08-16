@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 自动递增版本号
+node scripts/bump-version.js
+
+# 将更新后的版本文件添加到当前 commit
+git add src/config/version.js
+
+# 运行原有的测试
+npm test
