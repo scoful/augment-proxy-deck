@@ -1,11 +1,18 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/usr/bin/env node
 
-# 自动递增版本号
-node scripts/bump-version.js
+import { execSync } from 'child_process';
 
-# 将更新后的版本文件添加到当前 commit
-git add src/config/version.js
+try {
+  console.log('🔄 Running pre-commit hooks...');
 
-# 运行原有的测试
-npm test
+  // 运行版本递增
+  execSync('npm run pre-commit', { stdio: 'inherit' });
+
+  // 运行测试
+  execSync('npm test', { stdio: 'inherit' });
+
+  console.log('✅ Pre-commit hooks completed successfully');
+} catch (error) {
+  console.error('❌ Pre-commit hooks failed:', error.message);
+  process.exit(1);
+}

@@ -18,7 +18,10 @@
     "version:patch": "node scripts/version.js patch",
     "version:minor": "node scripts/version.js minor",
     "version:major": "node scripts/version.js major",
-    "version:current": "node scripts/version.js current"
+    "version:current": "node scripts/version.js current",
+    "pre-commit": "node scripts/bump-version.js && git add src/config/version.js",
+    "commit": "node scripts/commit-with-version.js",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
