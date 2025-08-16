@@ -9,6 +9,16 @@ const config = {
   reactStrictMode: true,
 
   /**
+   * 浏览器兼容性配置
+   * 支持更广泛的浏览器，包括旧版本和移动端
+   */
+  swcMinify: true,
+  compiler: {
+    // 移除console.log在生产环境
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
+  /**
    * If you are using `appDir` then you must comment the below `i18n` config out.
    *
    * @see https://github.com/vercel/next.js/issues/41980
