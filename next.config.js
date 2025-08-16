@@ -27,6 +27,33 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+
+  /**
+   * 自定义HTTP头配置 - 禁用API路由缓存
+   * 解决移动端和旧版浏览器的304缓存问题
+   */
+  async headers() {
+    return [
+      {
+        // 匹配所有API路由
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default config;
