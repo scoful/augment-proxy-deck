@@ -234,12 +234,13 @@ export default function VehicleStats() {
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
                       存活率:{" "}
-                      {(
-                        (carStats.summary.activeCars /
-                          carStats.summary.totalCars) *
-                        100
-                      ).toFixed(1)}
-                      %
+                      {carStats.summary.totalCars === 0
+                        ? "0%"
+                        : (
+                            (carStats.summary.activeCars /
+                              carStats.summary.totalCars) *
+                            100
+                          ).toFixed(1) + "%"}
                     </span>
                   </div>
                 </div>
@@ -260,10 +261,11 @@ export default function VehicleStats() {
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
                       平均每车:{" "}
-                      {(
-                        carStats.summary.totalUsers / carStats.summary.totalCars
-                      ).toFixed(1)}
-                      人
+                      {carStats.summary.totalCars === 0
+                        ? "0 人"
+                        : (
+                            carStats.summary.totalUsers / carStats.summary.totalCars
+                          ).toFixed(1) + " 人"}
                     </span>
                   </div>
                 </div>
@@ -284,11 +286,12 @@ export default function VehicleStats() {
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
                       平均每人:{" "}
-                      {(
-                        carStats.summary.totalCount1Hour /
-                        carStats.summary.totalUsers
-                      ).toFixed(1)}
-                      个请求
+                      {carStats.summary.totalUsers === 0
+                        ? "0 个请求"
+                        : (
+                            carStats.summary.totalCount1Hour /
+                            carStats.summary.totalUsers
+                          ).toFixed(1) + " 个请求"}
                     </span>
                   </div>
                 </div>
@@ -309,11 +312,12 @@ export default function VehicleStats() {
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
                       平均每人:{" "}
-                      {(
-                        carStats.summary.totalCount24Hour /
-                        carStats.summary.totalUsers
-                      ).toFixed(1)}
-                      个请求
+                      {carStats.summary.totalUsers === 0
+                        ? "0 个请求"
+                        : (
+                            carStats.summary.totalCount24Hour /
+                            carStats.summary.totalUsers
+                          ).toFixed(1) + " 个请求"}
                     </span>
                   </div>
                 </div>
@@ -399,11 +403,12 @@ export default function VehicleStats() {
                                 </span>
                                 <span className="text-xs text-slate-500">
                                   上座率:{" "}
-                                  {(
-                                    (car.currentUsers / car.maxUsers) *
-                                    100
-                                  ).toFixed(0)}
-                                  %
+                                  {car.maxUsers === 0
+                                    ? "0%"
+                                    : (
+                                        (car.currentUsers / car.maxUsers) *
+                                        100
+                                      ).toFixed(0) + "%"}
                                 </span>
                               </div>
                             </td>
