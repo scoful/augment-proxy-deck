@@ -1,18 +1,12 @@
-#!/usr/bin/env node
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-import { execSync } from 'child_process';
+echo "🔄 Running pre-commit hooks..."
 
-try {
-  console.log('🔄 Running pre-commit hooks...');
+# 运行版本递增
+pnpm run pre-commit || exit 1
 
-  // 运行版本递增
-  execSync('npm run pre-commit', { stdio: 'inherit' });
+# 运行测试
+pnpm test || exit 1
 
-  // 运行测试
-  execSync('npm test', { stdio: 'inherit' });
-
-  console.log('✅ Pre-commit hooks completed successfully');
-} catch (error) {
-  console.error('❌ Pre-commit hooks failed:', error.message);
-  process.exit(1);
-}
+echo "✅ Pre-commit hooks completed successfully"
