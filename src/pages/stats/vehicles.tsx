@@ -245,11 +245,11 @@ export default function VehicleStats() {
                   </div>
                 </div>
 
-                {/* 总乘客数 */}
+                {/* 总设备数 */}
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">总乘客数</p>
+                      <p className="text-sm text-slate-600">总设备数</p>
                       <p className="text-3xl font-bold text-slate-800">
                         {formatNumber(carStats.summary.totalUsers)}
                       </p>
@@ -260,13 +260,13 @@ export default function VehicleStats() {
                   </div>
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
-                      平均每车:{" "}
+                      平均每车负载:{" "}
                       {carStats.summary.totalCars === 0
-                        ? "0 人"
+                        ? "0 台设备"
                         : (
                             carStats.summary.totalUsers /
                             carStats.summary.totalCars
-                          ).toFixed(1) + " 人"}
+                          ).toFixed(1) + " 台设备"}
                     </span>
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export default function VehicleStats() {
                   </div>
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
-                      平均每人:{" "}
+                      平均每设备:{" "}
                       {carStats.summary.totalUsers === 0
                         ? "0 个请求"
                         : (
@@ -312,7 +312,7 @@ export default function VehicleStats() {
                   </div>
                   <div className="mt-4">
                     <span className="text-xs text-slate-500">
-                      平均每人:{" "}
+                      平均每设备:{" "}
                       {carStats.summary.totalUsers === 0
                         ? "0 个请求"
                         : (
@@ -377,7 +377,7 @@ export default function VehicleStats() {
                       <tr>
                         <SortableHeader field="carId">车辆信息</SortableHeader>
                         <SortableHeader field="currentUsers">
-                          乘客数/席位数
+                          设备数/席位数
                         </SortableHeader>
                         <SortableHeader field="count1Hour">
                           1小时请求

@@ -159,8 +159,8 @@ export default function UserStats() {
   return (
     <>
       <Head>
-        <title>用户统计 | Augment Proxy Deck</title>
-        <meta name="description" content="用户注册、活跃度等相关统计数据" />
+        <title>设备统计 | Augment Proxy Deck</title>
+        <meta name="description" content="设备注册、活跃度等相关统计数据" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -177,7 +177,7 @@ export default function UserStats() {
               </Link>
               <div className="flex items-center gap-3">
                 <UserGroupIcon className="h-8 w-8 text-blue-600" />
-                <h1 className="text-2xl font-bold text-slate-800">用户统计</h1>
+                <h1 className="text-2xl font-bold text-slate-800">设备统计</h1>
                 {isFetching && (
                   <div className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
@@ -224,11 +224,11 @@ export default function UserStats() {
 
               {/* Summary Cards */}
               <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {/* 1小时活跃用户 */}
+                {/* 1小时活跃设备 */}
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">1小时活跃用户</p>
+                      <p className="text-sm text-slate-600">1小时活跃设备</p>
                       <p className="text-3xl font-bold text-slate-800">
                         {formatNumber(userStats.summary.totalUsers1Hour)}
                       </p>
@@ -242,11 +242,11 @@ export default function UserStats() {
                   </div>
                 </div>
 
-                {/* 24小时活跃用户 */}
+                {/* 24小时活跃设备 */}
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">24小时活跃用户</p>
+                      <p className="text-sm text-slate-600">24小时活跃设备</p>
                       <p className="text-3xl font-bold text-slate-800">
                         {formatNumber(userStats.summary.totalUsers24Hour)}
                       </p>

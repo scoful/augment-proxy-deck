@@ -37,7 +37,7 @@ export default function Home() {
   );
   const dataModules = [
     {
-      title: "用户统计",
+      title: "设备统计",
       description: userStatsSummary ? (
         <>
           1h活跃: {formatNumber(userStatsSummary.summary.totalUsers1Hour)} |
@@ -47,7 +47,7 @@ export default function Home() {
           24h请求: {formatNumber(userStatsSummary.summary.totalCount24Hour)}
         </>
       ) : (
-        "查看用户注册、活跃度等相关统计数据"
+        "查看设备注册、活跃度等相关统计数据"
       ),
       icon: UserGroupIcon,
       href: "/stats/users",
@@ -61,7 +61,7 @@ export default function Home() {
           车辆总数: {formatNumber(carStatsSummary.summary.totalCars)} | 存活:{" "}
           {formatNumber(carStatsSummary.summary.activeCars)}
           <br />
-          总乘客数: {formatNumber(carStatsSummary.summary.totalUsers)}
+          总设备数: {formatNumber(carStatsSummary.summary.totalUsers)}
         </>
       ) : (
         "监控和分析黑车相关数据统计"
@@ -76,10 +76,10 @@ export default function Home() {
       description: hourlyStatsSummary ? (
         <>
           今日请求: {formatNumber(hourlyStatsSummary.summary.todayTotal)} |
-          用户: {formatNumber(hourlyStatsSummary.summary.todayUsers)}
+          设备: {formatNumber(hourlyStatsSummary.summary.todayUsers)}
           <br />
           昨日请求: {formatNumber(hourlyStatsSummary.summary.yesterdayTotal)} |
-          用户: {formatNumber(hourlyStatsSummary.summary.yesterdayUsers)}
+          设备: {formatNumber(hourlyStatsSummary.summary.yesterdayUsers)}
         </>
       ) : (
         "查看按小时维度的各项数据统计"

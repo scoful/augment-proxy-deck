@@ -233,11 +233,11 @@ export default function HourlyStats() {
                   </div>
                 </div>
 
-                {/* 今日活跃用户 */}
+                {/* 今日活跃设备 */}
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">今日活跃用户</p>
+                      <p className="text-sm text-slate-600">今日活跃设备</p>
                       <p className="text-3xl font-bold text-slate-800">
                         {formatNumber(hourlyStats.summary.todayUsers)}
                       </p>
@@ -255,16 +255,16 @@ export default function HourlyStats() {
                         : ""}
                       {hourlyStats.summary.todayUsers -
                         hourlyStats.summary.yesterdayUsers}
-                      人
+                      设备
                     </span>
                   </div>
                 </div>
 
-                {/* 昨日活跃用户 */}
+                {/* 昨日活跃设备 */}
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">昨日活跃用户</p>
+                      <p className="text-sm text-slate-600">昨日活跃设备</p>
                       <p className="text-3xl font-bold text-slate-800">
                         {formatNumber(hourlyStats.summary.yesterdayUsers)}
                       </p>

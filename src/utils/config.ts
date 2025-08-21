@@ -4,7 +4,7 @@
 
 // API 轮询间隔配置（毫秒）
 export const POLLING_INTERVALS = {
-  // 用户统计页面 - 60秒更新一次
+  // 设备统计页面 - 60秒更新一次
   USER_STATS: 60 * 1000,
 
   // 首页摘要 - 60秒更新一次
@@ -35,10 +35,10 @@ export const QUERY_CONFIG = {
 
 // 显示配置
 export const DISPLAY_CONFIG = {
-  // 用户名显示最大星号数
+  // 设备名显示最大星号数
   MAX_ASTERISK_COUNT: 6,
 
-  // 用户名最大显示长度
+  // 设备名最大显示长度
   MAX_DISPLAY_NAME_LENGTH: 20,
 
   // 截断后保留长度
