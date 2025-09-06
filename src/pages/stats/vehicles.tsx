@@ -23,6 +23,8 @@ export default function VehicleStats() {
     "count24Hour",
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState<"all" | "black" | "social">("all");
+  const [vehicleStatusFilter, setVehicleStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -74,14 +76,42 @@ export default function VehicleStats() {
     }
   };
 
+  // 计算社车数量（maxUsers=100的车辆）
+  const socialCarCount = carStats?.cars.filter(car => car.maxUsers === 100).length ?? 0;
+
   // 过滤和排序车辆数据
   const filteredAndSortedCars =
     carStats?.cars
       .filter((car) => {
-        if (!searchQuery.trim()) return true;
+        // 搜索过滤
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          if (!car.carId.toLowerCase().includes(query)) {
+            return false;
+          }
+        }
 
-        const query = searchQuery.toLowerCase();
-        return car.carId.toLowerCase().includes(query);
+        // 车辆类型过滤
+        if (vehicleTypeFilter !== "all") {
+          if (vehicleTypeFilter === "social" && car.maxUsers !== 100) {
+            return false;
+          }
+          if (vehicleTypeFilter === "black" && car.maxUsers === 100) {
+            return false;
+          }
+        }
+
+        // 车辆状态过滤
+        if (vehicleStatusFilter !== "all") {
+          if (vehicleStatusFilter === "active" && !car.isActive) {
+            return false;
+          }
+          if (vehicleStatusFilter === "inactive" && car.isActive) {
+            return false;
+          }
+        }
+
+        return true;
       })
       .sort((a, b) => {
         if (!sortField) return 0;
@@ -231,8 +261,8 @@ export default function VehicleStats() {
                       <TruckIcon className="h-6 w-6 text-indigo-600" />
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <span className="text-xs text-slate-500">
+                  <div className="mt-4 space-y-1">
+                    <div className="text-xs text-slate-500">
                       存活率:{" "}
                       {carStats.summary.totalCars === 0
                         ? "0%"
@@ -241,7 +271,10 @@ export default function VehicleStats() {
                               carStats.summary.totalCars) *
                             100
                           ).toFixed(1) + "%"}
-                    </span>
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      社车数: {formatNumber(socialCarCount)} 台
+                    </div>
                   </div>
                 </div>
 
@@ -330,13 +363,41 @@ export default function VehicleStats() {
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-slate-800">
                       所有车辆详情
-                      {searchQuery && (
+                      {(searchQuery || vehicleTypeFilter !== "all" || vehicleStatusFilter !== "all") && (
                         <span className="ml-2 text-sm text-slate-500">
                           (找到 {filteredAndSortedCars.length} 个结果)
                         </span>
                       )}
                     </h3>
                     <div className="flex items-center gap-4">
+                      {/* 车辆类型筛选 */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-slate-600">车辆类型:</label>
+                        <select
+                          value={vehicleTypeFilter}
+                          onChange={(e) => setVehicleTypeFilter(e.target.value as "all" | "black" | "social")}
+                          className="rounded border border-slate-300 px-3 py-1 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        >
+                          <option value="all">全部</option>
+                          <option value="black">黑车</option>
+                          <option value="social">社车</option>
+                        </select>
+                      </div>
+
+                      {/* 车辆状态筛选 */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-slate-600">车辆状态:</label>
+                        <select
+                          value={vehicleStatusFilter}
+                          onChange={(e) => setVehicleStatusFilter(e.target.value as "all" | "active" | "inactive")}
+                          className="rounded border border-slate-300 px-3 py-1 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                        >
+                          <option value="all">全部</option>
+                          <option value="active">智驾</option>
+                          <option value="inactive">车祸</option>
+                        </select>
+                      </div>
+
                       {/* 搜索框 */}
                       <div className="flex items-center gap-2">
                         <label
@@ -364,11 +425,25 @@ export default function VehicleStats() {
                           </button>
                         )}
                       </div>
+
+                      {/* 清除所有筛选 */}
+                      {(searchQuery || vehicleTypeFilter !== "all" || vehicleStatusFilter !== "all") && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery("");
+                            setVehicleTypeFilter("all");
+                            setVehicleStatusFilter("all");
+                          }}
+                          className="rounded bg-slate-100 px-3 py-1 text-sm text-slate-600 transition-colors hover:bg-slate-200"
+                          title="清除所有筛选条件"
+                        >
+                          清除筛选
+                        </button>
+                      )}
                     </div>
                   </div>
                   <p className="text-xs text-slate-500">
-                    💡 使用搜索功能快速查找特定车辆，支持车辆ID搜索 | 快捷键:
-                    Ctrl+F (Mac: Cmd+F)
+                    💡 使用筛选和搜索功能快速查找车辆信息
                   </p>
                 </div>
                 <div className="overflow-x-auto">

@@ -27,6 +27,15 @@ export default function Home() {
     },
   );
 
+  // 获取完整车辆数据用于计算社车数
+  const { data: carStatsData } = api.stats.getCarStats.useQuery(
+    undefined,
+    {
+      refetchInterval: POLLING_INTERVALS.HOME_SUMMARY,
+      ...QUERY_CONFIG,
+    },
+  );
+
   const { data: hourlyStatsSummary } = api.stats.getHourlyStatsSummary.useQuery(
     undefined,
     {
@@ -35,6 +44,10 @@ export default function Home() {
       ...QUERY_CONFIG,
     },
   );
+
+  // 计算社车数量（maxUsers=100的车辆）
+  const socialCarCount = carStatsData?.cars.filter(car => car.maxUsers === 100).length ?? 0;
+
   const dataModules = [
     {
       title: "设备统计",
@@ -59,7 +72,7 @@ export default function Home() {
       description: carStatsSummary ? (
         <>
           车辆总数: {formatNumber(carStatsSummary.summary.totalCars)} | 存活:{" "}
-          {formatNumber(carStatsSummary.summary.activeCars)}
+          {formatNumber(carStatsSummary.summary.activeCars)} | 社车数: {formatNumber(socialCarCount)}
           <br />
           总设备数: {formatNumber(carStatsSummary.summary.totalUsers)}
         </>
