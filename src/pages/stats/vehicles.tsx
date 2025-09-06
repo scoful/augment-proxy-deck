@@ -23,8 +23,12 @@ export default function VehicleStats() {
     "count24Hour",
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [vehicleTypeFilter, setVehicleTypeFilter] = useState<"all" | "black" | "social">("all");
-  const [vehicleStatusFilter, setVehicleStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState<
+    "all" | "black" | "social"
+  >("all");
+  const [vehicleStatusFilter, setVehicleStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -77,7 +81,8 @@ export default function VehicleStats() {
   };
 
   // 计算社车数量（maxUsers=100的车辆）
-  const socialCarCount = carStats?.cars.filter(car => car.maxUsers === 100).length ?? 0;
+  const socialCarCount =
+    carStats?.cars.filter((car) => car.maxUsers === 100).length ?? 0;
 
   // 过滤和排序车辆数据
   const filteredAndSortedCars =
@@ -363,7 +368,9 @@ export default function VehicleStats() {
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-slate-800">
                       所有车辆详情
-                      {(searchQuery || vehicleTypeFilter !== "all" || vehicleStatusFilter !== "all") && (
+                      {(searchQuery ||
+                        vehicleTypeFilter !== "all" ||
+                        vehicleStatusFilter !== "all") && (
                         <span className="ml-2 text-sm text-slate-500">
                           (找到 {filteredAndSortedCars.length} 个结果)
                         </span>
@@ -372,10 +379,16 @@ export default function VehicleStats() {
                     <div className="flex items-center gap-4">
                       {/* 车辆类型筛选 */}
                       <div className="flex items-center gap-2">
-                        <label className="text-sm text-slate-600">车辆类型:</label>
+                        <label className="text-sm text-slate-600">
+                          车辆类型:
+                        </label>
                         <select
                           value={vehicleTypeFilter}
-                          onChange={(e) => setVehicleTypeFilter(e.target.value as "all" | "black" | "social")}
+                          onChange={(e) =>
+                            setVehicleTypeFilter(
+                              e.target.value as "all" | "black" | "social",
+                            )
+                          }
                           className="rounded border border-slate-300 px-3 py-1 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
                         >
                           <option value="all">全部</option>
@@ -386,10 +399,16 @@ export default function VehicleStats() {
 
                       {/* 车辆状态筛选 */}
                       <div className="flex items-center gap-2">
-                        <label className="text-sm text-slate-600">车辆状态:</label>
+                        <label className="text-sm text-slate-600">
+                          车辆状态:
+                        </label>
                         <select
                           value={vehicleStatusFilter}
-                          onChange={(e) => setVehicleStatusFilter(e.target.value as "all" | "active" | "inactive")}
+                          onChange={(e) =>
+                            setVehicleStatusFilter(
+                              e.target.value as "all" | "active" | "inactive",
+                            )
+                          }
                           className="rounded border border-slate-300 px-3 py-1 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
                         >
                           <option value="all">全部</option>
@@ -427,7 +446,9 @@ export default function VehicleStats() {
                       </div>
 
                       {/* 清除所有筛选 */}
-                      {(searchQuery || vehicleTypeFilter !== "all" || vehicleStatusFilter !== "all") && (
+                      {(searchQuery ||
+                        vehicleTypeFilter !== "all" ||
+                        vehicleStatusFilter !== "all") && (
                         <button
                           onClick={() => {
                             setSearchQuery("");
