@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber, formatDateTime } from "@/utils/formatters";
-import { POLLING_INTERVALS, QUERY_CONFIG } from "@/utils/config";
+import { POLLING_INTERVALS, QUERY_CONFIG, isSocialCar } from "@/utils/config";
 import { type CarStats } from "@/server/api/routers/stats";
 import { useState, useEffect, useRef } from "react";
 
@@ -80,9 +80,9 @@ export default function VehicleStats() {
     }
   };
 
-  // 计算社车数量（maxUsers=100的车辆）
+  // 计算社车数量（maxUsers为10或100的车辆）
   const socialCarCount =
-    carStats?.cars.filter((car) => car.maxUsers === 100).length ?? 0;
+    carStats?.cars.filter((car) => isSocialCar(car.maxUsers)).length ?? 0;
 
   // 过滤和排序车辆数据
   const filteredAndSortedCars =
@@ -98,10 +98,10 @@ export default function VehicleStats() {
 
         // 车辆类型过滤
         if (vehicleTypeFilter !== "all") {
-          if (vehicleTypeFilter === "social" && car.maxUsers !== 100) {
+          if (vehicleTypeFilter === "social" && !isSocialCar(car.maxUsers)) {
             return false;
           }
-          if (vehicleTypeFilter === "black" && car.maxUsers === 100) {
+          if (vehicleTypeFilter === "black" && isSocialCar(car.maxUsers)) {
             return false;
           }
         }

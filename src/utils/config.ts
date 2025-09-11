@@ -48,6 +48,21 @@ export const DISPLAY_CONFIG = {
   PAGE_SIZE_OPTIONS: [50, 100, 200, 500],
 } as const;
 
+// 车辆类型判断配置
+export const VEHICLE_CONFIG = {
+  // 社车的maxUsers标准值（兼容10和100）
+  SOCIAL_CAR_MAX_USERS: [10, 100],
+} as const;
+
+/**
+ * 判断是否为社车
+ * @param maxUsers 车辆的最大用户数
+ * @returns 是否为社车
+ */
+export const isSocialCar = (maxUsers: number): boolean => {
+  return VEHICLE_CONFIG.SOCIAL_CAR_MAX_USERS.includes(maxUsers);
+};
+
 // API 端点配置
 export const API_ENDPOINTS = {
   USER_STATS: "https://proxy.poolhub.me/api/stats",
