@@ -60,7 +60,48 @@ export const VEHICLE_CONFIG = {
  * @returns 是否为社车
  */
 export const isSocialCar = (maxUsers: number): boolean => {
-  return VEHICLE_CONFIG.SOCIAL_CAR_MAX_USERS.includes(maxUsers);
+  return VEHICLE_CONFIG.SOCIAL_CAR_MAX_USERS.includes(maxUsers as 10 | 100);
+};
+
+/**
+ * 车辆统计数据类型
+ */
+export interface VehicleTypeStats {
+  total: number;
+  active: number;
+  survivalRate: number;
+}
+
+/**
+ * 计算社车统计数据
+ * @param cars 车辆数据数组
+ * @returns 社车统计信息
+ */
+export const calculateSocialCarStats = (cars: Array<{ maxUsers: number; isActive: boolean }>): VehicleTypeStats => {
+  const socialCars = cars.filter(car => isSocialCar(car.maxUsers));
+  const activeSocialCars = socialCars.filter(car => car.isActive);
+
+  return {
+    total: socialCars.length,
+    active: activeSocialCars.length,
+    survivalRate: socialCars.length === 0 ? 0 : (activeSocialCars.length / socialCars.length) * 100,
+  };
+};
+
+/**
+ * 计算黑车统计数据
+ * @param cars 车辆数据数组
+ * @returns 黑车统计信息
+ */
+export const calculateBlackCarStats = (cars: Array<{ maxUsers: number; isActive: boolean }>): VehicleTypeStats => {
+  const blackCars = cars.filter(car => !isSocialCar(car.maxUsers));
+  const activeBlackCars = blackCars.filter(car => car.isActive);
+
+  return {
+    total: blackCars.length,
+    active: activeBlackCars.length,
+    survivalRate: blackCars.length === 0 ? 0 : (activeBlackCars.length / blackCars.length) * 100,
+  };
 };
 
 // API 端点配置

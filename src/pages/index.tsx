@@ -8,7 +8,7 @@ import {
 import Layout from "@/components/Layout";
 import { api } from "@/utils/api";
 import { formatDateTime, formatNumber } from "@/utils/formatters";
-import { POLLING_INTERVALS, QUERY_CONFIG, isSocialCar } from "@/utils/config";
+import { POLLING_INTERVALS, QUERY_CONFIG, calculateSocialCarStats } from "@/utils/config";
 
 export default function Home() {
   const { data: userStatsSummary, isFetching } =
@@ -43,8 +43,7 @@ export default function Home() {
   );
 
   // 计算社车数量（maxUsers为10或100的车辆）
-  const socialCarCount =
-    carStatsData?.cars.filter((car) => isSocialCar(car.maxUsers)).length ?? 0;
+  const socialCarStats = carStatsData?.cars ? calculateSocialCarStats(carStatsData.cars) : { total: 0, active: 0, survivalRate: 0 };
 
   const dataModules = [
     {
@@ -71,7 +70,7 @@ export default function Home() {
         <>
           车辆总数: {formatNumber(carStatsSummary.summary.totalCars)} | 存活:{" "}
           {formatNumber(carStatsSummary.summary.activeCars)} | 社车数:{" "}
-          {formatNumber(socialCarCount)}
+          {formatNumber(socialCarStats.total)}
           <br />
           总设备数: {formatNumber(carStatsSummary.summary.totalUsers)}
         </>

@@ -12,7 +12,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber, formatDateTime } from "@/utils/formatters";
-import { POLLING_INTERVALS, QUERY_CONFIG, isSocialCar } from "@/utils/config";
+import {
+  POLLING_INTERVALS,
+  QUERY_CONFIG,
+  isSocialCar,
+  calculateSocialCarStats,
+  calculateBlackCarStats
+} from "@/utils/config";
 import { type CarStats } from "@/server/api/routers/stats";
 import { useState, useEffect, useRef } from "react";
 
@@ -80,9 +86,9 @@ export default function VehicleStats() {
     }
   };
 
-  // 计算社车数量（maxUsers为10或100的车辆）
-  const socialCarCount =
-    carStats?.cars.filter((car) => isSocialCar(car.maxUsers)).length ?? 0;
+  // 计算分类车辆统计
+  const socialCarStats = carStats?.cars ? calculateSocialCarStats(carStats.cars) : { total: 0, active: 0, survivalRate: 0 };
+  const blackCarStats = carStats?.cars ? calculateBlackCarStats(carStats.cars) : { total: 0, active: 0, survivalRate: 0 };
 
   // 过滤和排序车辆数据
   const filteredAndSortedCars =
@@ -268,17 +274,10 @@ export default function VehicleStats() {
                   </div>
                   <div className="mt-4 space-y-1">
                     <div className="text-xs text-slate-500">
-                      存活率:{" "}
-                      {carStats.summary.totalCars === 0
-                        ? "0%"
-                        : (
-                            (carStats.summary.activeCars /
-                              carStats.summary.totalCars) *
-                            100
-                          ).toFixed(1) + "%"}
+                      社车: {formatNumber(socialCarStats.active)}/{formatNumber(socialCarStats.total)} ({socialCarStats.survivalRate.toFixed(1)}%)
                     </div>
                     <div className="text-xs text-slate-500">
-                      社车数: {formatNumber(socialCarCount)} 台
+                      黑车: {formatNumber(blackCarStats.active)}/{formatNumber(blackCarStats.total)} ({blackCarStats.survivalRate.toFixed(1)}%)
                     </div>
                   </div>
                 </div>
