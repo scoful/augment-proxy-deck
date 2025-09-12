@@ -1,0 +1,9 @@
+main = ".open-next/worker.js"
+name = "augment-proxy-deck"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+# 静态资源配置
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"

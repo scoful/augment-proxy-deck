@@ -1,4 +1,5 @@
 import { createNextApiHandler } from "@trpc/server/adapters/next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
@@ -17,3 +18,12 @@ export default createNextApiHandler({
         }
       : undefined,
 });
+
+// 显式导出配置以满足 Next.js 15 类型检查
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
