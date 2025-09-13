@@ -26,7 +26,7 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
-  
+
   /**
    * TypeScript 配置
    */
@@ -34,7 +34,6 @@ const config = {
     // 在构建时忽略类型错误（仅用于解决 tRPC 兼容性问题）
     ignoreBuildErrors: true,
   },
-
 };
 
 export default config;

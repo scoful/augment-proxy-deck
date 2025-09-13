@@ -27,13 +27,17 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const searchRef = useRef<HTMLDivElement>(null);
 
   // 获取搜索结果
-  const { data: searchResults, isLoading: searchLoading } = api.history.getActiveUserList.useQuery({
-    limit: 20, // 搜索结果限制
-    days,
-    search: actualSearchQuery.trim() || undefined, // 只有有搜索内容时才传递
-  }, {
-    enabled: !!actualSearchQuery.trim(), // 只有有搜索内容时才查询
-  });
+  const { data: searchResults, isLoading: searchLoading } =
+    api.history.getActiveUserList.useQuery(
+      {
+        limit: 20, // 搜索结果限制
+        days,
+        search: actualSearchQuery.trim() || undefined, // 只有有搜索内容时才传递
+      },
+      {
+        enabled: !!actualSearchQuery.trim(), // 只有有搜索内容时才查询
+      },
+    );
 
   // 选择用户
   const selectUser = (user: any) => {
@@ -64,7 +68,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
 
   // 处理回车键
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearchSubmit();
     }
   };
@@ -72,36 +76,41 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   // 点击外部关闭结果列表
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setShowResults(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // 获取选中用户的趋势数据
-  const { data: userTrends, isLoading: trendsLoading } = api.history.getUserActivityTrends.useQuery(
-    {
-      days,
-      userId: selectedUserId,
-    },
-    {
-      enabled: !!selectedUserId,
-    }
-  );
+  const { data: userTrends, isLoading: trendsLoading } =
+    api.history.getUserActivityTrends.useQuery(
+      {
+        days,
+        userId: selectedUserId,
+      },
+      {
+        enabled: !!selectedUserId,
+      },
+    );
 
   // 处理图表数据
-  const chartData = userTrends?.map((trend) => ({
-    date: trend.dataDate,
-    count1Hour: trend.count1Hour,
-    count24Hour: trend.count24Hour,
-    rank1Hour: trend.rank1Hour,
-    rank24Hour: trend.rank24Hour,
-  })) || [];
+  const chartData =
+    userTrends?.map((trend) => ({
+      date: trend.dataDate,
+      count1Hour: trend.count1Hour,
+      count24Hour: trend.count24Hour,
+      rank1Hour: trend.rank1Hour,
+      rank24Hour: trend.rank24Hour,
+    })) || [];
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -112,7 +121,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {formatNumber(entry.value)}
-              {entry.dataKey.includes('rank') && ' 名'}
+              {entry.dataKey.includes("rank") && " 名"}
             </p>
           ))}
         </div>
@@ -122,20 +131,22 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   };
 
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">个人用量趋势</h3>
-        
+        <h3 className="mb-2 text-lg font-semibold text-slate-800">
+          个人用量趋势
+        </h3>
+
         {/* 用户搜索选择器 */}
         <div className="mb-4" ref={searchRef}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="mb-2 block text-sm font-medium text-slate-700">
             搜索用户
           </label>
 
           {/* 搜索框 */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <MagnifyingGlassIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -147,13 +158,13 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                 }}
                 onKeyPress={handleKeyPress}
                 placeholder="输入用户名或ID..."
-                className="w-full rounded-lg border border-slate-300 pl-10 pr-10 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 py-2 pr-10 pl-10 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                 disabled={searchLoading}
               />
               {selectedUserId && (
                 <button
                   onClick={clearSelection}
-                  className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -162,7 +173,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             <button
               onClick={handleSearchSubmit}
               disabled={!searchQuery.trim() || searchLoading}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               搜索
             </button>
@@ -180,13 +191,14 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                   <button
                     key={user.userId}
                     onClick={() => selectUser(user)}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 focus:bg-slate-50 focus:outline-none border-b border-slate-100 last:border-b-0"
+                    className="w-full border-b border-slate-100 px-3 py-2 text-left text-sm last:border-b-0 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                   >
                     <div className="font-medium text-slate-800">
                       {user.displayName || user.userId}
                     </div>
                     <div className="text-xs text-slate-500">
-                      总计: {formatNumber(user.totalCount)} | 平均: {formatNumber(user.avgCount)}/日
+                      总计: {formatNumber(user.totalCount)} | 平均:{" "}
+                      {formatNumber(user.avgCount)}/日
                     </div>
                   </button>
                 ))
@@ -198,8 +210,6 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             </div>
           )}
         </div>
-
-
       </div>
 
       {/* 图表区域 */}
@@ -222,10 +232,13 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       ) : (
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 stroke="#64748b"
                 fontSize={12}
                 tickFormatter={(value) => {
@@ -259,7 +272,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
 
       {/* 用户信息和使用模式识别 */}
       {selectedUserId && selectedUserData && (
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 border-t border-slate-200 pt-4">
           {(() => {
             const selectedUser = selectedUserData;
             if (!selectedUser) return null;
@@ -314,7 +327,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                 </div>
 
                 {/* 活跃度分析 */}
-                <div className="pt-2 border-t border-slate-100">
+                <div className="border-t border-slate-100 pt-2">
                   <p className="text-xs text-slate-500">
                     最后活跃: {selectedUser.lastActiveDate}
                   </p>
@@ -326,20 +339,26 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                         if (!recent || !previous) return null;
 
                         const trend = recent.count24Hour - previous.count24Hour;
-                        const trendPercent = previous.count24Hour > 0
-                          ? ((trend / previous.count24Hour) * 100).toFixed(1)
-                          : '0';
+                        const trendPercent =
+                          previous.count24Hour > 0
+                            ? ((trend / previous.count24Hour) * 100).toFixed(1)
+                            : "0";
 
                         if (Math.abs(trend) < 1) {
                           return <span>使用量保持稳定</span>;
                         } else if (trend > 0) {
-                          return <span className="text-green-600">
-                            ↗ 使用量上升 {trendPercent}%
-                          </span>;
+                          return (
+                            <span className="text-green-600">
+                              ↗ 使用量上升 {trendPercent}%
+                            </span>
+                          );
                         } else {
-                          return <span className="text-red-600">
-                            ↘ 使用量下降 {Math.abs(parseFloat(trendPercent))}%
-                          </span>;
+                          return (
+                            <span className="text-red-600">
+                              ↘ 使用量下降 {Math.abs(parseFloat(trendPercent))}
+                              %
+                            </span>
+                          );
                         }
                       })()}
                     </div>

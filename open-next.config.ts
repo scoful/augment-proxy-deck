@@ -7,10 +7,10 @@ import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 export default defineCloudflareConfig({
   // 可选：启用 R2 增量缓存
   // incrementalCache: r2IncrementalCache,
-  
+
   // 可选：启用 KV 增量缓存
   // incrementalCache: kvIncrementalCache,
-  
+
   // 启用缓存拦截（推荐）
   enableCacheInterception: true,
 });

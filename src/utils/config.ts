@@ -77,14 +77,19 @@ export interface VehicleTypeStats {
  * @param cars 车辆数据数组
  * @returns 社车统计信息
  */
-export const calculateSocialCarStats = (cars: Array<{ maxUsers: number; isActive: boolean }>): VehicleTypeStats => {
-  const socialCars = cars.filter(car => isSocialCar(car.maxUsers));
-  const activeSocialCars = socialCars.filter(car => car.isActive);
+export const calculateSocialCarStats = (
+  cars: Array<{ maxUsers: number; isActive: boolean }>,
+): VehicleTypeStats => {
+  const socialCars = cars.filter((car) => isSocialCar(car.maxUsers));
+  const activeSocialCars = socialCars.filter((car) => car.isActive);
 
   return {
     total: socialCars.length,
     active: activeSocialCars.length,
-    survivalRate: socialCars.length === 0 ? 0 : (activeSocialCars.length / socialCars.length) * 100,
+    survivalRate:
+      socialCars.length === 0
+        ? 0
+        : (activeSocialCars.length / socialCars.length) * 100,
   };
 };
 
@@ -93,14 +98,19 @@ export const calculateSocialCarStats = (cars: Array<{ maxUsers: number; isActive
  * @param cars 车辆数据数组
  * @returns 黑车统计信息
  */
-export const calculateBlackCarStats = (cars: Array<{ maxUsers: number; isActive: boolean }>): VehicleTypeStats => {
-  const blackCars = cars.filter(car => !isSocialCar(car.maxUsers));
-  const activeBlackCars = blackCars.filter(car => car.isActive);
+export const calculateBlackCarStats = (
+  cars: Array<{ maxUsers: number; isActive: boolean }>,
+): VehicleTypeStats => {
+  const blackCars = cars.filter((car) => !isSocialCar(car.maxUsers));
+  const activeBlackCars = blackCars.filter((car) => car.isActive);
 
   return {
     total: blackCars.length,
     active: activeBlackCars.length,
-    survivalRate: blackCars.length === 0 ? 0 : (activeBlackCars.length / blackCars.length) * 100,
+    survivalRate:
+      blackCars.length === 0
+        ? 0
+        : (activeBlackCars.length / blackCars.length) * 100,
   };
 };
 

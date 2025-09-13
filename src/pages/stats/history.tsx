@@ -20,9 +20,8 @@ export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
 
   // 获取数据概览
-  const { data: dataOverview, isLoading: overviewLoading } = api.history.getDataOverview.useQuery();
-
-
+  const { data: dataOverview, isLoading: overviewLoading } =
+    api.history.getDataOverview.useQuery();
 
   const dayOptions = [
     { value: 7, label: "最近7天" },
@@ -63,7 +62,9 @@ export default function HistoryPage() {
           {/* 时间范围选择器 */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">数据趋势分析</h2>
+              <h2 className="text-2xl font-bold text-slate-800">
+                数据趋势分析
+              </h2>
               <p className="text-slate-600">选择时间范围查看历史数据趋势</p>
             </div>
             <div className="flex gap-2">
@@ -74,7 +75,7 @@ export default function HistoryPage() {
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     selectedDays === option.value
                       ? "bg-blue-600 text-white"
-                      : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   {option.label}
@@ -83,79 +84,93 @@ export default function HistoryPage() {
             </div>
           </div>
 
-        {/* 数据概览卡片 */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-100 p-2">
-                <UserGroupIcon className="h-6 w-6 text-blue-600" />
+          {/* 数据概览卡片 */}
+          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-blue-100 p-2">
+                  <UserGroupIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">用户记录</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {overviewLoading
+                      ? "..."
+                      : formatNumber(
+                          dataOverview?.recordCounts.userDetail || 0,
+                        )}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-slate-600">用户记录</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {overviewLoading ? "..." : formatNumber(dataOverview?.recordCounts.userDetail || 0)}
-                </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-red-100 p-2">
+                  <TruckIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">车辆记录</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {overviewLoading
+                      ? "..."
+                      : formatNumber(
+                          dataOverview?.recordCounts.vehicleDetail || 0,
+                        )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-green-100 p-2">
+                  <ClockIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">系统记录</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {overviewLoading
+                      ? "..."
+                      : formatNumber(
+                          dataOverview?.recordCounts.systemDetail || 0,
+                        )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-purple-100 p-2">
+                  <CalendarIcon className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">最新数据</p>
+                  <p className="text-lg font-bold text-slate-800">
+                    {overviewLoading
+                      ? "..."
+                      : dataOverview?.latestDates.user || "暂无"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-red-100 p-2">
-                <TruckIcon className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">车辆记录</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {overviewLoading ? "..." : formatNumber(dataOverview?.recordCounts.vehicleDetail || 0)}
-                </p>
-              </div>
-            </div>
+          {/* 趋势图表区域 */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* 个人用量趋势图表 */}
+            <PersonalUsageChart days={selectedDays} />
+
+            {/* 车辆可用性趋势图表 */}
+            <VehicleAvailabilityChart days={selectedDays} />
+
+            {/* 系统总用量趋势图表 */}
+            <SystemUsageChart days={selectedDays} />
+
+            {/* 系统总用户数趋势图表 */}
+            <SystemUsersChart days={selectedDays} />
           </div>
-
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-green-100 p-2">
-                <ClockIcon className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">系统记录</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {overviewLoading ? "..." : formatNumber(dataOverview?.recordCounts.systemDetail || 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <CalendarIcon className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">最新数据</p>
-                <p className="text-lg font-bold text-slate-800">
-                  {overviewLoading ? "..." : (dataOverview?.latestDates.user || "暂无")}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 趋势图表区域 */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* 个人用量趋势图表 */}
-          <PersonalUsageChart days={selectedDays} />
-
-          {/* 车辆可用性趋势图表 */}
-          <VehicleAvailabilityChart days={selectedDays} />
-
-          {/* 系统总用量趋势图表 */}
-          <SystemUsageChart days={selectedDays} />
-
-          {/* 系统总用户数趋势图表 */}
-          <SystemUsersChart days={selectedDays} />
-        </div>
         </div>
       </main>
     </>

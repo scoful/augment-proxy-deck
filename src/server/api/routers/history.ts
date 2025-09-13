@@ -2,47 +2,51 @@
  * 历史数据查询API路由
  * 提供各种历史数据分析和趋势查询
  */
-import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/server/api/trpc';
-import { 
-  userStatsDetail, 
-  userStatsSummary, 
-  vehicleStatsDetail, 
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import {
+  userStatsDetail,
+  userStatsSummary,
+  vehicleStatsDetail,
   vehicleStatsSummary,
   systemStatsDetail,
   systemStatsSummary,
-  collectionLogs 
-} from '@/db/schema';
-import { desc, eq, gte, and, like, or } from 'drizzle-orm';
-import { 
-  collectDailyStats, 
+  collectionLogs,
+} from "@/db/schema";
+import { desc, eq, gte, and, like, or } from "drizzle-orm";
+import {
+  collectDailyStats,
   collectVehicleStatsDetail,
   collectUserStats,
   collectVehicleStatsSummary,
-  collectSystemStats
-} from '@/lib/data-collector';
+  collectSystemStats,
+} from "@/lib/data-collector";
 
 export const historyRouter = createTRPCRouter({
   // 获取用户活跃度趋势
   getUserActivityTrends: publicProcedure
-    .input(z.object({
-      days: z.number().min(1).max(90).default(7),
-      userId: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+        userId: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       if (input.userId) {
         // 查询特定用户的趋势
         return await ctx.db
           .select()
           .from(userStatsDetail)
-          .where(and(
-            eq(userStatsDetail.userId, input.userId),
-            gte(userStatsDetail.dataDate, startDate)
-          ))
+          .where(
+            and(
+              eq(userStatsDetail.userId, input.userId),
+              gte(userStatsDetail.dataDate, startDate),
+            ),
+          )
           .orderBy(desc(userStatsDetail.dataDate));
       } else {
         // 查询整体用户活跃度趋势
@@ -56,14 +60,16 @@ export const historyRouter = createTRPCRouter({
 
   // 获取车辆存活率趋势
   getVehicleSurvivalTrends: publicProcedure
-    .input(z.object({
-      days: z.number().min(1).max(90).default(7),
-      carType: z.enum(['all', 'social', 'black']).default('all'),
-    }))
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+        carType: z.enum(["all", "social", "black"]).default("all"),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       return await ctx.db
         .select()
@@ -78,7 +84,7 @@ export const historyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       // 从明细数据中按日期和车型聚合
       return await ctx.db
@@ -94,7 +100,7 @@ export const historyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       return await ctx.db
         .select()
@@ -109,7 +115,7 @@ export const historyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       return await ctx.db
         .select()
@@ -120,10 +126,14 @@ export const historyRouter = createTRPCRouter({
 
   // 获取数据采集日志
   getCollectionLogs: publicProcedure
-    .input(z.object({
-      limit: z.number().default(50),
-      taskType: z.enum(['user', 'vehicle_detail', 'vehicle_summary', 'system']).optional(),
-    }))
+    .input(
+      z.object({
+        limit: z.number().default(50),
+        taskType: z
+          .enum(["user", "vehicle_detail", "vehicle_summary", "system"])
+          .optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       if (input.taskType) {
         return await ctx.db
@@ -143,39 +153,49 @@ export const historyRouter = createTRPCRouter({
 
   // 手动触发数据采集（开发和测试用）
   triggerDataCollection: publicProcedure
-    .input(z.object({
-      type: z.enum(['daily', 'vehicle_detail', 'user', 'vehicle_summary', 'system']),
-    }))
+    .input(
+      z.object({
+        type: z.enum([
+          "daily",
+          "vehicle_detail",
+          "user",
+          "vehicle_summary",
+          "system",
+        ]),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       const d1Database = (ctx as any).d1Database; // 如果在Cloudflare环境
 
       switch (input.type) {
-        case 'daily':
+        case "daily":
           return await collectDailyStats(d1Database);
-        case 'vehicle_detail':
+        case "vehicle_detail":
           return await collectVehicleStatsDetail(d1Database);
-        case 'user':
+        case "user":
           return await collectUserStats(d1Database);
-        case 'vehicle_summary':
+        case "vehicle_summary":
           return await collectVehicleStatsSummary(d1Database);
-        case 'system':
+        case "system":
           return await collectSystemStats(d1Database);
         default:
-          throw new Error('Invalid collection type');
+          throw new Error("Invalid collection type");
       }
     }),
 
   // 获取活跃用户列表
   getActiveUserList: publicProcedure
-    .input(z.object({
-      limit: z.number().min(1).max(500).default(100), // 支持更多用户，最大500
-      days: z.number().default(7),
-      search: z.string().optional(), // 搜索关键词
-    }))
+    .input(
+      z.object({
+        limit: z.number().min(1).max(500).default(100), // 支持更多用户，最大500
+        days: z.number().default(7),
+        search: z.string().optional(), // 搜索关键词
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
-      const startDate = daysAgo.toISOString().split('T')[0]!;
+      const startDate = daysAgo.toISOString().split("T")[0]!;
 
       // 构建查询条件
       let whereConditions = [gte(userStatsDetail.dataDate, startDate)];
@@ -186,8 +206,8 @@ export const historyRouter = createTRPCRouter({
         whereConditions.push(
           or(
             like(userStatsDetail.displayName, searchTerm),
-            like(userStatsDetail.userId, searchTerm)
-          )!
+            like(userStatsDetail.userId, searchTerm),
+          )!,
         );
       }
 
@@ -215,7 +235,9 @@ export const historyRouter = createTRPCRouter({
           const existing = userMap.get(userId);
           existing.totalCount += record.count24Hour;
           existing.recordCount += 1;
-          existing.avgCount = Math.round((existing.totalCount / existing.recordCount) * 100) / 100;
+          existing.avgCount =
+            Math.round((existing.totalCount / existing.recordCount) * 100) /
+            100;
           if (record.dataDate > existing.lastActiveDate) {
             existing.lastActiveDate = record.dataDate;
           }
@@ -229,51 +251,44 @@ export const historyRouter = createTRPCRouter({
     }),
 
   // 获取数据统计概览
-  getDataOverview: publicProcedure
-    .query(async ({ ctx }) => {
-      // 获取最新的数据日期
-      const latestUserData = await ctx.db
-        .select()
-        .from(userStatsSummary)
-        .orderBy(desc(userStatsSummary.dataDate))
-        .limit(1);
+  getDataOverview: publicProcedure.query(async ({ ctx }) => {
+    // 获取最新的数据日期
+    const latestUserData = await ctx.db
+      .select()
+      .from(userStatsSummary)
+      .orderBy(desc(userStatsSummary.dataDate))
+      .limit(1);
 
-      const latestVehicleData = await ctx.db
-        .select()
-        .from(vehicleStatsSummary)
-        .orderBy(desc(vehicleStatsSummary.dataDate))
-        .limit(1);
+    const latestVehicleData = await ctx.db
+      .select()
+      .from(vehicleStatsSummary)
+      .orderBy(desc(vehicleStatsSummary.dataDate))
+      .limit(1);
 
-      const latestSystemData = await ctx.db
-        .select()
-        .from(systemStatsSummary)
-        .orderBy(desc(systemStatsSummary.dataDate))
-        .limit(1);
+    const latestSystemData = await ctx.db
+      .select()
+      .from(systemStatsSummary)
+      .orderBy(desc(systemStatsSummary.dataDate))
+      .limit(1);
 
-      // 获取数据量统计
-      const userDetailCount = await ctx.db
-        .select()
-        .from(userStatsDetail);
+    // 获取数据量统计
+    const userDetailCount = await ctx.db.select().from(userStatsDetail);
 
-      const vehicleDetailCount = await ctx.db
-        .select()
-        .from(vehicleStatsDetail);
+    const vehicleDetailCount = await ctx.db.select().from(vehicleStatsDetail);
 
-      const systemDetailCount = await ctx.db
-        .select()
-        .from(systemStatsDetail);
+    const systemDetailCount = await ctx.db.select().from(systemStatsDetail);
 
-      return {
-        latestDates: {
-          user: latestUserData[0]?.dataDate || null,
-          vehicle: latestVehicleData[0]?.dataDate || null,
-          system: latestSystemData[0]?.dataDate || null,
-        },
-        recordCounts: {
-          userDetail: userDetailCount.length || 0,
-          vehicleDetail: vehicleDetailCount.length || 0,
-          systemDetail: systemDetailCount.length || 0,
-        },
-      };
-    }),
+    return {
+      latestDates: {
+        user: latestUserData[0]?.dataDate || null,
+        vehicle: latestVehicleData[0]?.dataDate || null,
+        system: latestSystemData[0]?.dataDate || null,
+      },
+      recordCounts: {
+        userDetail: userDetailCount.length || 0,
+        vehicleDetail: vehicleDetailCount.length || 0,
+        systemDetail: systemDetailCount.length || 0,
+      },
+    };
+  }),
 });

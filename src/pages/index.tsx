@@ -9,7 +9,12 @@ import {
 import Layout from "@/components/Layout";
 import { api } from "@/utils/api";
 import { formatDateTime, formatNumber } from "@/utils/formatters";
-import { POLLING_INTERVALS, QUERY_CONFIG, calculateSocialCarStats, calculateBlackCarStats } from "@/utils/config";
+import {
+  POLLING_INTERVALS,
+  QUERY_CONFIG,
+  calculateSocialCarStats,
+  calculateBlackCarStats,
+} from "@/utils/config";
 
 export default function Home() {
   const { data: userStatsSummary, isFetching } =
@@ -44,13 +49,20 @@ export default function Home() {
   );
 
   // 计算分类车辆统计
-  const socialCarStats = carStatsData?.cars ? calculateSocialCarStats(carStatsData.cars) : { total: 0, active: 0, survivalRate: 0 };
-  const blackCarStats = carStatsData?.cars ? calculateBlackCarStats(carStatsData.cars) : { total: 0, active: 0, survivalRate: 0 };
+  const socialCarStats = carStatsData?.cars
+    ? calculateSocialCarStats(carStatsData.cars)
+    : { total: 0, active: 0, survivalRate: 0 };
+  const blackCarStats = carStatsData?.cars
+    ? calculateBlackCarStats(carStatsData.cars)
+    : { total: 0, active: 0, survivalRate: 0 };
 
   // 获取历史数据概览
-  const { data: dataOverview } = api.history.getDataOverview.useQuery(undefined, {
-    refetchInterval: 5 * 60 * 1000, // 每5分钟更新一次
-  });
+  const { data: dataOverview } = api.history.getDataOverview.useQuery(
+    undefined,
+    {
+      refetchInterval: 5 * 60 * 1000, // 每5分钟更新一次
+    },
+  );
 
   const dataModules = [
     {
@@ -75,9 +87,13 @@ export default function Home() {
       title: "黑车统计",
       description: carStatsSummary ? (
         <>
-          社车: {formatNumber(socialCarStats.active)}/{formatNumber(socialCarStats.total)} ({socialCarStats.survivalRate.toFixed(1)}%)
+          社车: {formatNumber(socialCarStats.active)}/
+          {formatNumber(socialCarStats.total)} (
+          {socialCarStats.survivalRate.toFixed(1)}%)
           <br />
-          黑车: {formatNumber(blackCarStats.active)}/{formatNumber(blackCarStats.total)} ({blackCarStats.survivalRate.toFixed(1)}%)
+          黑车: {formatNumber(blackCarStats.active)}/
+          {formatNumber(blackCarStats.total)} (
+          {blackCarStats.survivalRate.toFixed(1)}%)
           <br />
           总设备数: {formatNumber(carStatsSummary.summary.totalUsers)}
         </>
@@ -114,8 +130,8 @@ export default function Home() {
           用户记录: {formatNumber(dataOverview.recordCounts.userDetail)} |
           车辆记录: {formatNumber(dataOverview.recordCounts.vehicleDetail)}
           <br />
-          最新数据: {dataOverview.latestDates.user || '暂无'} |
-          系统记录: {formatNumber(dataOverview.recordCounts.systemDetail)}
+          最新数据: {dataOverview.latestDates.user || "暂无"} | 系统记录:{" "}
+          {formatNumber(dataOverview.recordCounts.systemDetail)}
         </>
       ) : (
         "查看历史数据趋势和长期分析"
