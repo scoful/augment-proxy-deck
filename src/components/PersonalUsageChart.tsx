@@ -1,0 +1,355 @@
+import { useState, useMemo, useRef, useEffect } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { api } from "@/utils/api";
+import { formatNumber } from "@/utils/formatters";
+
+interface PersonalUsageChartProps {
+  days: number;
+}
+
+export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
+  const [selectedUserData, setSelectedUserData] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [actualSearchQuery, setActualSearchQuery] = useState<string>("");
+  const [showResults, setShowResults] = useState<boolean>(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // 获取搜索结果
+  const { data: searchResults, isLoading: searchLoading } = api.history.getActiveUserList.useQuery({
+    limit: 20, // 搜索结果限制
+    days,
+    search: actualSearchQuery.trim() || undefined, // 只有有搜索内容时才传递
+  }, {
+    enabled: !!actualSearchQuery.trim(), // 只有有搜索内容时才查询
+  });
+
+  // 选择用户
+  const selectUser = (user: any) => {
+    setSelectedUserId(user.userId);
+    setSelectedUserName(user.displayName || user.userId);
+    setSelectedUserData(user); // 保存用户数据
+    setSearchQuery(user.displayName || user.userId);
+    setShowResults(false);
+  };
+
+  // 清空选择
+  const clearSelection = () => {
+    setSelectedUserId("");
+    setSelectedUserName("");
+    setSelectedUserData(null);
+    setSearchQuery("");
+    setActualSearchQuery("");
+    setShowResults(false);
+  };
+
+  // 处理搜索提交
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      setActualSearchQuery(searchQuery.trim());
+      setShowResults(true);
+    }
+  };
+
+  // 处理回车键
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  // 点击外部关闭结果列表
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // 获取选中用户的趋势数据
+  const { data: userTrends, isLoading: trendsLoading } = api.history.getUserActivityTrends.useQuery(
+    {
+      days,
+      userId: selectedUserId,
+    },
+    {
+      enabled: !!selectedUserId,
+    }
+  );
+
+  // 处理图表数据
+  const chartData = userTrends?.map((trend) => ({
+    date: trend.dataDate,
+    count1Hour: trend.count1Hour,
+    count24Hour: trend.count24Hour,
+    rank1Hour: trend.rank1Hour,
+    rank24Hour: trend.rank24Hour,
+  })) || [];
+
+  // 自定义Tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
+          <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              {entry.name}: {formatNumber(entry.value)}
+              {entry.dataKey.includes('rank') && ' 名'}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">个人用量趋势</h3>
+        
+        {/* 用户搜索选择器 */}
+        <div className="mb-4" ref={searchRef}>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            搜索用户
+          </label>
+
+          {/* 搜索框 */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (!e.target.value.trim()) {
+                    clearSelection();
+                  }
+                }}
+                onKeyPress={handleKeyPress}
+                placeholder="输入用户名或ID..."
+                className="w-full rounded-lg border border-slate-300 pl-10 pr-10 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                disabled={searchLoading}
+              />
+              {selectedUserId && (
+                <button
+                  onClick={clearSelection}
+                  className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={handleSearchSubmit}
+              disabled={!searchQuery.trim() || searchLoading}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+            >
+              搜索
+            </button>
+          </div>
+
+          {/* 搜索结果列表 */}
+          {showResults && actualSearchQuery.trim() && (
+            <div className="mt-1 max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+              {searchLoading ? (
+                <div className="px-3 py-2 text-sm text-slate-500">
+                  搜索中...
+                </div>
+              ) : searchResults && searchResults.length > 0 ? (
+                searchResults.map((user) => (
+                  <button
+                    key={user.userId}
+                    onClick={() => selectUser(user)}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 focus:bg-slate-50 focus:outline-none border-b border-slate-100 last:border-b-0"
+                  >
+                    <div className="font-medium text-slate-800">
+                      {user.displayName || user.userId}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      总计: {formatNumber(user.totalCount)} | 平均: {formatNumber(user.avgCount)}/日
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-sm text-slate-500">
+                  未找到匹配的用户，请尝试其他关键词
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+
+      </div>
+
+      {/* 图表区域 */}
+      {!selectedUserId ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center text-slate-500">
+            <p>请选择用户查看个人用量趋势</p>
+          </div>
+        </div>
+      ) : trendsLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      ) : chartData.length === 0 ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center text-slate-500">
+            <p>该用户在选定时间范围内暂无数据</p>
+          </div>
+        </div>
+      ) : (
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis 
+                dataKey="date" 
+                stroke="#64748b"
+                fontSize={12}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getMonth() + 1}/${date.getDate()}`;
+                }}
+              />
+              <YAxis stroke="#64748b" fontSize={12} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="count1Hour"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                name="1小时请求量"
+              />
+              <Line
+                type="monotone"
+                dataKey="count24Hour"
+                stroke="#ef4444"
+                strokeWidth={2}
+                dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
+                name="24小时请求量"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* 用户信息和使用模式识别 */}
+      {selectedUserId && selectedUserData && (
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          {(() => {
+            const selectedUser = selectedUserData;
+            if (!selectedUser) return null;
+
+            // 使用模式识别
+            const avgCount = selectedUser.avgCount;
+            let usagePattern = "";
+            let patternColor = "";
+
+            if (avgCount >= 100) {
+              usagePattern = "重度用户";
+              patternColor = "text-red-600";
+            } else if (avgCount >= 50) {
+              usagePattern = "中度用户";
+              patternColor = "text-orange-600";
+            } else if (avgCount >= 10) {
+              usagePattern = "轻度用户";
+              patternColor = "text-blue-600";
+            } else {
+              usagePattern = "偶尔使用";
+              patternColor = "text-slate-600";
+            }
+
+            return (
+              <div className="space-y-3">
+                {/* 基础信息 */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-slate-600">用户</p>
+                    <p className="font-medium text-slate-800">
+                      {selectedUser.displayName || selectedUser.userId}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">使用模式</p>
+                    <p className={`font-medium ${patternColor}`}>
+                      {usagePattern}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">总请求量</p>
+                    <p className="font-medium text-slate-800">
+                      {formatNumber(selectedUser.totalCount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">平均日请求量</p>
+                    <p className="font-medium text-slate-800">
+                      {formatNumber(selectedUser.avgCount)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 活跃度分析 */}
+                <div className="pt-2 border-t border-slate-100">
+                  <p className="text-xs text-slate-500">
+                    最后活跃: {selectedUser.lastActiveDate}
+                  </p>
+                  {chartData.length > 1 && (
+                    <div className="mt-1 text-xs text-slate-600">
+                      {(() => {
+                        const recent = chartData[chartData.length - 1];
+                        const previous = chartData[chartData.length - 2];
+                        if (!recent || !previous) return null;
+
+                        const trend = recent.count24Hour - previous.count24Hour;
+                        const trendPercent = previous.count24Hour > 0
+                          ? ((trend / previous.count24Hour) * 100).toFixed(1)
+                          : '0';
+
+                        if (Math.abs(trend) < 1) {
+                          return <span>使用量保持稳定</span>;
+                        } else if (trend > 0) {
+                          return <span className="text-green-600">
+                            ↗ 使用量上升 {trendPercent}%
+                          </span>;
+                        } else {
+                          return <span className="text-red-600">
+                            ↘ 使用量下降 {Math.abs(parseFloat(trendPercent))}%
+                          </span>;
+                        }
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -43,7 +43,10 @@ export function formatDisplayName(displayName: string): string {
  * @param num 数字
  * @returns 格式化后的字符串
  */
-export function formatNumber(num: number): string {
+export function formatNumber(num: number | undefined | null): string {
+  if (num === undefined || num === null || isNaN(num)) {
+    return "0";
+  }
   return num.toLocaleString("zh-CN");
 }
 

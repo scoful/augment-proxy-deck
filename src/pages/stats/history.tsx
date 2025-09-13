@@ -7,12 +7,14 @@ import {
   TruckIcon,
   UserGroupIcon,
   CalendarIcon,
-  ArrowTrendingUpIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import Layout from "@/components/Layout";
 import { api } from "@/utils/api";
-import { formatDateTime, formatNumber } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
+import PersonalUsageChart from "@/components/PersonalUsageChart";
+import SystemUsageChart from "@/components/SystemUsageChart";
+import SystemUsersChart from "@/components/SystemUsersChart";
+import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
@@ -20,25 +22,7 @@ export default function HistoryPage() {
   // 获取数据概览
   const { data: dataOverview, isLoading: overviewLoading } = api.history.getDataOverview.useQuery();
 
-  // 获取用户活跃度趋势
-  const { data: userTrends, isLoading: userTrendsLoading } = api.history.getUserActivityTrends.useQuery({
-    days: selectedDays,
-  });
 
-  // 获取车辆存活率趋势
-  const { data: vehicleTrends, isLoading: vehicleTrendsLoading } = api.history.getVehicleSurvivalTrends.useQuery({
-    days: selectedDays,
-  });
-
-  // 获取系统请求趋势
-  const { data: systemTrends, isLoading: systemTrendsLoading } = api.history.getSystemRequestTrends.useQuery({
-    days: selectedDays,
-  });
-
-  // 获取社车vs黑车对比
-  const { data: comparisonData, isLoading: comparisonLoading } = api.history.getSocialVsBlackComparison.useQuery({
-    days: selectedDays,
-  });
 
   const dayOptions = [
     { value: 7, label: "最近7天" },
@@ -160,163 +144,17 @@ export default function HistoryPage() {
 
         {/* 趋势图表区域 */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* 用户活跃度趋势 */}
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="mb-4 flex items-center gap-3">
-              <UserGroupIcon className="h-6 w-6 text-blue-600" />
-              <h3 className="text-lg font-semibold text-slate-800">用户活跃度趋势</h3>
-            </div>
-            {userTrendsLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-slate-500">加载中...</div>
-              </div>
-            ) : userTrends && userTrends.length > 0 ? (
-              <div className="space-y-3">
-                {userTrends.slice(0, 5).map((trend, index) => (
-                  <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <p className="font-medium text-slate-800">{trend.dataDate}</p>
-                      <p className="text-sm text-slate-600">
-                        1h: {formatNumber(trend.totalUsers1Hour)} | 24h: {formatNumber(trend.totalUsers24Hour)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-600">请求量</p>
-                      <p className="font-medium text-slate-800">
-                        {formatNumber(trend.totalCount24Hour)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <ArrowTrendingUpIcon className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-2">暂无数据</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 个人用量趋势图表 */}
+          <PersonalUsageChart days={selectedDays} />
 
-          {/* 车辆存活率趋势 */}
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="mb-4 flex items-center gap-3">
-              <TruckIcon className="h-6 w-6 text-red-600" />
-              <h3 className="text-lg font-semibold text-slate-800">车辆存活率趋势</h3>
-            </div>
-            {vehicleTrendsLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-slate-500">加载中...</div>
-              </div>
-            ) : vehicleTrends && vehicleTrends.length > 0 ? (
-              <div className="space-y-3">
-                {vehicleTrends.slice(0, 5).map((trend, index) => (
-                  <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <p className="font-medium text-slate-800">{trend.dataDate}</p>
-                      <p className="text-sm text-slate-600">
-                        总数: {formatNumber(trend.totalCars)} | 活跃: {formatNumber(trend.activeCars)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-600">存活率</p>
-                      <p className="font-medium text-slate-800">
-                        {trend.survivalRate.toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <ArrowTrendingUpIcon className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-2">暂无数据</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 车辆可用性趋势图表 */}
+          <VehicleAvailabilityChart days={selectedDays} />
 
-          {/* 系统请求趋势 */}
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="mb-4 flex items-center gap-3">
-              <ClockIcon className="h-6 w-6 text-green-600" />
-              <h3 className="text-lg font-semibold text-slate-800">系统请求趋势</h3>
-            </div>
-            {systemTrendsLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-slate-500">加载中...</div>
-              </div>
-            ) : systemTrends && systemTrends.length > 0 ? (
-              <div className="space-y-3">
-                {systemTrends.slice(0, 5).map((trend, index) => (
-                  <div key={index} className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <p className="font-medium text-slate-800">{trend.dataDate}</p>
-                      <p className="text-sm text-slate-600">
-                        今日: {formatNumber(trend.todayTotal)} | 昨日: {formatNumber(trend.yesterdayTotal)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-600">用户数</p>
-                      <p className="font-medium text-slate-800">
-                        {formatNumber(trend.todayUsers)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <ArrowTrendingUpIcon className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-2">暂无数据</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 系统总用量趋势图表 */}
+          <SystemUsageChart days={selectedDays} />
 
-          {/* 社车vs黑车对比 */}
-          <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
-            <div className="mb-4 flex items-center gap-3">
-              <ChartBarIcon className="h-6 w-6 text-purple-600" />
-              <h3 className="text-lg font-semibold text-slate-800">社车vs黑车对比</h3>
-            </div>
-            {comparisonLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-slate-500">加载中...</div>
-              </div>
-            ) : comparisonData && comparisonData.length > 0 ? (
-              <div className="space-y-3">
-                {comparisonData.slice(0, 5).map((data, index) => (
-                  <div key={index} className="border-b border-slate-100 pb-2">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-slate-800">{data.dataDate}</p>
-                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        data.carType === 'social' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {data.carType === 'social' ? '社车' : '黑车'}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between text-sm text-slate-600">
-                      <span>总数: {formatNumber(data.totalCars)} | 活跃: {formatNumber(data.activeCars)}</span>
-                      <span>存活率: {data.survivalRate.toFixed(1)}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-64 items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <ArrowTrendingUpIcon className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-2">暂无数据</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 系统总用户数趋势图表 */}
+          <SystemUsersChart days={selectedDays} />
         </div>
         </div>
       </main>
