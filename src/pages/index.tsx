@@ -4,6 +4,7 @@ import {
   TruckIcon,
   ClockIcon,
   ChartBarIcon,
+  ChartPieIcon,
 } from "@heroicons/react/24/outline";
 import Layout from "@/components/Layout";
 import { api } from "@/utils/api";
@@ -45,6 +46,11 @@ export default function Home() {
   // 计算分类车辆统计
   const socialCarStats = carStatsData?.cars ? calculateSocialCarStats(carStatsData.cars) : { total: 0, active: 0, survivalRate: 0 };
   const blackCarStats = carStatsData?.cars ? calculateBlackCarStats(carStatsData.cars) : { total: 0, active: 0, survivalRate: 0 };
+
+  // 获取历史数据概览
+  const { data: dataOverview } = api.history.getDataOverview.useQuery(undefined, {
+    refetchInterval: 5 * 60 * 1000, // 每5分钟更新一次
+  });
 
   const dataModules = [
     {
@@ -101,6 +107,24 @@ export default function Home() {
       color: "from-green-500 to-green-600",
       hoverColor: "hover:from-green-600 hover:to-green-700",
     },
+    {
+      title: "历史统计",
+      description: dataOverview ? (
+        <>
+          用户记录: {formatNumber(dataOverview.recordCounts.userDetail)} |
+          车辆记录: {formatNumber(dataOverview.recordCounts.vehicleDetail)}
+          <br />
+          最新数据: {dataOverview.latestDates.user || '暂无'} |
+          系统记录: {formatNumber(dataOverview.recordCounts.systemDetail)}
+        </>
+      ) : (
+        "查看历史数据趋势和长期分析"
+      ),
+      icon: ChartPieIcon,
+      href: "/stats/history",
+      color: "from-purple-500 to-purple-600",
+      hoverColor: "hover:from-purple-600 hover:to-purple-700",
+    },
   ];
 
   return (
@@ -118,28 +142,28 @@ export default function Home() {
       </div>
 
       {/* Data Modules Grid */}
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {dataModules.map((module) => {
           const IconComponent = module.icon;
           return (
             <Link
               key={module.title}
               href={module.href}
-              className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${module.color} ${module.hoverColor} p-8 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl`}
+              className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${module.color} ${module.hoverColor} p-4 text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg`}
             >
               <div className="relative z-10">
-                <div className="mb-6">
-                  <IconComponent className="h-12 w-12 text-white/90" />
+                <div className="mb-3">
+                  <IconComponent className="h-8 w-8 text-white/90" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold">{module.title}</h3>
-                <div className="text-sm leading-relaxed text-white/90">
+                <h3 className="mb-2 text-lg font-bold">{module.title}</h3>
+                <div className="text-xs leading-relaxed text-white/90">
                   {module.description}
                 </div>
               </div>
 
               {/* Decorative background pattern */}
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 transition-transform duration-300 group-hover:scale-110" />
-              <div className="absolute bottom-0 left-0 -mb-8 -ml-8 h-32 w-32 rounded-full bg-white/5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full bg-white/10 transition-transform duration-300 group-hover:scale-110" />
+              <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-white/5 transition-transform duration-300 group-hover:scale-110" />
             </Link>
           );
         })}

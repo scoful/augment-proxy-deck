@@ -26,7 +26,12 @@
     "version:current": "node scripts/version.js current",
     "pre-commit": "node scripts/bump-version.js && git add src/config/version.js",
     "commit": "node scripts/commit-with-version.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "collect:daily": "tsx src/lib/test-collection.ts daily",
+    "collect:vehicle": "tsx src/lib/test-collection.ts vehicle"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -37,6 +42,8 @@
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "@vercel/analytics": "^1.5.0",
+    "better-sqlite3": "^12.2.0",
+    "drizzle-orm": "^0.44.5",
     "next": "^15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -48,9 +55,11 @@
     "@eslint/eslintrc": "^3.3.1",
     "@opennextjs/cloudflare": "^1.7.0",
     "@tailwindcss/postcss": "^4.0.15",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.14.10",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",
     "husky": "^9.1.7",
@@ -58,6 +67,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
+    "tsx": "^4.20.5",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0",
     "wrangler": "^4.33.1"

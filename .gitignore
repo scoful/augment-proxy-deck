@@ -13,6 +13,12 @@
 /prisma/db.sqlite-journal
 db.sqlite
 
+# drizzle database files
+/src/data/
+/src/db/migrations/
+*.db
+*.db-journal
+
 # next.js
 /.next/
 /out/
