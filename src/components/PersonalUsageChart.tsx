@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -19,7 +19,6 @@ interface PersonalUsageChartProps {
 
 export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedUserName, setSelectedUserName] = useState<string>("");
   const [selectedUserData, setSelectedUserData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [actualSearchQuery, setActualSearchQuery] = useState<string>("");
@@ -42,7 +41,6 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   // 选择用户
   const selectUser = (user: any) => {
     setSelectedUserId(user.userId);
-    setSelectedUserName(user.displayName || user.userId);
     setSelectedUserData(user); // 保存用户数据
     setSearchQuery(user.displayName || user.userId);
     setShowResults(false);
@@ -51,7 +49,6 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   // 清空选择
   const clearSelection = () => {
     setSelectedUserId("");
-    setSelectedUserName("");
     setSelectedUserData(null);
     setSearchQuery("");
     setActualSearchQuery("");
@@ -106,10 +103,10 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const chartData =
     userTrends?.map((trend) => ({
       date: trend.dataDate,
-      count1Hour: trend.count1Hour,
-      count24Hour: trend.count24Hour,
-      rank1Hour: trend.rank1Hour,
-      rank24Hour: trend.rank24Hour,
+      count1Hour: 'count1Hour' in trend ? trend.count1Hour : 0,
+      count24Hour: 'count24Hour' in trend ? trend.count24Hour : 0,
+      rank1Hour: 'rank1Hour' in trend ? trend.rank1Hour : 0,
+      rank24Hour: 'rank24Hour' in trend ? trend.rank24Hour : 0,
     })) || [];
 
   // 自定义Tooltip

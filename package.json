@@ -30,8 +30,14 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:migrate:remote": "wrangler d1 migrations apply augment-proxy-deck-db --remote",
     "collect:daily": "tsx src/lib/test-collection.ts daily",
-    "collect:vehicle": "tsx src/lib/test-collection.ts vehicle"
+    "collect:vehicle": "tsx src/lib/test-collection.ts vehicle",
+    "cf:create-db": "wrangler d1 create augment-proxy-deck-db",
+    "cf:deploy": "pnpm run build:cloudflare && wrangler deploy",
+    "cf:logs": "wrangler tail",
+    "cf:cron:daily": "wrangler cron trigger --cron \"5 0 * * *\"",
+    "cf:cron:vehicle": "wrangler cron trigger --cron \"*/30 * * * *\""
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

@@ -31,7 +31,7 @@ export default function VehicleAvailabilityChart({
       activeCars: trend.activeCars,
       inactiveCars: trend.totalCars - trend.activeCars,
       totalCars: trend.totalCars,
-      survivalRate: trend.survivalRate,
+      survivalRate: trend.totalCars > 0 ? (trend.activeCars / trend.totalCars * 100) : 0,
     })) || [];
 
   // 自定义Tooltip

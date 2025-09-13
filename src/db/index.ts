@@ -34,7 +34,7 @@ export function createDatabase(d1Database?: any) {
       const migrationsFolder = path.join(process.cwd(), "src/db/migrations");
       migrate(db, { migrationsFolder });
       console.log("✅ Database migrations applied successfully");
-    } catch (error) {
+    } catch {
       console.log("ℹ️ No migrations to apply or migrations already applied");
     }
 

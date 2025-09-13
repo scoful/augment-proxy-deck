@@ -2,6 +2,12 @@
  * 数据采集核心逻辑
  * 支持本地SQLite和Cloudflare D1环境
  */
+
+// Cloudflare D1 类型定义
+interface D1Database {
+  prepare(query: string): any;
+  exec(query: string): Promise<any>;
+}
 import { getDatabase } from "@/db";
 import {
   userStatsDetail,

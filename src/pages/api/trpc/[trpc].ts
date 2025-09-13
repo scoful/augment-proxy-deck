@@ -6,7 +6,7 @@ import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 
 // export API handler
-export default createNextApiHandler({
+const handler = createNextApiHandler({
   router: appRouter,
   createContext: createTRPCContext,
   onError:
@@ -18,6 +18,10 @@ export default createNextApiHandler({
         }
       : undefined,
 });
+
+export default function trpcHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  return handler(req, res) as Promise<void>;
+}
 
 // 显式导出配置以满足 Next.js 15 类型检查
 export const config = {

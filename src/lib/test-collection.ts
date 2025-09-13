@@ -73,4 +73,4 @@ async function main() {
 }
 
 // 运行测试
-main();
+void main();
