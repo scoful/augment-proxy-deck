@@ -198,10 +198,10 @@ export const historyRouter = createTRPCRouter({
       const startDate = daysAgo.toISOString().split("T")[0]!;
 
       // 构建查询条件
-      let whereConditions = [gte(userStatsDetail.dataDate, startDate)];
+      const whereConditions = [gte(userStatsDetail.dataDate, startDate)];
 
       // 如果有搜索关键词，添加搜索条件
-      if (input.search && input.search.trim()) {
+      if (input.search?.trim()) {
         const searchTerm = `%${input.search.trim()}%`;
         whereConditions.push(
           or(
