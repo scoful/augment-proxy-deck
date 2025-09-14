@@ -505,9 +505,4 @@ export default function HourlyStats() {
   );
 }
 
-// 防止静态生成，使用服务器端渲染
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
+
