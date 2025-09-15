@@ -12,6 +12,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { getDatabase } from "@/db";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 /**
  * 1. CONTEXT
@@ -34,8 +35,19 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+  // 尝试获取 Cloudflare Workers 环境中的 D1 数据库实例
+  let d1Database;
+  try {
+    // 在 Cloudflare Workers 环境中获取 D1 绑定
+    const cloudflareContext = getCloudflareContext();
+    d1Database = cloudflareContext.env?.DB;
+  } catch {
+    // 在本地开发环境中，getCloudflareContext 会失败，使用默认的本地数据库
+    d1Database = undefined;
+  }
+
   return {
-    db: getDatabase(),
+    db: getDatabase(d1Database),
   };
 };
 

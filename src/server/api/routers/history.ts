@@ -13,7 +13,7 @@ import {
   systemStatsSummary,
   collectionLogs,
 } from "@/db/schema";
-import { desc, eq, gte, and, like, or } from "drizzle-orm";
+import { desc, eq, gte, and, like, or, count } from "drizzle-orm";
 import {
   collectDailyStats,
   collectVehicleStatsDetail,
@@ -165,7 +165,17 @@ export const historyRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const d1Database = (ctx as any).d1Database; // 如果在Cloudflare环境
+      // 获取 D1 数据库实例 - 需要从 Cloudflare Workers 环境中获取
+      let d1Database;
+      try {
+        // 在 Cloudflare Workers 环境中获取 D1 绑定
+        const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+        const cloudflareContext = getCloudflareContext();
+        d1Database = cloudflareContext.env?.DB;
+      } catch {
+        // 在本地开发环境中，使用默认的本地数据库
+        d1Database = undefined;
+      }
 
       switch (input.type) {
         case "daily":
@@ -271,12 +281,18 @@ export const historyRouter = createTRPCRouter({
       .orderBy(desc(systemStatsSummary.dataDate))
       .limit(1);
 
-    // 获取数据量统计
-    const userDetailCount = await ctx.db.select().from(userStatsDetail);
+    // 获取数据量统计 - 使用 COUNT 查询优化性能
+    const [userDetailCount] = await ctx.db
+      .select({ count: count() })
+      .from(userStatsDetail);
 
-    const vehicleDetailCount = await ctx.db.select().from(vehicleStatsDetail);
+    const [vehicleDetailCount] = await ctx.db
+      .select({ count: count() })
+      .from(vehicleStatsDetail);
 
-    const systemDetailCount = await ctx.db.select().from(systemStatsDetail);
+    const [systemDetailCount] = await ctx.db
+      .select({ count: count() })
+      .from(systemStatsDetail);
 
     return {
       latestDates: {
@@ -285,9 +301,9 @@ export const historyRouter = createTRPCRouter({
         system: latestSystemData[0]?.dataDate || null,
       },
       recordCounts: {
-        userDetail: userDetailCount.length || 0,
-        vehicleDetail: vehicleDetailCount.length || 0,
-        systemDetail: systemDetailCount.length || 0,
+        userDetail: userDetailCount?.count || 0,
+        vehicleDetail: vehicleDetailCount?.count || 0,
+        systemDetail: systemDetailCount?.count || 0,
       },
     };
   }),

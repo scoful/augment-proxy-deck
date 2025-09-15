@@ -26,7 +26,21 @@ export function createDatabase(d1Database?: any) {
 
     console.log(`📁 Database path: ${dbPath}`);
 
-    const sqlite = new Database(dbPath);
+    // 创建优化的SQLite连接
+    const sqlite = new Database(dbPath, {
+      // 启用WAL模式以提高并发性能
+      fileMustExist: false,
+      timeout: 5000,
+      verbose: process.env.NODE_ENV === "development" ? console.log : undefined,
+    });
+
+    // 应用性能优化设置
+    sqlite.pragma("journal_mode = WAL"); // 启用WAL模式
+    sqlite.pragma("synchronous = NORMAL"); // 平衡安全性和性能
+    sqlite.pragma("cache_size = 1000000"); // 1GB缓存
+    sqlite.pragma("foreign_keys = ON"); // 启用外键约束
+    sqlite.pragma("temp_store = MEMORY"); // 临时表存储在内存中
+
     const db = drizzle(sqlite, { schema });
 
     // 自动运行迁移
@@ -36,6 +50,14 @@ export function createDatabase(d1Database?: any) {
       console.log("✅ Database migrations applied successfully");
     } catch {
       console.log("ℹ️ No migrations to apply or migrations already applied");
+    }
+
+    // 预热数据库连接
+    try {
+      sqlite.prepare("SELECT 1").get();
+      console.log("🔥 Database connection warmed up");
+    } catch (error) {
+      console.warn("⚠️ Database warmup failed:", error);
     }
 
     return db;
