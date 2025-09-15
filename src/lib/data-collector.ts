@@ -108,9 +108,15 @@ export async function collectUserStats(d1Database?: D1Database) {
       dataDate,
     };
 
-    // 批量插入用户明细数据
+    // 分批插入用户明细数据（D1 数据库批量插入限制）
     if (userDetails.length > 0) {
-      await db.insert(userStatsDetail).values(userDetails);
+      const BATCH_SIZE = 10; // D1 数据库建议的批量插入大小
+
+      for (let i = 0; i < userDetails.length; i += BATCH_SIZE) {
+        const batch = userDetails.slice(i, i + BATCH_SIZE);
+        await db.insert(userStatsDetail).values(batch);
+        console.log(`📝 已插入用户明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, userDetails.length)} / ${userDetails.length}`);
+      }
     }
 
     // 插入用户汇总数据
@@ -219,9 +225,15 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
       carType: getVehicleType(car.maxUsers),
     }));
 
-    // 批量插入车辆明细数据
+    // 分批插入车辆明细数据（D1 数据库批量插入限制）
     if (vehicleDetails.length > 0) {
-      await db.insert(vehicleStatsDetail).values(vehicleDetails);
+      const BATCH_SIZE = 10; // D1 数据库建议的批量插入大小
+
+      for (let i = 0; i < vehicleDetails.length; i += BATCH_SIZE) {
+        const batch = vehicleDetails.slice(i, i + BATCH_SIZE);
+        await db.insert(vehicleStatsDetail).values(batch);
+        console.log(`📝 已插入车辆明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, vehicleDetails.length)} / ${vehicleDetails.length}`);
+      }
     }
 
     // 记录成功日志
@@ -280,9 +292,15 @@ export async function collectSystemStats(d1Database?: D1Database) {
       dataDate,
     };
 
-    // 批量插入系统明细数据
+    // 分批插入系统明细数据（D1 数据库批量插入限制）
     if (systemDetails.length > 0) {
-      await db.insert(systemStatsDetail).values(systemDetails);
+      const BATCH_SIZE = 10; // D1 数据库建议的批量插入大小
+
+      for (let i = 0; i < systemDetails.length; i += BATCH_SIZE) {
+        const batch = systemDetails.slice(i, i + BATCH_SIZE);
+        await db.insert(systemStatsDetail).values(batch);
+        console.log(`📝 已插入系统明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, systemDetails.length)} / ${systemDetails.length}`);
+      }
     }
 
     // 插入系统汇总数据
