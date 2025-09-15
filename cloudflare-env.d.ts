@@ -37,7 +37,6 @@ interface D1ExecResult {
 
 // Cloudflare Worker 事件类型
 interface ScheduledEvent {
-  type: "scheduled";
   cron: string;
   scheduledTime: number;
 }
