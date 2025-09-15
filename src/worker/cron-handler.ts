@@ -10,7 +10,6 @@ interface D1Database {
 }
 
 interface ScheduledEvent {
-  type: "scheduled";
   cron: string;
   scheduledTime: number;
 }
