@@ -13,7 +13,7 @@ import {
   systemStatsSummary,
   collectionLogs,
 } from "@/db/schema";
-import { desc, eq, gte, and, like, or, count } from "drizzle-orm";
+import { desc, eq, gte, and, like, or } from "drizzle-orm";
 import {
   collectDailyStats,
   collectVehicleStatsDetail,
@@ -170,7 +170,7 @@ export const historyRouter = createTRPCRouter({
       try {
         // 在 Cloudflare Workers 环境中获取 D1 绑定
         const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-        const cloudflareContext = getCloudflareContext();
+        const cloudflareContext = getCloudflareContext(); // 同步调用
         d1Database = cloudflareContext.env?.DB;
       } catch {
         // 在本地开发环境中，使用默认的本地数据库
@@ -281,18 +281,10 @@ export const historyRouter = createTRPCRouter({
       .orderBy(desc(systemStatsSummary.dataDate))
       .limit(1);
 
-    // 获取数据量统计 - 使用 COUNT 查询优化性能
-    const [userDetailCount] = await ctx.db
-      .select({ count: count() })
-      .from(userStatsDetail);
-
-    const [vehicleDetailCount] = await ctx.db
-      .select({ count: count() })
-      .from(vehicleStatsDetail);
-
-    const [systemDetailCount] = await ctx.db
-      .select({ count: count() })
-      .from(systemStatsDetail);
+    // 获取数据量统计 - 使用简单查询获取记录数
+    const userDetailRecords = await ctx.db.select().from(userStatsDetail);
+    const vehicleDetailRecords = await ctx.db.select().from(vehicleStatsDetail);
+    const systemDetailRecords = await ctx.db.select().from(systemStatsDetail);
 
     return {
       latestDates: {
@@ -301,9 +293,9 @@ export const historyRouter = createTRPCRouter({
         system: latestSystemData[0]?.dataDate || null,
       },
       recordCounts: {
-        userDetail: userDetailCount?.count || 0,
-        vehicleDetail: vehicleDetailCount?.count || 0,
-        systemDetail: systemDetailCount?.count || 0,
+        userDetail: userDetailRecords.length,
+        vehicleDetail: vehicleDetailRecords.length,
+        systemDetail: systemDetailRecords.length,
       },
     };
   }),
