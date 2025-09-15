@@ -21,3 +21,9 @@ crons = [
   "5 0 * * *",    # 每日00:05 - 日报数据采集
   "*/30 * * * *"  # 每30分钟 - 车辆明细数据采集
 ]
+
+# Workers Logs 配置 - 100% 日志记录
+[observability.logging]
+mode = "on-demand"
+head_sampling_rate = 1.0  # 记录 100% 的请求
+invocation_logs = true    # 开启调用日志
