@@ -8,6 +8,8 @@ import {
   UserGroupIcon,
   CalendarIcon,
   ArrowLeftIcon,
+  PlayIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
@@ -18,10 +20,65 @@ import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
+  const [triggerStatus, setTriggerStatus] = useState<{
+    daily: "idle" | "loading" | "success" | "error";
+    vehicle: "idle" | "loading" | "success" | "error";
+  }>({
+    daily: "idle",
+    vehicle: "idle",
+  });
 
   // 获取数据概览
-  const { data: dataOverview, isLoading: overviewLoading } =
-    api.history.getDataOverview.useQuery();
+  const {
+    data: dataOverview,
+    isLoading: overviewLoading,
+    refetch: refetchOverview,
+  } = api.history.getDataOverview.useQuery();
+
+  // 手动触发数据采集的 mutation
+  const triggerCollection = api.history.triggerDataCollection.useMutation({
+    onSuccess: (data, variables) => {
+      setTriggerStatus((prev) => ({
+        ...prev,
+        [variables.type === "daily" ? "daily" : "vehicle"]: "success",
+      }));
+      // 刷新数据概览
+      void refetchOverview();
+      // 3秒后重置状态
+      setTimeout(() => {
+        setTriggerStatus((prev) => ({
+          ...prev,
+          [variables.type === "daily" ? "daily" : "vehicle"]: "idle",
+        }));
+      }, 3000);
+    },
+    onError: (error, variables) => {
+      setTriggerStatus((prev) => ({
+        ...prev,
+        [variables.type === "daily" ? "daily" : "vehicle"]: "error",
+      }));
+      console.error("数据采集失败:", error);
+      // 5秒后重置状态
+      setTimeout(() => {
+        setTriggerStatus((prev) => ({
+          ...prev,
+          [variables.type === "daily" ? "daily" : "vehicle"]: "idle",
+        }));
+      }, 5000);
+    },
+  });
+
+  // 触发每日数据采集
+  const handleTriggerDaily = () => {
+    setTriggerStatus((prev) => ({ ...prev, daily: "loading" }));
+    triggerCollection.mutate({ type: "daily" });
+  };
+
+  // 触发车辆明细数据采集
+  const handleTriggerVehicle = () => {
+    setTriggerStatus((prev) => ({ ...prev, vehicle: "loading" }));
+    triggerCollection.mutate({ type: "vehicle_detail" });
+  };
 
   const dayOptions = [
     { value: 7, label: "最近7天" },
@@ -153,6 +210,165 @@ export default function HistoryPage() {
                       : dataOverview?.latestDates.user || "暂无"}
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 手动触发数据采集区域 */}
+          <div className="mb-8 rounded-xl border border-orange-200 bg-orange-50 p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-lg bg-orange-100 p-2">
+                <Cog6ToothIcon className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-800">
+                  手动触发数据采集 (测试功能)
+                </h3>
+                <p className="text-sm text-orange-600">
+                  在生产环境中手动触发定时任务，用于测试数据采集功能是否正常
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* 每日数据采集按钮 */}
+              <div className="rounded-lg border border-orange-200 bg-white p-4">
+                <div className="mb-3">
+                  <h4 className="font-medium text-slate-800">每日数据采集</h4>
+                  <p className="text-sm text-slate-600">
+                    采集用户统计、车辆汇总、系统统计数据 (模拟每日00:05执行)
+                  </p>
+                </div>
+                <button
+                  onClick={handleTriggerDaily}
+                  disabled={triggerStatus.daily === "loading"}
+                  className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    triggerStatus.daily === "loading"
+                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                      : triggerStatus.daily === "success"
+                        ? "border border-green-200 bg-green-100 text-green-700"
+                        : triggerStatus.daily === "error"
+                          ? "border border-red-200 bg-red-100 text-red-700"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {triggerStatus.daily === "loading" ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                      执行中...
+                    </>
+                  ) : triggerStatus.daily === "success" ? (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      执行成功
+                    </>
+                  ) : triggerStatus.daily === "error" ? (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      执行失败
+                    </>
+                  ) : (
+                    <>
+                      <PlayIcon className="h-4 w-4" />
+                      触发每日采集
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* 车辆明细数据采集按钮 */}
+              <div className="rounded-lg border border-orange-200 bg-white p-4">
+                <div className="mb-3">
+                  <h4 className="font-medium text-slate-800">
+                    车辆明细数据采集
+                  </h4>
+                  <p className="text-sm text-slate-600">
+                    采集车辆详细统计数据 (模拟每30分钟执行)
+                  </p>
+                </div>
+                <button
+                  onClick={handleTriggerVehicle}
+                  disabled={triggerStatus.vehicle === "loading"}
+                  className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    triggerStatus.vehicle === "loading"
+                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                      : triggerStatus.vehicle === "success"
+                        ? "border border-green-200 bg-green-100 text-green-700"
+                        : triggerStatus.vehicle === "error"
+                          ? "border border-red-200 bg-red-100 text-red-700"
+                          : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
+                >
+                  {triggerStatus.vehicle === "loading" ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                      执行中...
+                    </>
+                  ) : triggerStatus.vehicle === "success" ? (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      执行成功
+                    </>
+                  ) : triggerStatus.vehicle === "error" ? (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      执行失败
+                    </>
+                  ) : (
+                    <>
+                      <PlayIcon className="h-4 w-4" />
+                      触发车辆采集
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

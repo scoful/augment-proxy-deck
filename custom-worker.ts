@@ -73,8 +73,80 @@ async function handleScheduled(
  * 导出自定义 Worker 处理器
  */
 export default {
-  // 使用 OpenNext 生成的 fetch 处理器
-  fetch: handler.fetch,
+  // 自定义 fetch 处理器，支持手动触发和正常请求
+  async fetch(
+    request: Request,
+    env: CloudflareEnv,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    const url = new URL(request.url);
+
+    // 手动触发端点
+    if (url.pathname === "/api/manual-trigger" && request.method === "POST") {
+      try {
+        const body = (await request.json()) as { type: string };
+        const triggerType = body.type;
+
+        // 模拟 ScheduledEvent
+        let mockEvent: ScheduledEvent;
+
+        if (triggerType === "daily") {
+          mockEvent = {
+            cron: "5 0 * * *",
+            scheduledTime: Date.now(),
+          };
+        } else if (triggerType === "vehicle_detail") {
+          mockEvent = {
+            cron: "*/30 * * * *",
+            scheduledTime: Date.now(),
+          };
+        } else {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Invalid trigger type",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        // 执行相同的处理逻辑
+        console.log(`🔧 手动触发: ${triggerType} (${mockEvent.cron})`);
+        const result = await handleScheduled(mockEvent, env);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            result,
+            triggerType,
+            timestamp: new Date().toISOString(),
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      } catch (error) {
+        console.error("❌ 手动触发失败:", error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+
+    // 正常的 OpenNext 处理
+    return handler.fetch(request, env, ctx);
+  },
 
   // 自定义 scheduled 处理器
   async scheduled(
