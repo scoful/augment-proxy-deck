@@ -34,6 +34,16 @@ type CreateContextOptions = Record<string, never>;
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
+// 预热数据库连接（在模块加载时执行）
+import { warmupDatabases } from "@/db";
+
+// 在 Vercel 环境中预热 Turso 数据库
+if (process.env.VERCEL || process.env.VERCEL_ENV) {
+  warmupDatabases().catch((error) => {
+    console.error("❌ Database warmup failed:", error);
+  });
+}
+
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   // 尝试获取 Cloudflare Workers 环境中的 D1 数据库实例
   let d1Database;

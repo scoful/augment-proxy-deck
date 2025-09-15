@@ -115,7 +115,9 @@ export async function collectUserStats(d1Database?: D1Database) {
       for (let i = 0; i < userDetails.length; i += BATCH_SIZE) {
         const batch = userDetails.slice(i, i + BATCH_SIZE);
         await db.insert(userStatsDetail).values(batch);
-        console.log(`📝 已插入用户明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, userDetails.length)} / ${userDetails.length}`);
+        console.log(
+          `📝 已插入用户明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, userDetails.length)} / ${userDetails.length}`,
+        );
       }
     }
 
@@ -232,7 +234,9 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
       for (let i = 0; i < vehicleDetails.length; i += BATCH_SIZE) {
         const batch = vehicleDetails.slice(i, i + BATCH_SIZE);
         await db.insert(vehicleStatsDetail).values(batch);
-        console.log(`📝 已插入车辆明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, vehicleDetails.length)} / ${vehicleDetails.length}`);
+        console.log(
+          `📝 已插入车辆明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, vehicleDetails.length)} / ${vehicleDetails.length}`,
+        );
       }
     }
 
@@ -299,7 +303,9 @@ export async function collectSystemStats(d1Database?: D1Database) {
       for (let i = 0; i < systemDetails.length; i += BATCH_SIZE) {
         const batch = systemDetails.slice(i, i + BATCH_SIZE);
         await db.insert(systemStatsDetail).values(batch);
-        console.log(`📝 已插入系统明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, systemDetails.length)} / ${systemDetails.length}`);
+        console.log(
+          `📝 已插入系统明细数据批次: ${i + 1}-${Math.min(i + BATCH_SIZE, systemDetails.length)} / ${systemDetails.length}`,
+        );
       }
     }
 
