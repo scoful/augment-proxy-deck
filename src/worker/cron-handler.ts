@@ -19,7 +19,10 @@ interface ExecutionContext {
   waitUntil(promise: Promise<unknown>): void;
   passThroughOnException(): void;
 }
-import { collectDailyStats, collectVehicleStatsDetail } from "@/lib/data-collector";
+import {
+  collectDailyStats,
+  collectVehicleStatsDetail,
+} from "@/lib/data-collector";
 
 export interface Env {
   DB: D1Database;
@@ -28,7 +31,10 @@ export interface Env {
 /**
  * 处理Cron触发器事件
  */
-export async function handleCron(event: ScheduledEvent, env: Env): Promise<void> {
+export async function handleCron(
+  event: ScheduledEvent,
+  env: Env,
+): Promise<void> {
   const cron = event.cron;
   console.log(`🕐 Cron triggered: ${cron}`);
 
@@ -56,7 +62,11 @@ export async function handleCron(event: ScheduledEvent, env: Env): Promise<void>
  * Worker主入口点
  */
 export default {
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(
+    event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
     // 使用waitUntil确保任务完成
     ctx.waitUntil(handleCron(event, env));
   },

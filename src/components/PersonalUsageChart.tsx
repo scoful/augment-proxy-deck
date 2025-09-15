@@ -103,10 +103,10 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const chartData =
     userTrends?.map((trend) => ({
       date: trend.dataDate,
-      count1Hour: 'count1Hour' in trend ? trend.count1Hour : 0,
-      count24Hour: 'count24Hour' in trend ? trend.count24Hour : 0,
-      rank1Hour: 'rank1Hour' in trend ? trend.rank1Hour : 0,
-      rank24Hour: 'rank24Hour' in trend ? trend.rank24Hour : 0,
+      count1Hour: "count1Hour" in trend ? trend.count1Hour : 0,
+      count24Hour: "count24Hour" in trend ? trend.count24Hour : 0,
+      rank1Hour: "rank1Hour" in trend ? trend.rank1Hour : 0,
+      rank24Hour: "rank24Hour" in trend ? trend.rank24Hour : 0,
     })) || [];
 
   // 自定义Tooltip

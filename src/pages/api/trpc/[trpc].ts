@@ -19,7 +19,10 @@ const handler = createNextApiHandler({
       : undefined,
 });
 
-export default function trpcHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+export default function trpcHandler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+): Promise<void> {
   return handler(req, res) as Promise<void>;
 }
 
