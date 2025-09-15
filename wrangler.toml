@@ -15,15 +15,14 @@ database_name = "augment-proxy-deck-db"
 database_id = "8c58efac-6bcd-4c60-8c8c-b464f0f2e2d0"
 migrations_dir = "src/db/migrations"
 
-# Cron Triggers 配置 - 使用正确的格式
-[[crons]]
-cron = "5 0 * * *"    # 每日00:05 - 日报数据采集
-
-[[crons]]
-cron = "*/30 * * * *"  # 每30分钟 - 车辆明细数据采集
+# Cron Triggers 配置 - 使用 triggers 格式
+[triggers]
+crons = [
+  "5 0 * * *",    # 每日00:05 - 日报数据采集
+  "*/30 * * * *"  # 每30分钟 - 车辆明细数据采集
+]
 
 # Workers Logs 配置 - 100% 日志记录
-[observability.logging]
-mode = "on-demand"
+[observability]
+enabled = true
 head_sampling_rate = 1.0  # 记录 100% 的请求
-invocation_logs = true    # 开启调用日志
