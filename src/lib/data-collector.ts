@@ -63,12 +63,13 @@ async function fetchWithRetry(
 }
 
 /**
- * 获取昨日日期字符串 (YYYY-MM-DD)
+ * 获取当前UTC+8时区的日期 (YYYY-MM-DD)
  */
-function getYesterdayDate(): string {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split("T")[0]!;
+function getCurrentDateUTC8(): string {
+  const now = new Date();
+  // 转换为UTC+8时区
+  const utc8Time = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60 * 1000);
+  return utc8Time.toISOString().split("T")[0]!;
 }
 
 /**
@@ -78,7 +79,7 @@ function getYesterdayDate(): string {
 export async function collectUserStats(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getYesterdayDate();
+  const dataDate = getCurrentDateUTC8();
 
   try {
     console.log("🔄 开始采集用户统计数据...");
@@ -155,7 +156,7 @@ export async function collectUserStats(d1Database?: D1Database) {
 export async function collectVehicleStatsSummary(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getYesterdayDate();
+  const dataDate = getCurrentDateUTC8();
 
   try {
     console.log("🔄 开始采集车辆统计汇总数据...");
@@ -202,11 +203,12 @@ export async function collectVehicleStatsSummary(d1Database?: D1Database) {
 
 /**
  * 采集车辆统计明细数据
- * 每30分钟执行
+ * 每日00:05执行（作为日报数据采集的一部分）
  */
 export async function collectVehicleStatsDetail(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
+  const dataDate = getCurrentDateUTC8();
 
   try {
     console.log("🔄 开始采集车辆统计明细数据...");
@@ -225,6 +227,7 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
       count24Hour: car.count24Hour,
       isActive: car.isActive,
       carType: getVehicleType(car.maxUsers),
+      dataDate: dataDate,
     }));
 
     // 分批插入车辆明细数据（D1 数据库批量插入限制）
@@ -271,7 +274,7 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
 export async function collectSystemStats(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getYesterdayDate();
+  const dataDate = getCurrentDateUTC8();
 
   try {
     console.log("🔄 开始采集系统统计数据...");
@@ -346,6 +349,7 @@ export async function collectDailyStats(d1Database?: D1Database) {
   const results = {
     user: null as any,
     vehicleSummary: null as any,
+    vehicleDetail: null as any,
     system: null as any,
     errors: [] as string[],
   };
@@ -368,6 +372,14 @@ export async function collectDailyStats(d1Database?: D1Database) {
   }
 
   try {
+    results.vehicleDetail = await collectVehicleStatsDetail(d1Database);
+  } catch (error) {
+    results.errors.push(
+      `车辆明细数据采集失败: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+
+  try {
     results.system = await collectSystemStats(d1Database);
   } catch (error) {
     results.errors.push(
@@ -379,9 +391,10 @@ export async function collectDailyStats(d1Database?: D1Database) {
   const successCount = [
     results.user,
     results.vehicleSummary,
+    results.vehicleDetail,
     results.system,
   ].filter(Boolean).length;
-  const totalTasks = 3;
+  const totalTasks = 4;
 
   if (results.errors.length === 0) {
     console.log(`🎉 每日数据采集完成! 成功: ${successCount}/${totalTasks}`);

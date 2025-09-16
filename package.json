@@ -30,18 +30,15 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:migrate:remote": "wrangler d1 migrations apply augment-proxy-deck-db --remote",
     "turso:generate": "drizzle-kit generate --config=drizzle.turso.config.ts",
     "turso:push": "drizzle-kit push --config=drizzle.turso.config.ts",
     "turso:studio": "drizzle-kit studio --config=drizzle.turso.config.ts",
     "turso:test": "tsx scripts/test-turso-connection.ts",
     "collect:daily": "tsx src/lib/test-collection.ts daily",
-    "collect:vehicle": "tsx src/lib/test-collection.ts vehicle",
     "cf:create-db": "wrangler d1 create augment-proxy-deck-db",
+    "cf:db:push": "wrangler d1 migrations apply augment-proxy-deck-db --remote",
     "cf:deploy": "pnpm run build:cloudflare && wrangler deploy",
-    "cf:logs": "wrangler tail",
-    "cf:cron:daily": "wrangler cron trigger --cron \"5 0 * * *\"",
-    "cf:cron:vehicle": "wrangler cron trigger --cron \"*/30 * * * *\""
+    "cf:logs": "wrangler tail"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

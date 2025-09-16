@@ -75,14 +75,13 @@ wrangler deploy
 
 部署后，以下定时任务将自动运行：
 
-- **每日 00:05 UTC**: 日报数据采集（用户、车辆汇总、系统统计）
-- **每 30 分钟**: 车辆明细数据采集
+- **每日 16:05 UTC (UTC+8 00:05)**: 所有数据采集（用户统计、车辆汇总、车辆明细、系统统计）
 
 ### 验证 Cron 任务
 
 ```bash
 # 查看 Cron 任务状态
-wrangler cron trigger --cron "5 0 * * *"
+wrangler cron trigger --cron "5 16 * * *"
 
 # 查看日志
 wrangler tail

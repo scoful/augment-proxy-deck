@@ -157,7 +157,6 @@ export const historyRouter = createTRPCRouter({
       z.object({
         type: z.enum([
           "daily",
-          "vehicle_detail",
           "user",
           "vehicle_summary",
           "system",
@@ -209,8 +208,6 @@ export const historyRouter = createTRPCRouter({
         switch (input.type) {
           case "daily":
             return await collectDailyStats(d1Database);
-          case "vehicle_detail":
-            return await collectVehicleStatsDetail(d1Database);
           case "user":
             return await collectUserStats(d1Database);
           case "vehicle_summary":

@@ -50,16 +50,11 @@ async function handleScheduled(
   console.log(`🕐 Cron triggered: ${cron}`);
 
   try {
-    if (cron === "5 0 * * *") {
-      // 每日00:05 - 执行日报数据采集
-      console.log("🌅 执行每日数据采集任务...");
+    if (cron === "5 16 * * *") {
+      // 每日16:05 UTC (UTC+8的00:05) - 执行所有数据采集
+      console.log("🌅 执行每日数据采集任务 (UTC+8 00:05)...");
       const result = await collectDailyStats(env.DB);
       console.log("✅ 每日数据采集完成:", result);
-    } else if (cron === "*/30 * * * *") {
-      // 每30分钟 - 执行车辆明细数据采集
-      console.log("🚗 执行车辆明细数据采集...");
-      const result = await collectVehicleStatsDetail(env.DB);
-      console.log("✅ 车辆明细数据采集完成:", result);
     } else {
       console.warn(`⚠️ 未知的Cron调度: ${cron}`);
     }
@@ -92,19 +87,14 @@ export default {
 
         if (triggerType === "daily") {
           mockEvent = {
-            cron: "5 0 * * *",
-            scheduledTime: Date.now(),
-          };
-        } else if (triggerType === "vehicle_detail") {
-          mockEvent = {
-            cron: "*/30 * * * *",
+            cron: "5 16 * * *",
             scheduledTime: Date.now(),
           };
         } else {
           return new Response(
             JSON.stringify({
               success: false,
-              error: "Invalid trigger type",
+              error: "Invalid trigger type. Only 'daily' is supported.",
             }),
             {
               status: 400,

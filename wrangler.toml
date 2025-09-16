@@ -18,8 +18,7 @@ migrations_dir = "src/db/migrations"
 # Cron Triggers 配置 - 使用 triggers 格式
 [triggers]
 crons = [
-  "5 0 * * *",    # 每日00:05 - 日报数据采集
-  "*/30 * * * *"  # 每30分钟 - 车辆明细数据采集
+  "5 16 * * *"    # 每日16:05 UTC (对应UTC+8的00:05) - 所有数据采集
 ]
 
 # Workers Logs 配置 - 100% 日志记录

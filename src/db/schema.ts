@@ -48,7 +48,7 @@ export const userStatsSummary = sqliteTable(
   }),
 );
 
-// 车辆统计明细表 - 每30分钟采集cars字段
+// 车辆统计明细表 - 每日00:05采集cars字段
 export const vehicleStatsDetail = sqliteTable(
   "vehicle_stats_detail",
   {
@@ -62,11 +62,13 @@ export const vehicleStatsDetail = sqliteTable(
     count24Hour: integer("count_24hour").notNull(),
     isActive: integer("is_active", { mode: "boolean" }).notNull(),
     carType: text("car_type").notNull(), // 'social', 'black', 'unknown'
+    dataDate: text("data_date").notNull().default("1970-01-01"), // 数据归属日期 (YYYY-MM-DD)
     recordedAt: text("recorded_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
   (table) => ({
+    dataDateIdx: index("idx_vehicle_detail_date").on(table.dataDate),
     carRecordedIdx: index("idx_vehicle_detail_recorded").on(
       table.carId,
       table.recordedAt,
