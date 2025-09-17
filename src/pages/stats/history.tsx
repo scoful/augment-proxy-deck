@@ -72,8 +72,6 @@ export default function HistoryPage() {
     triggerCollection.mutate({ type: "daily" });
   };
 
-
-
   const dayOptions = [
     { value: 7, label: "最近7天" },
     { value: 14, label: "最近14天" },
@@ -226,74 +224,75 @@ export default function HistoryPage() {
 
             <div className="flex justify-center">
               <div className="w-full max-w-md">
-              {/* 每日数据采集按钮 */}
-              <div className="rounded-lg border border-orange-200 bg-white p-4">
-                <div className="mb-3">
-                  <h4 className="font-medium text-slate-800">每日数据采集</h4>
-                  <p className="text-sm text-slate-600">
-                    采集用户统计、车辆汇总、车辆明细、系统统计数据 (模拟每日00:05执行)
-                  </p>
+                {/* 每日数据采集按钮 */}
+                <div className="rounded-lg border border-orange-200 bg-white p-4">
+                  <div className="mb-3">
+                    <h4 className="font-medium text-slate-800">每日数据采集</h4>
+                    <p className="text-sm text-slate-600">
+                      采集用户统计、车辆汇总、车辆明细、系统统计数据
+                      (模拟每日00:05执行)
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleTriggerDaily}
+                    disabled={triggerStatus.daily === "loading"}
+                    className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                      triggerStatus.daily === "loading"
+                        ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                        : triggerStatus.daily === "success"
+                          ? "border border-green-200 bg-green-100 text-green-700"
+                          : triggerStatus.daily === "error"
+                            ? "border border-red-200 bg-red-100 text-red-700"
+                            : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {triggerStatus.daily === "loading" ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                        执行中...
+                      </>
+                    ) : triggerStatus.daily === "success" ? (
+                      <>
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        执行成功
+                      </>
+                    ) : triggerStatus.daily === "error" ? (
+                      <>
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                        执行失败
+                      </>
+                    ) : (
+                      <>
+                        <PlayIcon className="h-4 w-4" />
+                        触发每日采集
+                      </>
+                    )}
+                  </button>
                 </div>
-                <button
-                  onClick={handleTriggerDaily}
-                  disabled={triggerStatus.daily === "loading"}
-                  className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    triggerStatus.daily === "loading"
-                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                      : triggerStatus.daily === "success"
-                        ? "border border-green-200 bg-green-100 text-green-700"
-                        : triggerStatus.daily === "error"
-                          ? "border border-red-200 bg-red-100 text-red-700"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  {triggerStatus.daily === "loading" ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                      执行中...
-                    </>
-                  ) : triggerStatus.daily === "success" ? (
-                    <>
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      执行成功
-                    </>
-                  ) : triggerStatus.daily === "error" ? (
-                    <>
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      执行失败
-                    </>
-                  ) : (
-                    <>
-                      <PlayIcon className="h-4 w-4" />
-                      触发每日采集
-                    </>
-                  )}
-                </button>
-              </div>
               </div>
             </div>
           </div>

@@ -68,7 +68,9 @@ async function fetchWithRetry(
 function getCurrentDateUTC8(): string {
   const now = new Date();
   // 转换为UTC+8时区
-  const utc8Time = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60 * 1000);
+  const utc8Time = new Date(
+    now.getTime() + (now.getTimezoneOffset() + 480) * 60 * 1000,
+  );
   return utc8Time.toISOString().split("T")[0]!;
 }
 

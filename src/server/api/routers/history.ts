@@ -155,12 +155,7 @@ export const historyRouter = createTRPCRouter({
   triggerDataCollection: publicProcedure
     .input(
       z.object({
-        type: z.enum([
-          "daily",
-          "user",
-          "vehicle_summary",
-          "system",
-        ]),
+        type: z.enum(["daily", "user", "vehicle_summary", "system"]),
       }),
     )
     .mutation(async ({ input }) => {

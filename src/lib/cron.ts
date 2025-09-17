@@ -35,8 +35,6 @@ export async function triggerDailyCollection() {
   }
 }
 
-
-
 /**
  * 获取数据采集状态信息
  */
@@ -45,11 +43,6 @@ export function getCollectionStatus() {
     environment: "local_development",
     triggerMethod: "manual_api_calls",
     productionMethod: "cloudflare_cron_triggers",
-    availableTriggers: [
-      "daily",
-      "user",
-      "vehicle_summary",
-      "system",
-    ],
+    availableTriggers: ["daily", "user", "vehicle_summary", "system"],
   };
 }
