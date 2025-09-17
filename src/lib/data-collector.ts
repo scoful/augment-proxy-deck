@@ -8,7 +8,7 @@ interface D1Database {
   prepare(query: string): any;
   exec(query: string): Promise<any>;
 }
-import { getDatabase } from "@/db";
+import { getDatabase } from "@/db/cloudflare";
 import {
   userStatsDetail,
   userStatsSummary,
