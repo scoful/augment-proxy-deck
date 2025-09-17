@@ -142,18 +142,6 @@ export function getDatabase(d1Database?: any): DatabaseConnection {
   }
 
   if (env.isVercel) {
-    // 检查是否为 Cloudflare 构建环境（避免包含 Turso 依赖）
-    const isCloudflareTarget = process.env.BUILD_TARGET === "cloudflare";
-
-    if (isCloudflareTarget) {
-      // Cloudflare 构建时，不使用 Turso，回退到本地 SQLite
-      console.warn("⚠️ Cloudflare build detected, using local SQLite instead of Turso");
-      if (!globalDb) {
-        globalDb = createDatabase();
-      }
-      return globalDb;
-    }
-
     // Vercel 环境：如果 Turso 没有初始化，尝试同步创建
     if (!globalTursoDb) {
       console.warn(
@@ -170,19 +158,36 @@ export function getDatabase(d1Database?: any): DatabaseConnection {
         );
       }
 
-      // 使用 require 进行同步导入（仅在 Vercel 环境）
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { drizzle: drizzleTurso } = require("drizzle-orm/libsql");
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { createClient } = require("@libsql/client");
+      try {
+        // 使用 eval + require 避免构建时依赖解析
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-eval
+        const drizzleLibsql = eval('require("drizzle-orm/libsql")');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-eval
+        const libsqlClient = eval('require("@libsql/client")');
 
-      const tursoClient = createClient({
-        url: tursoUrl,
-        authToken: tursoToken,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const drizzleTurso = drizzleLibsql.drizzle;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const createClient = libsqlClient.createClient;
 
-      globalTursoDb = drizzleTurso(tursoClient, { schema });
-      console.log("✅ Turso database created synchronously");
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const tursoClient = createClient({
+          url: tursoUrl,
+          authToken: tursoToken,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        globalTursoDb = drizzleTurso(tursoClient, { schema });
+        console.log("✅ Turso database created synchronously");
+      } catch (error) {
+        console.error("❌ Failed to load Turso dependencies:", error);
+        // 回退到本地 SQLite
+        console.warn("⚠️ Falling back to local SQLite");
+        if (!globalDb) {
+          globalDb = createDatabase();
+        }
+        return globalDb;
+      }
     }
 
     // TypeScript 类型保护：确保 globalTursoDb 不为 null
