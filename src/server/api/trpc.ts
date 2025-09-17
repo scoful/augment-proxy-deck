@@ -11,7 +11,7 @@ import { initTRPC } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { getDatabase } from "@/db/cloudflare";
+import { getDatabase as getCloudflareDatabase } from "@/db/cloudflare";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 /**
@@ -45,15 +45,25 @@ function detectEnvironment() {
 // 预热 Vercel 环境的数据库
 const env = detectEnvironment();
 if (env.isVercel) {
-  // 初始化 Turso 数据库
-  void import("@/db/cloudflare").then(({ initializeTursoDatabase }) => {
-    initializeTursoDatabase().catch((error) => {
-      console.error("❌ Turso database initialization failed:", error);
+  // 使用 Vercel 专用数据库模块
+  void import("@/db/vercel").then(({ warmupDatabases }) => {
+    warmupDatabases().catch((error) => {
+      console.error("❌ Vercel database warmup failed:", error);
     });
   });
 }
 
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+  const env = detectEnvironment();
+
+  if (env.isVercel) {
+    // Vercel 环境：抛出错误，提示使用正确的数据库模块
+    throw new Error(
+      "Vercel environment detected. This build should use the Vercel-specific database configuration.",
+    );
+  }
+
+  // Cloudflare 或本地环境：使用 Cloudflare 专用数据库模块
   // 尝试获取 Cloudflare Workers 环境中的 D1 数据库实例
   let d1Database;
   try {
@@ -66,7 +76,7 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   }
 
   return {
-    db: getDatabase(d1Database),
+    db: getCloudflareDatabase(d1Database),
   };
 };
 

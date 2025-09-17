@@ -86,63 +86,6 @@ export function createDatabase(d1Database?: any) {
 
 // 全局数据库实例
 let globalDb: DatabaseConnection | null = null;
-let globalTursoDb: DatabaseConnection | null = null;
-
-// 异步创建 Turso 数据库连接（仅在 Vercel 环境中使用）
-async function createTursoDatabase() {
-  console.log("🚀 Creating Turso database connection...");
-
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!tursoUrl) {
-    console.warn("⚠️ TURSO_DATABASE_URL not found, skipping Turso initialization");
-    return null;
-  }
-
-  try {
-    // 动态导入 Turso 相关模块
-    const { drizzle: drizzleTurso } = await import("drizzle-orm/libsql");
-    const { createClient } = await import("@libsql/client");
-    const { migrate: migrateTurso } = await import("drizzle-orm/libsql/migrator");
-
-    const tursoClient = createClient({
-      url: tursoUrl,
-      authToken: tursoToken,
-    });
-
-    const db = drizzleTurso(tursoClient, { schema });
-
-    // 运行 Turso 迁移（异步）
-    try {
-      const migrationsFolder = path.join(process.cwd(), "src/db/migrations");
-      await migrateTurso(db, { migrationsFolder });
-      console.log("✅ Turso database migrations applied successfully");
-    } catch (error) {
-      console.log("ℹ️ Turso migrations skipped:", error);
-    }
-
-    return db;
-  } catch (error) {
-    console.warn("⚠️ Failed to initialize Turso database:", error);
-    return null;
-  }
-}
-
-// 初始化 Turso 数据库（仅在 Vercel 环境中使用）
-export async function initializeTursoDatabase() {
-  if (!globalTursoDb) {
-    console.log("🚀 Initializing Turso database with migrations...");
-    const tursoDb = await createTursoDatabase();
-    if (tursoDb) {
-      globalTursoDb = tursoDb;
-      console.log("✅ Turso database initialized successfully");
-    } else {
-      console.warn("⚠️ Turso database initialization failed, will use fallback");
-    }
-  }
-  return globalTursoDb;
-}
 
 export function getDatabase(d1Database?: any): DatabaseConnection {
   const env = detectEnvironment();
@@ -152,19 +95,10 @@ export function getDatabase(d1Database?: any): DatabaseConnection {
   }
 
   if (env.isVercel) {
-    // Vercel 环境：直接抛出错误，要求使用预初始化的连接
-    if (!globalTursoDb) {
-      console.error("❌ Turso database not initialized in Vercel environment");
-      console.warn("⚠️ Falling back to local SQLite for compatibility");
-
-      // 回退到本地 SQLite（避免 Turso 依赖导致 Cloudflare 构建失败）
-      if (!globalDb) {
-        globalDb = createDatabase();
-      }
-      return globalDb;
-    }
-
-    return globalTursoDb;
+    // Vercel 环境：使用专用的 Vercel 数据库模块
+    throw new Error(
+      "Vercel environment detected. Please use the Vercel-specific database module instead.",
+    );
   }
 
   // 本地环境使用全局单例
