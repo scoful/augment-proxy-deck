@@ -42,16 +42,8 @@ function detectEnvironment() {
   return { isCloudflare, isVercel };
 }
 
-// 预热 Vercel 环境的数据库
-const env = detectEnvironment();
-if (env.isVercel) {
-  // 使用 Vercel 专用数据库模块
-  void import("@/db/vercel").then(({ warmupDatabases }) => {
-    warmupDatabases().catch((error) => {
-      console.error("❌ Vercel database warmup failed:", error);
-    });
-  });
-}
+// Cloudflare 构建：不预热任何数据库（避免 Turso 依赖）
+// Vercel 部署时需要使用 trpc-vercel.ts 配置文件
 
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   const env = detectEnvironment();
