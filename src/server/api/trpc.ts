@@ -46,7 +46,7 @@ function detectEnvironment() {
 const env = detectEnvironment();
 if (env.isVercel) {
   // 初始化 Turso 数据库
-  import("@/db/cloudflare").then(({ initializeTursoDatabase }) => {
+  void import("@/db/cloudflare").then(({ initializeTursoDatabase }) => {
     initializeTursoDatabase().catch((error) => {
       console.error("❌ Turso database initialization failed:", error);
     });
