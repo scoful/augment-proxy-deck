@@ -142,6 +142,18 @@ export function getDatabase(d1Database?: any): DatabaseConnection {
   }
 
   if (env.isVercel) {
+    // 检查是否为 Cloudflare 构建环境（避免包含 Turso 依赖）
+    const isCloudflareTarget = process.env.BUILD_TARGET === "cloudflare";
+
+    if (isCloudflareTarget) {
+      // Cloudflare 构建时，不使用 Turso，回退到本地 SQLite
+      console.warn("⚠️ Cloudflare build detected, using local SQLite instead of Turso");
+      if (!globalDb) {
+        globalDb = createDatabase();
+      }
+      return globalDb;
+    }
+
     // Vercel 环境：如果 Turso 没有初始化，尝试同步创建
     if (!globalTursoDb) {
       console.warn(

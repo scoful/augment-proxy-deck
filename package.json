@@ -26,7 +26,7 @@
     "turso:studio": "drizzle-kit studio --config=drizzle.turso.config.ts",
     "turso:test": "tsx scripts/test-turso-connection.ts",
     "collect:daily": "tsx src/lib/test-collection.ts daily",
-    "cf:build": "opennextjs-cloudflare build",
+    "cf:build": "BUILD_TARGET=cloudflare opennextjs-cloudflare build",
     "cf:deploy": "wrangler deploy",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "cf:create-db": "wrangler d1 create augment-proxy-deck-db",
