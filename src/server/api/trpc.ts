@@ -35,6 +35,24 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
 
+// 环境检测
+function detectEnvironment() {
+  const isCloudflare = typeof globalThis.caches !== "undefined";
+  const isVercel = !!(process.env.VERCEL || process.env.VERCEL_ENV);
+  return { isCloudflare, isVercel };
+}
+
+// 预热 Vercel 环境的数据库
+const env = detectEnvironment();
+if (env.isVercel) {
+  // 初始化 Turso 数据库
+  import("@/db/cloudflare").then(({ initializeTursoDatabase }) => {
+    initializeTursoDatabase().catch((error) => {
+      console.error("❌ Turso database initialization failed:", error);
+    });
+  });
+}
+
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   // 尝试获取 Cloudflare Workers 环境中的 D1 数据库实例
   let d1Database;

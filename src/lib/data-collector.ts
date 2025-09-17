@@ -8,6 +8,8 @@ interface D1Database {
   prepare(query: string): any;
   exec(query: string): Promise<any>;
 }
+
+// 统一使用 Cloudflare 专用数据库连接（支持所有环境）
 import { getDatabase } from "@/db/cloudflare";
 import {
   userStatsDetail,

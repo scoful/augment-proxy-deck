@@ -13,17 +13,20 @@ import path from "path";
 function detectEnvironment() {
   // 检测 Cloudflare 环境
   const isCloudflare = typeof globalThis.caches !== "undefined";
-  
+  // 检测 Vercel 环境
+  const isVercel = !!(process.env.VERCEL || process.env.VERCEL_ENV);
+
   return {
     isCloudflare,
-    isLocal: !isCloudflare,
+    isVercel,
+    isLocal: !isCloudflare && !isVercel,
   };
 }
 
 // 数据库连接类型
 export type DatabaseConnection = ReturnType<typeof createDatabase>;
 
-// 创建数据库连接（仅支持 Cloudflare D1 和本地 SQLite）
+// 创建数据库连接（支持 Cloudflare D1、Vercel Turso 和本地 SQLite）
 export function createDatabase(d1Database?: any) {
   const env = detectEnvironment();
 
@@ -31,6 +34,11 @@ export function createDatabase(d1Database?: any) {
     // Cloudflare D1环境
     console.log("🌐 Using Cloudflare D1 database");
     return drizzleD1(d1Database, { schema });
+  } else if (env.isVercel) {
+    // Vercel 环境：抛出错误，要求使用预初始化的 Turso 连接
+    throw new Error(
+      "Vercel environment detected. Please use the pre-initialized Turso database connection from the global cache."
+    );
   } else {
     // 本地SQLite环境 - 统一使用src/data/local.db
     console.log("💻 Using local SQLite database");
@@ -78,12 +86,69 @@ export function createDatabase(d1Database?: any) {
 
 // 全局数据库实例
 let globalDb: DatabaseConnection | null = null;
+let globalTursoDb: DatabaseConnection | null = null;
+
+// 异步创建 Turso 数据库连接（仅在 Vercel 环境中使用）
+async function createTursoDatabase() {
+  console.log("🚀 Creating Turso database connection...");
+
+  const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (!tursoUrl) {
+    throw new Error(
+      "TURSO_DATABASE_URL environment variable is required for Turso connection",
+    );
+  }
+
+  // 动态导入 Turso 相关模块
+  const { drizzle: drizzleTurso } = await import("drizzle-orm/libsql");
+  const { createClient } = await import("@libsql/client");
+  const { migrate: migrateTurso } = await import("drizzle-orm/libsql/migrator");
+
+  const tursoClient = createClient({
+    url: tursoUrl,
+    authToken: tursoToken,
+  });
+
+  const db = drizzleTurso(tursoClient, { schema });
+
+  // 运行 Turso 迁移（异步）
+  try {
+    const migrationsFolder = path.join(process.cwd(), "src/db/migrations");
+    await migrateTurso(db, { migrationsFolder });
+    console.log("✅ Turso database migrations applied successfully");
+  } catch (error) {
+    console.log("ℹ️ Turso migrations skipped:", error);
+  }
+
+  return db;
+}
+
+// 初始化 Turso 数据库（仅在 Vercel 环境中使用）
+export async function initializeTursoDatabase() {
+  if (!globalTursoDb) {
+    console.log("🚀 Initializing Turso database with migrations...");
+    globalTursoDb = await createTursoDatabase();
+  }
+  return globalTursoDb;
+}
 
 export function getDatabase(d1Database?: any): DatabaseConnection {
   const env = detectEnvironment();
 
   if (env.isCloudflare && d1Database) {
     return createDatabase(d1Database);
+  }
+
+  if (env.isVercel) {
+    // Vercel 环境：使用预初始化的 Turso 连接
+    if (!globalTursoDb) {
+      throw new Error(
+        "Turso database not initialized. Please call initializeTursoDatabase() first."
+      );
+    }
+    return globalTursoDb;
   }
 
   // 本地环境使用全局单例
