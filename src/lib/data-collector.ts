@@ -91,20 +91,14 @@ export async function collectUserStats(d1Database?: D1Database) {
     const userDetails = data.allUsers.map((user: any) => ({
       userId: user.userId,
       displayName: user.displayName,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      count1Hour: user.count1Hour,
       count24Hour: user.count24Hour,
-      rank1Hour: user.rank1Hour,
       rank24Hour: user.rank24Hour,
       dataDate,
     }));
 
     // 准备用户汇总数据
     const userSummaryData = {
-      totalUsers1Hour: data.summary.totalUsers1Hour,
       totalUsers24Hour: data.summary.totalUsers24Hour,
-      totalCount1Hour: data.summary.totalCount1Hour,
       totalCount24Hour: data.summary.totalCount24Hour,
       dataDate,
     };
@@ -169,7 +163,6 @@ export async function collectVehicleStatsSummary(d1Database?: D1Database) {
       totalCars: data.summary.totalCars,
       activeCars: data.summary.activeCars,
       totalUsers: data.summary.totalUsers,
-      totalCount1Hour: data.summary.totalCount1Hour,
       totalCount24Hour: data.summary.totalCount24Hour,
       dataDate,
     };
@@ -219,11 +212,8 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
     // 准备车辆明细数据
     const vehicleDetails = data.cars.map((car: any) => ({
       carId: car.carId,
-      userEmail: car.userEmail,
-      targetUrl: car.targetUrl,
       currentUsers: car.currentUsers,
       maxUsers: car.maxUsers,
-      count1Hour: car.count1Hour,
       count24Hour: car.count24Hour,
       isActive: car.isActive,
       carType: getVehicleType(car.maxUsers),
@@ -286,7 +276,6 @@ export async function collectSystemStats(d1Database?: D1Database) {
     const systemDetails = data.yesterday.map((hourData: any) => ({
       hourTimestamp: hourData.hour,
       requestCount: hourData.count,
-      uniqueUsers: hourData.uniqueUsers,
       dataDate,
     }));
 

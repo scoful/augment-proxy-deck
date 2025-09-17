@@ -12,11 +12,7 @@ export const userStatsDetail = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     userId: text("user_id").notNull(),
     displayName: text("display_name"),
-    firstName: text("first_name"),
-    lastName: text("last_name"),
-    count1Hour: integer("count_1hour").notNull(),
     count24Hour: integer("count_24hour").notNull(),
-    rank1Hour: integer("rank_1hour").notNull(),
     rank24Hour: integer("rank_24hour").notNull(),
     dataDate: text("data_date").notNull(), // 数据归属日期 YYYY-MM-DD
     recordedAt: text("recorded_at")
@@ -34,9 +30,7 @@ export const userStatsSummary = sqliteTable(
   "user_stats_summary",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    totalUsers1Hour: integer("total_users_1hour").notNull(),
     totalUsers24Hour: integer("total_users_24hour").notNull(),
-    totalCount1Hour: integer("total_count_1hour").notNull(),
     totalCount24Hour: integer("total_count_24hour").notNull(),
     dataDate: text("data_date").notNull(), // 数据归属日期 YYYY-MM-DD
     recordedAt: text("recorded_at")
@@ -54,11 +48,8 @@ export const vehicleStatsDetail = sqliteTable(
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     carId: text("car_id").notNull(),
-    userEmail: text("user_email"),
-    targetUrl: text("target_url"),
     currentUsers: integer("current_users").notNull(),
     maxUsers: integer("max_users").notNull(),
-    count1Hour: integer("count_1hour").notNull(),
     count24Hour: integer("count_24hour").notNull(),
     isActive: integer("is_active", { mode: "boolean" }).notNull(),
     carType: text("car_type").notNull(), // 'social', 'black', 'unknown'
@@ -88,7 +79,6 @@ export const vehicleStatsSummary = sqliteTable(
     totalCars: integer("total_cars").notNull(),
     activeCars: integer("active_cars").notNull(),
     totalUsers: integer("total_users").notNull(),
-    totalCount1Hour: integer("total_count_1hour").notNull(),
     totalCount24Hour: integer("total_count_24hour").notNull(),
     dataDate: text("data_date").notNull(), // 数据归属日期 YYYY-MM-DD
     recordedAt: text("recorded_at")
@@ -107,7 +97,6 @@ export const systemStatsDetail = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     hourTimestamp: text("hour_timestamp").notNull(),
     requestCount: integer("request_count").notNull(),
-    uniqueUsers: integer("unique_users").notNull(),
     dataDate: text("data_date").notNull(), // 数据归属日期 YYYY-MM-DD
     recordedAt: text("recorded_at")
       .default(sql`CURRENT_TIMESTAMP`)
