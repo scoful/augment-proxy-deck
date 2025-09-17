@@ -37,7 +37,7 @@ export function createDatabase(d1Database?: any) {
   } else if (env.isVercel) {
     // Vercel 环境：抛出错误，要求使用预初始化的 Turso 连接
     throw new Error(
-      "Vercel environment detected. Please use the pre-initialized Turso database connection from the global cache."
+      "Vercel environment detected. Please use the pre-initialized Turso database connection from the global cache.",
     );
   } else {
     // 本地SQLite环境 - 统一使用src/data/local.db
@@ -142,12 +142,42 @@ export function getDatabase(d1Database?: any): DatabaseConnection {
   }
 
   if (env.isVercel) {
-    // Vercel 环境：使用预初始化的 Turso 连接
+    // Vercel 环境：如果 Turso 没有初始化，尝试同步创建
     if (!globalTursoDb) {
-      throw new Error(
-        "Turso database not initialized. Please call initializeTursoDatabase() first."
+      console.warn(
+        "⚠️ Turso database not pre-initialized, creating synchronously...",
       );
+
+      // 同步创建 Turso 连接（不包含迁移）
+      const tursoUrl = process.env.TURSO_DATABASE_URL;
+      const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+      if (!tursoUrl) {
+        throw new Error(
+          "TURSO_DATABASE_URL environment variable is required for Vercel deployment",
+        );
+      }
+
+      // 使用 require 进行同步导入（仅在 Vercel 环境）
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { drizzle: drizzleTurso } = require("drizzle-orm/libsql");
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { createClient } = require("@libsql/client");
+
+      const tursoClient = createClient({
+        url: tursoUrl,
+        authToken: tursoToken,
+      });
+
+      globalTursoDb = drizzleTurso(tursoClient, { schema });
+      console.log("✅ Turso database created synchronously");
     }
+
+    // TypeScript 类型保护：确保 globalTursoDb 不为 null
+    if (!globalTursoDb) {
+      throw new Error("Failed to initialize Turso database");
+    }
+
     return globalTursoDb;
   }
 
