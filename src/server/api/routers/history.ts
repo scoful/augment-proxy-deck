@@ -13,7 +13,7 @@ import {
   systemStatsSummary,
   collectionLogs,
 } from "@/db/schema";
-import { desc, eq, gte, and, like, or } from "drizzle-orm";
+import { desc, asc, eq, gte, and, like, or } from "drizzle-orm";
 import {
   collectDailyStats,
   collectVehicleStatsDetail,
@@ -47,14 +47,14 @@ export const historyRouter = createTRPCRouter({
               gte(userStatsDetail.dataDate, startDate),
             ),
           )
-          .orderBy(desc(userStatsDetail.dataDate));
+          .orderBy(asc(userStatsDetail.dataDate));
       } else {
         // 查询整体用户活跃度趋势
         return await ctx.db
           .select()
           .from(userStatsSummary)
           .where(gte(userStatsSummary.dataDate, startDate))
-          .orderBy(desc(userStatsSummary.dataDate));
+          .orderBy(asc(userStatsSummary.dataDate));
       }
     }),
 
@@ -75,7 +75,7 @@ export const historyRouter = createTRPCRouter({
         .select()
         .from(vehicleStatsSummary)
         .where(gte(vehicleStatsSummary.dataDate, startDate))
-        .orderBy(desc(vehicleStatsSummary.dataDate));
+        .orderBy(asc(vehicleStatsSummary.dataDate));
     }),
 
   // 获取社车vs黑车对比数据
@@ -91,7 +91,7 @@ export const historyRouter = createTRPCRouter({
         .select()
         .from(vehicleStatsDetail)
         .where(gte(vehicleStatsDetail.recordedAt, startDate))
-        .orderBy(desc(vehicleStatsDetail.recordedAt));
+        .orderBy(asc(vehicleStatsDetail.recordedAt));
     }),
 
   // 获取系统请求量趋势
@@ -106,7 +106,7 @@ export const historyRouter = createTRPCRouter({
         .select()
         .from(systemStatsSummary)
         .where(gte(systemStatsSummary.dataDate, startDate))
-        .orderBy(desc(systemStatsSummary.dataDate));
+        .orderBy(asc(systemStatsSummary.dataDate));
     }),
 
   // 获取按小时请求分布（热力图数据）
@@ -121,7 +121,7 @@ export const historyRouter = createTRPCRouter({
         .select()
         .from(systemStatsDetail)
         .where(gte(systemStatsDetail.dataDate, startDate))
-        .orderBy(desc(systemStatsDetail.dataDate));
+        .orderBy(asc(systemStatsDetail.dataDate));
     }),
 
   // 获取数据采集日志
