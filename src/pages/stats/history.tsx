@@ -14,6 +14,7 @@ import PersonalUsageChart from "@/components/PersonalUsageChart";
 import SystemUsageChart from "@/components/SystemUsageChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
+import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
@@ -180,7 +181,7 @@ export default function HistoryPage() {
 
 
           {/* 趋势图表区域 */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* 系统总用量趋势图表 */}
             <SystemUsageChart days={selectedDays} />
 
@@ -192,6 +193,12 @@ export default function HistoryPage() {
 
             {/* 个人用量趋势图表 */}
             <PersonalUsageChart days={selectedDays} />
+          </div>
+
+          {/* 用户分析图表区域 */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* 用户活跃度分布图表 */}
+            <UserActivityDistributionChart days={selectedDays} />
           </div>
         </div>
       </main>

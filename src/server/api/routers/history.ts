@@ -215,6 +215,64 @@ export const historyRouter = createTRPCRouter({
       }
     }),
 
+  // 获取用户活跃度分布统计
+  getUserActivityDistribution: publicProcedure
+    .input(z.object({ days: z.number().default(7) }))
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取用户数据
+      const rawResults = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .where(gte(userStatsDetail.dataDate, startDate));
+
+      // 计算每个用户的平均日请求量
+      const userMap = new Map();
+      for (const record of rawResults) {
+        const userId = record.userId;
+        if (!userMap.has(userId)) {
+          userMap.set(userId, {
+            totalCount: record.count24Hour,
+            recordCount: 1,
+          });
+        } else {
+          const existing = userMap.get(userId);
+          existing.totalCount += record.count24Hour;
+          existing.recordCount += 1;
+        }
+      }
+
+      // 计算平均值并分类
+      const distribution = {
+        超重度用户: 0, // ≥200
+        重度用户: 0,   // 100-199
+        中度用户: 0,   // 50-99
+        轻度用户: 0,   // 10-49
+        偶尔使用: 0,   // <10
+      };
+
+      for (const [userId, data] of userMap) {
+        const avgCount = data.totalCount / data.recordCount;
+
+        if (avgCount >= 200) {
+          distribution.超重度用户++;
+        } else if (avgCount >= 100) {
+          distribution.重度用户++;
+        } else if (avgCount >= 50) {
+          distribution.中度用户++;
+        } else if (avgCount >= 10) {
+          distribution.轻度用户++;
+        } else {
+          distribution.偶尔使用++;
+        }
+      }
+
+      return distribution;
+    }),
+
   // 获取活跃用户列表
   getActiveUserList: publicProcedure
     .input(
