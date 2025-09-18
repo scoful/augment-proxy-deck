@@ -273,6 +273,144 @@ export const historyRouter = createTRPCRouter({
       return distribution;
     }),
 
+  // 获取用户行为变化率检测数据
+  getUserBehaviorAnomalies: publicProcedure
+    .input(z.object({ days: z.number().default(10) }))
+    .query(async ({ ctx, input }) => {
+      const totalDays = input.days;
+      const halfDays = Math.floor(totalDays / 2);
+
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - totalDays);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      const midDate = new Date();
+      midDate.setDate(midDate.getDate() - halfDays);
+      const midDateStr = midDate.toISOString().split("T")[0]!;
+
+      // 获取指定天数内的用户数据
+      const userData = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .where(gte(userStatsDetail.dataDate, startDate))
+        .orderBy(asc(userStatsDetail.dataDate));
+
+      // 按用户ID和时间段分组计算
+      const userMap = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          recentAvg: number;
+          previousAvg: number;
+          recentDays: number;
+          previousDays: number;
+          changeRate: number;
+          totalRequests: number;
+        }
+      >();
+
+      userData.forEach((record) => {
+        const userId = record.userId;
+        const isRecent = record.dataDate >= midDateStr;
+
+        if (!userMap.has(userId)) {
+          userMap.set(userId, {
+            userId: record.userId,
+            displayName: record.displayName,
+            recentAvg: isRecent ? record.count24Hour : 0,
+            previousAvg: isRecent ? 0 : record.count24Hour,
+            recentDays: isRecent ? 1 : 0,
+            previousDays: isRecent ? 0 : 1,
+            changeRate: 0,
+            totalRequests: record.count24Hour,
+          });
+        } else {
+          const existing = userMap.get(userId)!;
+          existing.totalRequests += record.count24Hour;
+
+          if (isRecent) {
+            existing.recentAvg = (existing.recentAvg * existing.recentDays + record.count24Hour) / (existing.recentDays + 1);
+            existing.recentDays += 1;
+          } else {
+            existing.previousAvg = (existing.previousAvg * existing.previousDays + record.count24Hour) / (existing.previousDays + 1);
+            existing.previousDays += 1;
+          }
+        }
+      });
+
+      // 计算变化率并过滤有效用户
+      const allUsers = Array.from(userMap.values());
+      const validUsers = allUsers.filter(user => user.recentDays > 0 && user.previousDays > 0);
+
+      // 如果有效用户太少，降低要求：只要有任一时间段数据即可
+      const users = validUsers.length < 5
+        ? allUsers
+            .filter(user => user.recentDays > 0 || user.previousDays > 0)
+            .map(user => {
+              // 如果只有一个时间段有数据，变化率设为0或基于单一数据计算
+              let changeRate = 0;
+              if (user.previousDays > 0 && user.recentDays > 0) {
+                changeRate = ((user.recentAvg - user.previousAvg) / user.previousAvg) * 100;
+              } else if (user.recentDays > 0 && user.previousDays === 0) {
+                changeRate = 100; // 新用户，视为100%增长
+              } else if (user.previousDays > 0 && user.recentDays === 0) {
+                changeRate = -100; // 用户消失，视为-100%
+              }
+
+              return {
+                ...user,
+                changeRate,
+                avgDailyRequests: user.recentDays > 0 ? user.recentAvg : user.previousAvg,
+              };
+            })
+        : validUsers.map(user => {
+            const changeRate = user.previousAvg > 0
+              ? ((user.recentAvg - user.previousAvg) / user.previousAvg) * 100
+              : 0;
+
+            return {
+              ...user,
+              changeRate,
+              avgDailyRequests: (user.recentAvg + user.previousAvg) / 2,
+            };
+          });
+
+      // 计算变化率的统计信息
+      const changeRates = users.map(u => u.changeRate);
+      const mean = changeRates.reduce((sum, val) => sum + val, 0) / changeRates.length;
+      const variance = changeRates.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / changeRates.length;
+      const stdDev = Math.sqrt(variance);
+
+      // 标记突发增长用户（变化率超过2个标准差且为正增长）
+      const surgeThreshold = mean + 2 * stdDev;
+      const extremeSurgeThreshold = mean + 3 * stdDev;
+
+      const result = users.map(user => ({
+        ...user,
+        isSurge: user.changeRate > surgeThreshold && user.changeRate > 50, // 至少50%增长
+        zScore: (user.changeRate - mean) / stdDev,
+        surgeLevel: user.changeRate > extremeSurgeThreshold && user.changeRate > 100 ? 'extreme' :
+                   user.changeRate > surgeThreshold && user.changeRate > 50 ? 'moderate' : 'normal'
+      }));
+
+      return {
+        users: result,
+        statistics: {
+          mean,
+          stdDev,
+          surgeThreshold,
+          totalUsers: users.length,
+          surgeCount: result.filter(u => u.isSurge).length,
+          timeRange: {
+            recentDays: halfDays,
+            previousDays: halfDays,
+            totalDays
+          }
+        }
+      };
+    }),
+
   // 获取活跃用户列表
   getActiveUserList: publicProcedure
     .input(

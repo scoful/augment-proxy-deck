@@ -15,6 +15,7 @@ import SystemUsageChart from "@/components/SystemUsageChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
+import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
@@ -198,6 +199,9 @@ export default function HistoryPage() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* 用户活跃度分布图表 */}
             <UserActivityDistributionChart days={selectedDays} />
+
+            {/* 用户行为变化检测图表 */}
+            <UserBehaviorAnomalyChart days={selectedDays} />
           </div>
         </div>
       </main>
