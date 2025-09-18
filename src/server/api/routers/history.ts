@@ -376,6 +376,24 @@ export const historyRouter = createTRPCRouter({
     const systemStartDate =
       allSystemData.length > 0 ? allSystemData[0]?.dataDate : null;
 
+    // 计算系统用量峰值（前三高单日请求量）
+    const systemUsageValues = allSystemData
+      .map((record) => record.yesterdayTotal)
+      .sort((a, b) => b - a); // 降序排列
+
+    const systemPeakUsage = systemUsageValues[0] || 0;
+    const systemSecondPeak = systemUsageValues[1] || 0;
+    const systemThirdPeak = systemUsageValues[2] || 0;
+
+    // 计算日活跃用户峰值（前三高单日活跃用户数）
+    const dailyUsersValues = allSystemData
+      .map((record) => record.yesterdayUsers)
+      .sort((a, b) => b - a); // 降序排列
+
+    const dailyActiveUsersPeak = dailyUsersValues[0] || 0;
+    const dailyActiveUsersSecond = dailyUsersValues[1] || 0;
+    const dailyActiveUsersThird = dailyUsersValues[2] || 0;
+
     // 获取数据量统计 - 使用简单查询获取记录数
     const userDetailRecords = await ctx.db.select().from(userStatsDetail);
     const vehicleDetailRecords = await ctx.db.select().from(vehicleStatsDetail);
@@ -394,6 +412,12 @@ export const historyRouter = createTRPCRouter({
       },
       totalSystemRequests, // 累计系统总请求数
       systemStartDate, // 系统统计开始日期
+      systemPeakUsage, // 系统用量峰值
+      systemSecondPeak, // 系统用量第二高
+      systemThirdPeak, // 系统用量第三高
+      dailyActiveUsersPeak, // 日活跃用户峰值
+      dailyActiveUsersSecond, // 日活跃用户第二高
+      dailyActiveUsersThird, // 日活跃用户第三高
     };
   }),
 });

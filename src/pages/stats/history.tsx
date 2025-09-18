@@ -126,13 +126,16 @@ export default function HistoryPage() {
                   <TruckIcon className="h-6 w-6 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">车辆记录</p>
-                  <p className="text-2xl font-bold text-slate-800">
+                  <p className="text-sm text-slate-600">系统用量峰值</p>
+                  <p className="text-2xl font-bold text-red-600">
                     {overviewLoading
                       ? "..."
                       : formatNumber(
-                          dataOverview?.recordCounts.vehicleDetail || 0,
+                          dataOverview?.systemPeakUsage || 0,
                         )}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    历史最高单日请求量
                   </p>
                 </div>
               </div>
@@ -144,13 +147,16 @@ export default function HistoryPage() {
                   <ClockIcon className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">系统记录</p>
-                  <p className="text-2xl font-bold text-slate-800">
+                  <p className="text-sm text-slate-600">日活跃峰值</p>
+                  <p className="text-2xl font-bold text-green-600">
                     {overviewLoading
                       ? "..."
                       : formatNumber(
-                          dataOverview?.recordCounts.systemDetail || 0,
+                          dataOverview?.dailyActiveUsersPeak || 0,
                         )}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    历史最高单日活跃用户数
                   </p>
                 </div>
               </div>
