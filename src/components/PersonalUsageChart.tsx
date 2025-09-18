@@ -99,28 +99,27 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       },
     );
 
-  // 处理图表数据
+  // 处理图表数据 - 只显示24小时数据（数据库中实际存在的字段）
   const chartData =
     userTrends?.map((trend) => ({
       date: trend.dataDate,
-      count1Hour: "count1Hour" in trend ? trend.count1Hour : 0,
       count24Hour: "count24Hour" in trend ? trend.count24Hour : 0,
-      rank1Hour: "rank1Hour" in trend ? trend.rank1Hour : 0,
       rank24Hour: "rank24Hour" in trend ? trend.rank24Hour : 0,
     })) || [];
 
-  // 自定义Tooltip
+  // 自定义Tooltip - 简化显示
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
+      const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {formatNumber(entry.value)}
-              {entry.dataKey.includes("rank") && " 名"}
-            </p>
-          ))}
+          <p className="text-sm text-blue-600">
+            请求量: {formatNumber(data.count24Hour)}
+          </p>
+          <p className="text-sm text-slate-600">
+            排名: {formatNumber(data.rank24Hour)} 名
+          </p>
         </div>
       );
     }
@@ -133,6 +132,9 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
         <h3 className="mb-2 text-lg font-semibold text-slate-800">
           个人用量趋势
         </h3>
+        <p className="text-sm text-slate-600">
+          显示用户请求量的历史变化趋势
+        </p>
 
         {/* 用户搜索选择器 */}
         <div className="mb-4" ref={searchRef}>
@@ -245,22 +247,12 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
               />
               <YAxis stroke="#64748b" fontSize={12} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="count1Hour"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                name="1小时请求量"
-              />
               <Line
                 type="monotone"
                 dataKey="count24Hour"
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
-                name="24小时请求量"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -279,17 +271,20 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             let usagePattern = "";
             let patternColor = "";
 
-            if (avgCount >= 100) {
-              usagePattern = "重度用户";
+            if (avgCount >= 200) {
+              usagePattern = "🔥 卷王";
+              patternColor = "text-purple-600";
+            } else if (avgCount >= 100) {
+              usagePattern = "👑 大佬";
               patternColor = "text-red-600";
             } else if (avgCount >= 50) {
-              usagePattern = "中度用户";
+              usagePattern = "⚡ 活跃分子";
               patternColor = "text-orange-600";
             } else if (avgCount >= 10) {
-              usagePattern = "轻度用户";
+              usagePattern = "🧘 佛系用户";
               patternColor = "text-blue-600";
             } else {
-              usagePattern = "偶尔使用";
+              usagePattern = "👻 路人甲";
               patternColor = "text-slate-600";
             }
 
@@ -310,7 +305,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600">总请求量</p>
+                    <p className="text-slate-600">累计总请求量</p>
                     <p className="font-medium text-slate-800">
                       {formatNumber(selectedUser.totalCount)}
                     </p>
@@ -342,18 +337,17 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                             : "0";
 
                         if (Math.abs(trend) < 1) {
-                          return <span>使用量保持稳定</span>;
+                          return <span>与前一天相比保持稳定</span>;
                         } else if (trend > 0) {
                           return (
                             <span className="text-green-600">
-                              ↗ 使用量上升 {trendPercent}%
+                              ↗ 较前一天上升 {trendPercent}%
                             </span>
                           );
                         } else {
                           return (
                             <span className="text-red-600">
-                              ↘ 使用量下降 {Math.abs(parseFloat(trendPercent))}
-                              %
+                              ↘ 较前一天下降 {Math.abs(parseFloat(trendPercent))}%
                             </span>
                           );
                         }

@@ -5,7 +5,6 @@ import {
   ChartBarIcon,
   ClockIcon,
   TruckIcon,
-  UserGroupIcon,
   CalendarIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
@@ -86,21 +85,40 @@ export default function HistoryPage() {
             </div>
           </div>
 
+          {/* 数据说明 */}
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-amber-100 p-1">
+                <ClockIcon className="h-4 w-4 text-amber-600" />
+              </div>
+              <p className="text-sm text-amber-800">
+                <span className="font-medium">数据说明：</span>
+                历史趋势数据截止昨天，不包含当天实时数据。每日凌晨00:05自动采集前一天的完整统计数据。
+              </p>
+            </div>
+          </div>
+
           {/* 数据概览卡片 */}
           <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-100 p-2">
-                  <UserGroupIcon className="h-6 w-6 text-blue-600" />
+                  <ChartBarIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">用户记录</p>
-                  <p className="text-2xl font-bold text-slate-800">
+                  <p className="text-sm text-slate-600">系统用量累计</p>
+                  <p className="text-2xl font-bold text-blue-600">
                     {overviewLoading
                       ? "..."
                       : formatNumber(
-                          dataOverview?.recordCounts.userDetail || 0,
+                          dataOverview?.totalSystemRequests || 0,
                         )}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {dataOverview?.systemStartDate
+                      ? `自 ${dataOverview.systemStartDate} 开始统计`
+                      : "所有历史数据汇总统计"
+                    }
                   </p>
                 </div>
               </div>
@@ -163,17 +181,17 @@ export default function HistoryPage() {
 
           {/* 趋势图表区域 */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* 个人用量趋势图表 */}
-            <PersonalUsageChart days={selectedDays} />
+            {/* 系统总用量趋势图表 */}
+            <SystemUsageChart days={selectedDays} />
+
+            {/* 系统活跃用户趋势图表 */}
+            <SystemUsersChart days={selectedDays} />
 
             {/* 车辆可用性趋势图表 */}
             <VehicleAvailabilityChart days={selectedDays} />
 
-            {/* 系统总用量趋势图表 */}
-            <SystemUsageChart days={selectedDays} />
-
-            {/* 系统总用户数趋势图表 */}
-            <SystemUsersChart days={selectedDays} />
+            {/* 个人用量趋势图表 */}
+            <PersonalUsageChart days={selectedDays} />
           </div>
         </div>
       </main>

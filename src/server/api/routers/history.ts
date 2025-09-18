@@ -303,6 +303,20 @@ export const historyRouter = createTRPCRouter({
       .orderBy(desc(systemStatsSummary.dataDate))
       .limit(1);
 
+    // 计算累计系统总请求数 - 使用所有历史数据的yesterdayTotal字段
+    const allSystemData = await ctx.db
+      .select()
+      .from(systemStatsSummary)
+      .orderBy(asc(systemStatsSummary.dataDate));
+
+    const totalSystemRequests = allSystemData.reduce(
+      (sum, record) => sum + record.yesterdayTotal,
+      0
+    );
+
+    // 获取系统统计开始日期（最早的数据日期）
+    const systemStartDate = allSystemData.length > 0 ? allSystemData[0]?.dataDate : null;
+
     // 获取数据量统计 - 使用简单查询获取记录数
     const userDetailRecords = await ctx.db.select().from(userStatsDetail);
     const vehicleDetailRecords = await ctx.db.select().from(vehicleStatsDetail);
@@ -319,6 +333,8 @@ export const historyRouter = createTRPCRouter({
         vehicleDetail: vehicleDetailRecords.length,
         systemDetail: systemDetailRecords.length,
       },
+      totalSystemRequests, // 累计系统总请求数
+      systemStartDate, // 系统统计开始日期
     };
   }),
 });

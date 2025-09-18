@@ -22,44 +22,22 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
       days,
     });
 
-  // 处理图表数据
+  // 处理图表数据 - 显示前日总请求量（实际完整数据）
   const chartData =
     systemTrends?.map((trend) => ({
       date: trend.dataDate,
-      todayTotal: trend.todayTotal,
-      yesterdayTotal: trend.yesterdayTotal,
-      growth: trend.todayTotal - trend.yesterdayTotal,
-      growthRate:
-        trend.yesterdayTotal > 0
-          ? ((trend.todayTotal - trend.yesterdayTotal) / trend.yesterdayTotal) *
-            100
-          : 0,
+      totalRequests: trend.yesterdayTotal,
     })) || [];
 
-  // 自定义Tooltip
+  // 自定义Tooltip - 简化显示
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
-      const data = payload[0]?.payload;
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {formatNumber(entry.value)}
-            </p>
-          ))}
-          {data && (
-            <>
-              <p className="text-sm text-slate-600">
-                增长量: {data.growth >= 0 ? "+" : ""}
-                {formatNumber(data.growth)}
-              </p>
-              <p className="text-sm text-slate-600">
-                增长率: {data.growthRate >= 0 ? "+" : ""}
-                {data.growthRate.toFixed(1)}%
-              </p>
-            </>
-          )}
+          <p className="text-sm text-blue-600">
+            总请求量: {formatNumber(payload[0]?.value)}
+          </p>
         </div>
       );
     }
@@ -70,7 +48,7 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-slate-800">系统总用量趋势</h3>
-        <p className="text-sm text-slate-600">显示每日系统总请求量变化</p>
+        <p className="text-sm text-slate-600">显示每日系统总请求量变化（数据截止昨天）</p>
       </div>
 
       {isLoading ? (
@@ -106,37 +84,33 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
                 tickFormatter={(value) => formatNumber(value)}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
               <Line
                 type="monotone"
-                dataKey="todayTotal"
-                stroke="#10b981"
-                strokeWidth={2}
-                dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
-                name="当日总请求量"
-              />
-              <Line
-                type="monotone"
-                dataKey="yesterdayTotal"
-                stroke="#6b7280"
-                strokeWidth={2}
-                dot={{ fill: "#6b7280", strokeWidth: 2, r: 4 }}
-                name="前日总请求量"
-                strokeDasharray="5 5"
+                dataKey="totalRequests"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 5 }}
+                name="总请求量"
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* 统计信息 */}
+      {/* 统计信息 - 简化显示 */}
       {chartData.length > 0 && (
         <div className="mt-4 border-t border-slate-200 pt-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-slate-600">最高日请求量</p>
+              <p className="font-medium text-blue-600">
+                {formatNumber(Math.max(...chartData.map((d) => d.totalRequests)))}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-600">最低日请求量</p>
               <p className="font-medium text-slate-800">
-                {formatNumber(Math.max(...chartData.map((d) => d.todayTotal)))}
+                {formatNumber(Math.min(...chartData.map((d) => d.totalRequests)))}
               </p>
             </div>
             <div>
@@ -144,33 +118,10 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
               <p className="font-medium text-slate-800">
                 {formatNumber(
                   Math.round(
-                    chartData.reduce((sum, d) => sum + d.todayTotal, 0) /
+                    chartData.reduce((sum, d) => sum + d.totalRequests, 0) /
                       chartData.length,
                   ),
                 )}
-              </p>
-            </div>
-            <div>
-              <p className="text-slate-600">总增长量</p>
-              <p className="font-medium text-slate-800">
-                {(() => {
-                  const totalGrowth = chartData.reduce(
-                    (sum, d) => sum + d.growth,
-                    0,
-                  );
-                  return `${totalGrowth >= 0 ? "+" : ""}${formatNumber(totalGrowth)}`;
-                })()}
-              </p>
-            </div>
-            <div>
-              <p className="text-slate-600">平均增长率</p>
-              <p className="font-medium text-slate-800">
-                {(() => {
-                  const avgGrowthRate =
-                    chartData.reduce((sum, d) => sum + d.growthRate, 0) /
-                    chartData.length;
-                  return `${avgGrowthRate >= 0 ? "+" : ""}${avgGrowthRate.toFixed(1)}%`;
-                })()}
               </p>
             </div>
           </div>

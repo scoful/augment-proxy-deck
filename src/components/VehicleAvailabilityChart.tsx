@@ -129,7 +129,7 @@ export default function VehicleAvailabilityChart({
       {/* 统计信息 */}
       {chartData.length > 0 && (
         <div className="mt-4 border-t border-slate-200 pt-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-slate-600">最高存活率</p>
               <p className="font-medium text-green-600">
@@ -143,13 +143,48 @@ export default function VehicleAvailabilityChart({
               </p>
             </div>
             <div>
-              <p className="text-slate-600">平均存活率</p>
-              <p className="font-medium text-slate-800">
-                {(
-                  chartData.reduce((sum, d) => sum + d.survivalRate, 0) /
-                  chartData.length
-                ).toFixed(1)}
-                %
+              <p className="text-slate-600">趋势变化</p>
+              <p className="font-medium">
+                {(() => {
+                  if (chartData.length < 2)
+                    return <span className="text-slate-500">数据不足</span>;
+
+                  const firstRate = chartData[chartData.length - 1]?.survivalRate || 0;
+                  const lastRate = chartData[0]?.survivalRate || 0;
+                  const trend = firstRate - lastRate;
+
+                  if (Math.abs(trend) < 0.1) {
+                    return <span className="text-slate-500">保持稳定</span>;
+                  } else if (trend > 0) {
+                    return (
+                      <span className="text-green-600">
+                        ↗ 上升 {trend.toFixed(1)}%
+                      </span>
+                    );
+                  } else {
+                    return (
+                      <span className="text-red-600">
+                        ↘ 下降 {Math.abs(trend).toFixed(1)}%
+                      </span>
+                    );
+                  }
+                })()}
+              </p>
+            </div>
+          </div>
+
+          {/* 车辆数量统计 */}
+          <div className="mt-3 grid grid-cols-3 gap-4 text-sm border-t border-slate-100 pt-3">
+            <div>
+              <p className="text-slate-600">最新总车辆</p>
+              <p className="font-medium text-blue-600">
+                {formatNumber(chartData[chartData.length - 1]?.totalCars || 0)}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-600">最新可用车辆</p>
+              <p className="font-medium text-green-600">
+                {formatNumber(chartData[chartData.length - 1]?.activeCars || 0)}
               </p>
             </div>
             <div>
@@ -165,37 +200,7 @@ export default function VehicleAvailabilityChart({
             </div>
           </div>
 
-          {/* 趋势指示器 */}
-          <div className="mt-3 border-t border-slate-100 pt-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">存活率趋势:</span>
-              {(() => {
-                if (chartData.length < 2)
-                  return <span className="text-slate-500">数据不足</span>;
 
-                const firstRate =
-                  chartData[chartData.length - 1]?.survivalRate || 0;
-                const lastRate = chartData[0]?.survivalRate || 0;
-                const trend = firstRate - lastRate;
-
-                if (Math.abs(trend) < 0.1) {
-                  return <span className="text-slate-500">稳定</span>;
-                } else if (trend > 0) {
-                  return (
-                    <span className="text-green-600">
-                      ↗ 上升 {trend.toFixed(1)}%
-                    </span>
-                  );
-                } else {
-                  return (
-                    <span className="text-red-600">
-                      ↘ 下降 {Math.abs(trend).toFixed(1)}%
-                    </span>
-                  );
-                }
-              })()}
-            </div>
-          </div>
         </div>
       )}
     </div>
