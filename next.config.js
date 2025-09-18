@@ -43,10 +43,15 @@ const config = {
     if (process.env.VERCEL || process.env.VERCEL_ENV) {
       cfg.resolve = cfg.resolve || {};
       cfg.resolve.alias = cfg.resolve.alias || {};
-      cfg.resolve.alias["@/server/api/trpc"] = path.resolve(
-        process.cwd(),
-        "src/server/api/trpc-vercel.ts",
-      );
+      const target = path.resolve(process.cwd(), "src/server/api/trpc-vercel.ts");
+      const trpcModuleId = "@/server/api/trpc";
+      const trpcSrcAbs = path.resolve(process.cwd(), "src/server/api/trpc.ts");
+      const trpcSrcAbsPosix = trpcSrcAbs.split(path.sep).join("/");
+
+      // 覆盖模块别名与被 tsconfig 路径插件解析后的绝对路径两种情况
+      cfg.resolve.alias[trpcModuleId] = target;
+      cfg.resolve.alias[trpcSrcAbs] = target;
+      cfg.resolve.alias[trpcSrcAbsPosix] = target;
     }
     return cfg;
   },
