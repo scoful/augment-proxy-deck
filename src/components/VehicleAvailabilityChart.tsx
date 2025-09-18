@@ -149,7 +149,8 @@ export default function VehicleAvailabilityChart({
                   if (chartData.length < 2)
                     return <span className="text-slate-500">数据不足</span>;
 
-                  const firstRate = chartData[chartData.length - 1]?.survivalRate || 0;
+                  const firstRate =
+                    chartData[chartData.length - 1]?.survivalRate || 0;
                   const lastRate = chartData[0]?.survivalRate || 0;
                   const trend = firstRate - lastRate;
 
@@ -174,7 +175,7 @@ export default function VehicleAvailabilityChart({
           </div>
 
           {/* 车辆数量统计 */}
-          <div className="mt-3 grid grid-cols-3 gap-4 text-sm border-t border-slate-100 pt-3">
+          <div className="mt-3 grid grid-cols-3 gap-4 border-t border-slate-100 pt-3 text-sm">
             <div>
               <p className="text-slate-600">最新总车辆</p>
               <p className="font-medium text-blue-600">
@@ -199,8 +200,6 @@ export default function VehicleAvailabilityChart({
               </p>
             </div>
           </div>
-
-
         </div>
       )}
     </div>

@@ -50,7 +50,9 @@ export default function SystemUsersChart({ days }: SystemUsersChartProps) {
         <h3 className="text-lg font-semibold text-slate-800">
           系统活跃用户趋势
         </h3>
-        <p className="text-sm text-slate-600">显示每日活跃用户数量变化（数据截止昨天）</p>
+        <p className="text-sm text-slate-600">
+          显示每日活跃用户数量变化（数据截止昨天）
+        </p>
       </div>
 
       {isLoading ? (

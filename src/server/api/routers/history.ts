@@ -248,10 +248,10 @@ export const historyRouter = createTRPCRouter({
       // 计算平均值并分类
       const distribution = {
         超重度用户: 0, // ≥200
-        重度用户: 0,   // 100-199
-        中度用户: 0,   // 50-99
-        轻度用户: 0,   // 10-49
-        偶尔使用: 0,   // <10
+        重度用户: 0, // 100-199
+        中度用户: 0, // 50-99
+        轻度用户: 0, // 10-49
+        偶尔使用: 0, // <10
       };
 
       for (const [userId, data] of userMap) {
@@ -369,11 +369,12 @@ export const historyRouter = createTRPCRouter({
 
     const totalSystemRequests = allSystemData.reduce(
       (sum, record) => sum + record.yesterdayTotal,
-      0
+      0,
     );
 
     // 获取系统统计开始日期（最早的数据日期）
-    const systemStartDate = allSystemData.length > 0 ? allSystemData[0]?.dataDate : null;
+    const systemStartDate =
+      allSystemData.length > 0 ? allSystemData[0]?.dataDate : null;
 
     // 获取数据量统计 - 使用简单查询获取记录数
     const userDetailRecords = await ctx.db.select().from(userStatsDetail);

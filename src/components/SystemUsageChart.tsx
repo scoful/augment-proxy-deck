@@ -48,7 +48,9 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-slate-800">系统总用量趋势</h3>
-        <p className="text-sm text-slate-600">显示每日系统总请求量变化（数据截止昨天）</p>
+        <p className="text-sm text-slate-600">
+          显示每日系统总请求量变化（数据截止昨天）
+        </p>
       </div>
 
       {isLoading ? (
@@ -104,13 +106,17 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
             <div>
               <p className="text-slate-600">最高日请求量</p>
               <p className="font-medium text-blue-600">
-                {formatNumber(Math.max(...chartData.map((d) => d.totalRequests)))}
+                {formatNumber(
+                  Math.max(...chartData.map((d) => d.totalRequests)),
+                )}
               </p>
             </div>
             <div>
               <p className="text-slate-600">最低日请求量</p>
               <p className="font-medium text-slate-800">
-                {formatNumber(Math.min(...chartData.map((d) => d.totalRequests)))}
+                {formatNumber(
+                  Math.min(...chartData.map((d) => d.totalRequests)),
+                )}
               </p>
             </div>
             <div>

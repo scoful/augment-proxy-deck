@@ -64,8 +64,9 @@ export default function UserActivityDistributionChart({
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
-      const percentage = totalUsers > 0 ? ((data.value / totalUsers) * 100).toFixed(1) : "0";
-      
+      const percentage =
+        totalUsers > 0 ? ((data.value / totalUsers) * 100).toFixed(1) : "0";
+
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{data.name}</p>
@@ -151,8 +152,11 @@ export default function UserActivityDistributionChart({
                   const activeUsers = chartData
                     .filter((item) => !item.name.includes("路人甲"))
                     .reduce((sum, item) => sum + item.value, 0);
-                  return totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : "0";
-                })()}%
+                  return totalUsers > 0
+                    ? ((activeUsers / totalUsers) * 100).toFixed(1)
+                    : "0";
+                })()}
+                %
               </p>
             </div>
           </div>

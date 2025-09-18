@@ -20,10 +20,8 @@ export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
 
   // 获取数据概览
-  const {
-    data: dataOverview,
-    isLoading: overviewLoading,
-  } = api.history.getDataOverview.useQuery();
+  const { data: dataOverview, isLoading: overviewLoading } =
+    api.history.getDataOverview.useQuery();
 
   const dayOptions = [
     { value: 7, label: "最近7天" },
@@ -111,15 +109,12 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-blue-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(
-                          dataOverview?.totalSystemRequests || 0,
-                        )}
+                      : formatNumber(dataOverview?.totalSystemRequests || 0)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500">
                     {dataOverview?.systemStartDate
                       ? `自 ${dataOverview.systemStartDate} 开始统计`
-                      : "所有历史数据汇总统计"
-                    }
+                      : "所有历史数据汇总统计"}
                   </p>
                 </div>
               </div>
@@ -177,8 +172,6 @@ export default function HistoryPage() {
               </div>
             </div>
           </div>
-
-
 
           {/* 趋势图表区域 */}
           <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">

@@ -132,9 +132,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
         <h3 className="mb-2 text-lg font-semibold text-slate-800">
           个人用量趋势
         </h3>
-        <p className="text-sm text-slate-600">
-          显示用户请求量的历史变化趋势
-        </p>
+        <p className="text-sm text-slate-600">显示用户请求量的历史变化趋势</p>
 
         {/* 用户搜索选择器 */}
         <div className="mb-4" ref={searchRef}>
@@ -347,7 +345,8 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                         } else {
                           return (
                             <span className="text-red-600">
-                              ↘ 较前一天下降 {Math.abs(parseFloat(trendPercent))}%
+                              ↘ 较前一天下降{" "}
+                              {Math.abs(parseFloat(trendPercent))}%
                             </span>
                           );
                         }

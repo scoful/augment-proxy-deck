@@ -43,7 +43,10 @@ const config = {
     if (process.env.VERCEL || process.env.VERCEL_ENV) {
       cfg.resolve = cfg.resolve || {};
       cfg.resolve.alias = cfg.resolve.alias || {};
-      const target = path.resolve(process.cwd(), "src/server/api/trpc-vercel.ts");
+      const target = path.resolve(
+        process.cwd(),
+        "src/server/api/trpc-vercel.ts",
+      );
       const trpcModuleId = "@/server/api/trpc";
       const trpcSrcAbs = path.resolve(process.cwd(), "src/server/api/trpc.ts");
       const trpcSrcAbsPosix = trpcSrcAbs.split(path.sep).join("/");
