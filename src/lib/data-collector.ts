@@ -64,15 +64,18 @@ async function fetchWithRetry(
 }
 
 /**
- * 获取当前UTC+8时区的日期 (YYYY-MM-DD)
+ * 获取 UTC+8 时区的上一天日期 (YYYY-MM-DD)
+ * 统一用于所有数据表的 dataDate 字段
  */
-function getCurrentDateUTC8(): string {
+function getYesterdayDateUTC8(): string {
   const now = new Date();
-  // 转换为UTC+8时区
-  const utc8Time = new Date(
+  // 先转换为 UTC+8 同步时刻
+  const utc8Now = new Date(
     now.getTime() + (now.getTimezoneOffset() + 480) * 60 * 1000,
   );
-  return utc8Time.toISOString().split("T")[0]!;
+  // 回退一天，得到上一天（UTC+8）对应的日期
+  const utc8Yesterday = new Date(utc8Now.getTime() - 24 * 60 * 60 * 1000);
+  return utc8Yesterday.toISOString().split("T")[0]!;
 }
 
 /**
@@ -82,7 +85,7 @@ function getCurrentDateUTC8(): string {
 export async function collectUserStats(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getCurrentDateUTC8();
+  const dataDate = getYesterdayDateUTC8();
 
   try {
     console.log("🔄 开始采集用户统计数据...");
@@ -153,7 +156,7 @@ export async function collectUserStats(d1Database?: D1Database) {
 export async function collectVehicleStatsSummary(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getCurrentDateUTC8();
+  const dataDate = getYesterdayDateUTC8();
 
   try {
     console.log("🔄 开始采集车辆统计汇总数据...");
@@ -204,7 +207,7 @@ export async function collectVehicleStatsSummary(d1Database?: D1Database) {
 export async function collectVehicleStatsDetail(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getCurrentDateUTC8();
+  const dataDate = getYesterdayDateUTC8();
 
   try {
     console.log("🔄 开始采集车辆统计明细数据...");
@@ -267,7 +270,7 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
 export async function collectSystemStats(d1Database?: D1Database) {
   const startTime = Date.now();
   const db = getDatabase(d1Database);
-  const dataDate = getCurrentDateUTC8();
+  const dataDate = getYesterdayDateUTC8();
 
   try {
     console.log("🔄 开始采集系统统计数据...");
