@@ -3,6 +3,7 @@
  * for Docker builds.
  */
 import "./src/env.js";
+import path from "path";
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -33,6 +34,21 @@ const config = {
   typescript: {
     // 在构建时忽略类型错误（仅用于解决 tRPC 兼容性问题）
     ignoreBuildErrors: true,
+  },
+
+  // 构建时根据平台切换 tRPC 入口：
+  // - Vercel: 使用 Turso 版（src/server/api/trpc-vercel.ts）
+  // - 其他: 使用默认的 Cloudflare 版（src/server/api/trpc.ts）
+  webpack: (cfg) => {
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      cfg.resolve = cfg.resolve || {};
+      cfg.resolve.alias = cfg.resolve.alias || {};
+      cfg.resolve.alias["@/server/api/trpc"] = path.resolve(
+        process.cwd(),
+        "src/server/api/trpc-vercel.ts",
+      );
+    }
+    return cfg;
   },
 };
 
