@@ -97,9 +97,9 @@ export default function UserBehaviorAnomalyChart({
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">用户行为变化检测</h3>
+        <h3 className="text-lg font-semibold text-slate-800">用户行为变化分析</h3>
         <p className="text-sm text-slate-600">
-          识别最近请求量突然增长的用户（对比前后两个时间段）
+          识别用户请求量的突发变化模式（基于最近14天数据）
         </p>
       </div>
 

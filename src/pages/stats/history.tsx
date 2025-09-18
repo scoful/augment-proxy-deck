@@ -19,17 +19,18 @@ import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
+  const [activeTab, setActiveTab] = useState<'trends' | 'overview'>('trends');
+
+  const dayOptions = [
+    { value: 7, label: "最近7天" },
+    { value: 30, label: "最近30天" },
+    { value: 90, label: "最近90天" },
+    { value: 365, label: "最近365天" },
+  ];
 
   // 获取数据概览
   const { data: dataOverview, isLoading: overviewLoading } =
     api.history.getDataOverview.useQuery();
-
-  const dayOptions = [
-    { value: 7, label: "最近7天" },
-    { value: 14, label: "最近14天" },
-    { value: 30, label: "最近30天" },
-    { value: 90, label: "最近90天" },
-  ];
 
   return (
     <>
@@ -60,30 +61,7 @@ export default function HistoryPage() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
-          {/* 时间范围选择器 */}
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800">
-                数据趋势分析
-              </h2>
-              <p className="text-slate-600">选择时间范围查看历史数据趋势</p>
-            </div>
-            <div className="flex gap-2">
-              {dayOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedDays(option.value)}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedDays === option.value
-                      ? "bg-blue-600 text-white"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
+
 
           {/* 数据说明 */}
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -180,29 +158,98 @@ export default function HistoryPage() {
             </div>
           </div>
 
-          {/* 趋势图表区域 */}
-          <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* 系统总用量趋势图表 */}
-            <SystemUsageChart days={selectedDays} />
-
-            {/* 系统活跃用户趋势图表 */}
-            <SystemUsersChart days={selectedDays} />
-
-            {/* 车辆可用性趋势图表 */}
-            <VehicleAvailabilityChart days={selectedDays} />
-
-            {/* 个人用量趋势图表 */}
-            <PersonalUsageChart days={selectedDays} />
+          {/* Tab切换器 */}
+          <div className="mb-6">
+            <div className="border-b border-slate-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('trends')}
+                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
+                    activeTab === 'trends'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  }`}
+                >
+                  📈 趋势分析
+                </button>
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
+                    activeTab === 'overview'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  }`}
+                >
+                  📊 整体分析
+                </button>
+              </nav>
+            </div>
           </div>
 
-          {/* 用户分析图表区域 */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* 用户活跃度分布图表 */}
-            <UserActivityDistributionChart days={selectedDays} />
+          {/* 时间范围选择器（仅在趋势分析tab显示） */}
+          {activeTab === 'trends' && (
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">
+                  时间范围分析
+                </h3>
+                <p className="text-sm text-slate-600">选择时间范围查看历史数据趋势</p>
+              </div>
+              <div className="flex gap-2">
+                {dayOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedDays(option.value)}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                      selectedDays === option.value
+                        ? "bg-blue-600 text-white"
+                        : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-            {/* 用户行为变化检测图表 */}
-            <UserBehaviorAnomalyChart days={selectedDays} />
-          </div>
+          {/* 整体分析说明（仅在整体分析tab显示） */}
+          {activeTab === 'overview' && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-800">
+                整体数据分析
+              </h3>
+              <p className="text-sm text-slate-600">基于固定时间范围的整体数据分析和用户行为模式</p>
+            </div>
+          )}
+
+          {/* 趋势图表区域（仅在趋势分析tab显示） */}
+          {activeTab === 'trends' && (
+            <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {/* 系统总用量趋势图表 */}
+              <SystemUsageChart days={selectedDays} />
+
+              {/* 系统活跃用户趋势图表 */}
+              <SystemUsersChart days={selectedDays} />
+
+              {/* 车辆可用性趋势图表 */}
+              <VehicleAvailabilityChart days={selectedDays} />
+
+              {/* 个人用量趋势图表 */}
+              <PersonalUsageChart days={selectedDays} />
+            </div>
+          )}
+
+          {/* 整体分析图表区域（仅在整体分析tab显示） */}
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {/* 用户活跃度分布图表 */}
+              <UserActivityDistributionChart days={30} />
+
+              {/* 用户行为变化检测图表 */}
+              <UserBehaviorAnomalyChart days={14} />
+            </div>
+          )}
         </div>
       </main>
     </>
