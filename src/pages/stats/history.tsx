@@ -18,10 +18,16 @@ import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 import VehicleLifespanChart from "@/components/VehicleLifespanChart";
+import DailyRequestRanking from "@/components/DailyRequestRanking";
+import UserActivityRanking from "@/components/UserActivityRanking";
+import HourlyPeakRanking from "@/components/HourlyPeakRanking";
+import HistoricalRank1Ranking from "@/components/HistoricalRank1Ranking";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
-  const [activeTab, setActiveTab] = useState<'trends' | 'overview' | 'rankings'>('trends');
+  const [activeTab, setActiveTab] = useState<
+    "trends" | "overview" | "rankings"
+  >("trends");
 
   const dayOptions = [
     { value: 7, label: "最近7天" },
@@ -63,8 +69,6 @@ export default function HistoryPage() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
-
-
           {/* 数据说明 */}
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <div className="flex items-center gap-2">
@@ -111,11 +115,9 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-red-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(
-                          dataOverview?.systemPeakUsage || 0,
-                        )}
+                      : formatNumber(dataOverview?.systemPeakUsage || 0)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500">
                     历史最高单日请求量
                   </p>
                 </div>
@@ -132,11 +134,9 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-green-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(
-                          dataOverview?.dailyActiveUsersPeak || 0,
-                        )}
+                      : formatNumber(dataOverview?.dailyActiveUsersPeak || 0)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500">
                     历史最高单日活跃用户数
                   </p>
                 </div>
@@ -165,31 +165,31 @@ export default function HistoryPage() {
             <div className="border-b border-slate-200">
               <nav className="-mb-px flex space-x-8">
                 <button
-                  onClick={() => setActiveTab('trends')}
-                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
-                    activeTab === 'trends'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  onClick={() => setActiveTab("trends")}
+                  className={`border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap ${
+                    activeTab === "trends"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
                   📈 趋势分析
                 </button>
                 <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
-                    activeTab === 'overview'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  onClick={() => setActiveTab("overview")}
+                  className={`border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap ${
+                    activeTab === "overview"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
                   📊 整体分析
                 </button>
                 <button
-                  onClick={() => setActiveTab('rankings')}
-                  className={`whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium ${
-                    activeTab === 'rankings'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  onClick={() => setActiveTab("rankings")}
+                  className={`border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap ${
+                    activeTab === "rankings"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
                   🏆 各种榜单
@@ -199,13 +199,15 @@ export default function HistoryPage() {
           </div>
 
           {/* 时间范围选择器（仅在趋势分析tab显示） */}
-          {activeTab === 'trends' && (
+          {activeTab === "trends" && (
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-800">
                   时间范围分析
                 </h3>
-                <p className="text-sm text-slate-600">选择时间范围查看历史数据趋势</p>
+                <p className="text-sm text-slate-600">
+                  选择时间范围查看历史数据趋势
+                </p>
               </div>
               <div className="flex gap-2">
                 {dayOptions.map((option) => (
@@ -226,27 +228,29 @@ export default function HistoryPage() {
           )}
 
           {/* 整体分析说明（仅在整体分析tab显示） */}
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-slate-800">
                 整体数据分析
               </h3>
-              <p className="text-sm text-slate-600">基于固定时间范围的整体数据分析和用户行为模式</p>
+              <p className="text-sm text-slate-600">
+                基于固定时间范围的整体数据分析和用户行为模式
+              </p>
             </div>
           )}
 
           {/* 榜单说明（仅在榜单tab显示） */}
-          {activeTab === 'rankings' && (
+          {activeTab === "rankings" && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800">
-                各种榜单
-              </h3>
-              <p className="text-sm text-slate-600">展示各类数据排行榜和统计榜单</p>
+              <h3 className="text-lg font-semibold text-slate-800">各种榜单</h3>
+              <p className="text-sm text-slate-600">
+                展示各类数据排行榜和统计榜单
+              </p>
             </div>
           )}
 
           {/* 趋势图表区域（仅在趋势分析tab显示） */}
-          {activeTab === 'trends' && (
+          {activeTab === "trends" && (
             <>
               <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
                 {/* 系统总用量趋势图表 */}
@@ -267,13 +271,11 @@ export default function HistoryPage() {
                 {/* 用户活跃度分布图表 */}
                 <UserActivityDistributionChart />
               </div>
-
-
             </>
           )}
 
           {/* 整体分析图表区域（仅在整体分析tab显示） */}
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <>
               {/* 车辆生命长度分析图表 - 独占一排 */}
               <div className="mb-8">
@@ -289,62 +291,18 @@ export default function HistoryPage() {
           )}
 
           {/* 榜单区域（仅在榜单tab显示） */}
-          {activeTab === 'rankings' && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {/* 单日请求量排行榜 */}
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-slate-800">🏆 单日请求量排行榜</h3>
-                  <p className="text-sm text-slate-600">
-                    历史单日请求量最高记录（Top 10）
-                  </p>
-                </div>
-                <div className="text-center text-slate-500 py-8">
-                  <p>榜单功能开发中...</p>
-                  <p className="text-xs mt-2">即将展示单日请求量历史最高记录</p>
-                </div>
+          {activeTab === "rankings" && (
+            <div className="space-y-8">
+              {/* 第一行：单日请求量排行榜 和 用户活跃度排行榜 */}
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <DailyRequestRanking limit={10} />
+                <UserActivityRanking limit={10} />
               </div>
 
-              {/* 用户活跃度排行榜 */}
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-slate-800">👑 用户活跃度排行榜</h3>
-                  <p className="text-sm text-slate-600">
-                    最活跃用户排行（基于总请求量）
-                  </p>
-                </div>
-                <div className="text-center text-slate-500 py-8">
-                  <p>榜单功能开发中...</p>
-                  <p className="text-xs mt-2">即将展示最活跃用户排行</p>
-                </div>
-              </div>
-
-              {/* 车辆存活率排行榜 */}
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-slate-800">🚗 车辆存活率排行榜</h3>
-                  <p className="text-sm text-slate-600">
-                    历史车辆存活率最高记录
-                  </p>
-                </div>
-                <div className="text-center text-slate-500 py-8">
-                  <p>榜单功能开发中...</p>
-                  <p className="text-xs mt-2">即将展示车辆存活率历史记录</p>
-                </div>
-              </div>
-
-              {/* 系统峰值记录榜 */}
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-slate-800">📈 系统峰值记录榜</h3>
-                  <p className="text-sm text-slate-600">
-                    系统各项指标的历史峰值记录
-                  </p>
-                </div>
-                <div className="text-center text-slate-500 py-8">
-                  <p>榜单功能开发中...</p>
-                  <p className="text-xs mt-2">即将展示系统各项峰值记录</p>
-                </div>
+              {/* 第二行：小时级峰值排行榜 和 历史第一名排行榜 */}
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <HourlyPeakRanking limit={15} />
+                <HistoricalRank1Ranking limit={15} />
               </div>
             </div>
           )}

@@ -12,7 +12,8 @@ import {
 } from "recharts";
 
 export default function VehicleLifespanChart() {
-  const { data: lifespanData, isLoading } = api.history.getVehicleLifespanAnalysis.useQuery();
+  const { data: lifespanData, isLoading } =
+    api.history.getVehicleLifespanAnalysis.useQuery();
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -25,7 +26,12 @@ export default function VehicleLifespanChart() {
             生命长度: {payload[0]?.value} 天
           </p>
           <p className="text-sm text-slate-600">
-            类型: {data?.carType === 'social' ? '社车' : data?.carType === 'black' ? '黑车' : '未知'}
+            类型:{" "}
+            {data?.carType === "social"
+              ? "社车"
+              : data?.carType === "black"
+                ? "黑车"
+                : "未知"}
           </p>
           <p className="text-xs text-slate-500">
             {data?.firstSeen} ~ {data?.lastSeen}
@@ -37,24 +43,25 @@ export default function VehicleLifespanChart() {
   };
 
   // 处理图表数据
-  const chartData = lifespanData?.map((vehicle, index) => ({
-    carId: vehicle.carId,
-    lifespanDays: vehicle.lifespanDays,
-    carType: vehicle.carType,
-    firstSeen: vehicle.firstSeen,
-    lastSeen: vehicle.lastSeen,
-    displayName: `${vehicle.carId.slice(-6)}`, // 只显示车辆ID的后6位
-  })) || [];
+  const chartData =
+    lifespanData?.map((vehicle, index) => ({
+      carId: vehicle.carId,
+      lifespanDays: vehicle.lifespanDays,
+      carType: vehicle.carType,
+      firstSeen: vehicle.firstSeen,
+      lastSeen: vehicle.lastSeen,
+      displayName: `${vehicle.carId.slice(-6)}`, // 只显示车辆ID的后6位
+    })) || [];
 
   // 根据车辆类型设置颜色
   const getBarColor = (carType: string) => {
     switch (carType) {
-      case 'social':
-        return '#3b82f6'; // 蓝色
-      case 'black':
-        return '#ef4444'; // 红色
+      case "social":
+        return "#3b82f6"; // 蓝色
+      case "black":
+        return "#ef4444"; // 红色
       default:
-        return '#64748b'; // 灰色
+        return "#64748b"; // 灰色
     }
   };
 
@@ -72,7 +79,9 @@ export default function VehicleLifespanChart() {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">车辆生命长度分析</h3>
+        <h3 className="text-lg font-semibold text-slate-800">
+          车辆生命长度分析
+        </h3>
         <p className="text-sm text-slate-600">
           显示每辆车从首次出现到最后活跃的生命周期长度
         </p>
@@ -85,7 +94,10 @@ export default function VehicleLifespanChart() {
       ) : (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis
                 dataKey="displayName"
@@ -96,7 +108,11 @@ export default function VehicleLifespanChart() {
               <YAxis
                 tick={{ fontSize: 12 }}
                 stroke="#64748b"
-                label={{ value: '生命长度 (天)', angle: -90, position: 'insideLeft' }}
+                label={{
+                  value: "生命长度 (天)",
+                  angle: -90,
+                  position: "insideLeft",
+                }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
@@ -106,7 +122,10 @@ export default function VehicleLifespanChart() {
                 radius={[2, 2, 0, 0]}
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getBarColor(entry.carType)} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={getBarColor(entry.carType)}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -131,7 +150,11 @@ export default function VehicleLifespanChart() {
                 <div>
                   <p className="text-slate-600">平均寿命</p>
                   <p className="font-medium text-slate-800">
-                    {Math.round(chartData.reduce((sum, v) => sum + v.lifespanDays, 0) / chartData.length)} 天
+                    {Math.round(
+                      chartData.reduce((sum, v) => sum + v.lifespanDays, 0) /
+                        chartData.length,
+                    )}{" "}
+                    天
                   </p>
                 </div>
               </div>
@@ -144,13 +167,13 @@ export default function VehicleLifespanChart() {
                 <div>
                   <p className="text-slate-600">最长寿命</p>
                   <p className="font-medium text-green-600">
-                    {Math.max(...chartData.map(v => v.lifespanDays))} 天
+                    {Math.max(...chartData.map((v) => v.lifespanDays))} 天
                   </p>
                 </div>
                 <div>
                   <p className="text-slate-600">最短寿命</p>
                   <p className="font-medium text-orange-600">
-                    {Math.min(...chartData.map(v => v.lifespanDays))} 天
+                    {Math.min(...chartData.map((v) => v.lifespanDays))} 天
                   </p>
                 </div>
               </div>
@@ -163,19 +186,19 @@ export default function VehicleLifespanChart() {
               <div>
                 <p className="text-slate-600">社车数量</p>
                 <p className="font-medium text-blue-600">
-                  {chartData.filter(v => v.carType === 'social').length} 辆
+                  {chartData.filter((v) => v.carType === "social").length} 辆
                 </p>
               </div>
               <div>
                 <p className="text-slate-600">黑车数量</p>
                 <p className="font-medium text-red-600">
-                  {chartData.filter(v => v.carType === 'black').length} 辆
+                  {chartData.filter((v) => v.carType === "black").length} 辆
                 </p>
               </div>
               <div>
                 <p className="text-slate-600">未知类型</p>
                 <p className="font-medium text-slate-600">
-                  {chartData.filter(v => v.carType === 'unknown').length} 辆
+                  {chartData.filter((v) => v.carType === "unknown").length} 辆
                 </p>
               </div>
             </div>

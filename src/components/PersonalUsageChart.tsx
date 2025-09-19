@@ -35,11 +35,16 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const [actualSearchQuery, setActualSearchQuery] = useState<string>("");
   const [showResults, setShowResults] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
-  const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(null);
+  const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(
+    null,
+  );
   const searchRef = useRef<HTMLDivElement>(null);
 
   // 工具函数：保存记住的用户
-  const saveRememberedUser = (user: any, shouldRemember: boolean = rememberMe) => {
+  const saveRememberedUser = (
+    user: any,
+    shouldRemember: boolean = rememberMe,
+  ) => {
     if (!shouldRemember) return;
 
     const rememberedData: RememberedUser = {
@@ -304,11 +309,12 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             {rememberedUser && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">
-                  记住: {rememberedUser.displayName} ({formatLastSelectedTime(rememberedUser.lastSelected)})
+                  记住: {rememberedUser.displayName} (
+                  {formatLastSelectedTime(rememberedUser.lastSelected)})
                 </span>
                 <button
                   onClick={forgetRememberedUser}
-                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                  className="cursor-pointer rounded px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                 >
                   忘记
                 </button>

@@ -106,13 +106,17 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
             <div>
               <p className="text-slate-600">最高请求量</p>
               <p className="font-medium text-blue-600">
-                {formatNumber(Math.max(...chartData.map((d) => d.totalRequests)))}
+                {formatNumber(
+                  Math.max(...chartData.map((d) => d.totalRequests)),
+                )}
               </p>
             </div>
             <div>
               <p className="text-slate-600">最低请求量</p>
               <p className="font-medium text-green-600">
-                {formatNumber(Math.min(...chartData.map((d) => d.totalRequests)))}
+                {formatNumber(
+                  Math.min(...chartData.map((d) => d.totalRequests)),
+                )}
               </p>
             </div>
             <div>

@@ -27,10 +27,11 @@ export default function UserBehaviorAnomalyChart({
 
   // 处理散点图数据
   const processScatterData = () => {
-    if (!anomalyData) return { normalUsers: [], surgeUsers: [], extremeUsers: [] };
+    if (!anomalyData)
+      return { normalUsers: [], surgeUsers: [], extremeUsers: [] };
 
     const normalUsers = anomalyData.users
-      .filter((user) => user.surgeLevel === 'normal')
+      .filter((user) => user.surgeLevel === "normal")
       .map((user) => ({
         x: user.avgDailyRequests,
         y: user.changeRate,
@@ -43,7 +44,7 @@ export default function UserBehaviorAnomalyChart({
       }));
 
     const surgeUsers = anomalyData.users
-      .filter((user) => user.surgeLevel === 'moderate')
+      .filter((user) => user.surgeLevel === "moderate")
       .map((user) => ({
         x: user.avgDailyRequests,
         y: user.changeRate,
@@ -56,7 +57,7 @@ export default function UserBehaviorAnomalyChart({
       }));
 
     const extremeUsers = anomalyData.users
-      .filter((user) => user.surgeLevel === 'extreme')
+      .filter((user) => user.surgeLevel === "extreme")
       .map((user) => ({
         x: user.avgDailyRequests,
         y: user.changeRate,
@@ -77,7 +78,7 @@ export default function UserBehaviorAnomalyChart({
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
-      
+
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{data.name}</p>
@@ -97,7 +98,9 @@ export default function UserBehaviorAnomalyChart({
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">用户行为变化分析</h3>
+        <h3 className="text-lg font-semibold text-slate-800">
+          用户行为变化分析
+        </h3>
         <p className="text-sm text-slate-600">
           识别用户请求量的突发变化模式（基于最近14天数据）
         </p>
@@ -112,9 +115,10 @@ export default function UserBehaviorAnomalyChart({
           <div className="text-center text-slate-500">
             <p>暂无数据</p>
             {anomalyData && (
-              <p className="text-xs mt-2">
-                检测到 {anomalyData.statistics.totalUsers} 个用户，
-                时间范围：前{anomalyData.statistics.timeRange?.previousDays}天 vs 后{anomalyData.statistics.timeRange?.recentDays}天
+              <p className="mt-2 text-xs">
+                检测到 {anomalyData.statistics.totalUsers} 个用户， 时间范围：前
+                {anomalyData.statistics.timeRange?.previousDays}天 vs 后
+                {anomalyData.statistics.timeRange?.recentDays}天
               </p>
             )}
           </div>
@@ -212,7 +216,12 @@ export default function UserBehaviorAnomalyChart({
               <div>
                 <p className="text-slate-600">突增比例</p>
                 <p className="font-medium text-orange-600">
-                  {((anomalyData.statistics.surgeCount / anomalyData.statistics.totalUsers) * 100).toFixed(1)}%
+                  {(
+                    (anomalyData.statistics.surgeCount /
+                      anomalyData.statistics.totalUsers) *
+                    100
+                  ).toFixed(1)}
+                  %
                 </p>
               </div>
               <div>
@@ -227,18 +236,32 @@ export default function UserBehaviorAnomalyChart({
           {/* 突增用户列表 */}
           {(surgeUsers.length > 0 || extremeUsers.length > 0) && (
             <div className="border-t border-slate-200 pt-4">
-              <h4 className="mb-2 text-sm font-medium text-slate-800">突增用户列表</h4>
-              <div className="max-h-32 overflow-y-auto space-y-1">
+              <h4 className="mb-2 text-sm font-medium text-slate-800">
+                突增用户列表
+              </h4>
+              <div className="max-h-32 space-y-1 overflow-y-auto">
                 {extremeUsers.map((user, index) => (
-                  <div key={`extreme-${index}`} className="flex items-center justify-between rounded bg-red-50 px-2 py-1 text-xs">
-                    <span className="font-medium text-red-800">{user.name}</span>
+                  <div
+                    key={`extreme-${index}`}
+                    className="flex items-center justify-between rounded bg-red-50 px-2 py-1 text-xs"
+                  >
+                    <span className="font-medium text-red-800">
+                      {user.name}
+                    </span>
                     <span className="text-red-600">+{user.y.toFixed(1)}%</span>
                   </div>
                 ))}
                 {surgeUsers.map((user, index) => (
-                  <div key={`surge-${index}`} className="flex items-center justify-between rounded bg-orange-50 px-2 py-1 text-xs">
-                    <span className="font-medium text-orange-800">{user.name}</span>
-                    <span className="text-orange-600">+{user.y.toFixed(1)}%</span>
+                  <div
+                    key={`surge-${index}`}
+                    className="flex items-center justify-between rounded bg-orange-50 px-2 py-1 text-xs"
+                  >
+                    <span className="font-medium text-orange-800">
+                      {user.name}
+                    </span>
+                    <span className="text-orange-600">
+                      +{user.y.toFixed(1)}%
+                    </span>
                   </div>
                 ))}
               </div>

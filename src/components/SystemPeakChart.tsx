@@ -14,9 +14,10 @@ interface SystemPeakChartProps {
 }
 
 export default function SystemPeakChart({ days }: SystemPeakChartProps) {
-  const { data: systemTrends, isLoading } = api.history.getSystemRequestTrends.useQuery({
-    days,
-  });
+  const { data: systemTrends, isLoading } =
+    api.history.getSystemRequestTrends.useQuery({
+      days,
+    });
 
   // 格式化数字显示
   const formatNumber = (num: number) => {
@@ -136,8 +137,6 @@ export default function SystemPeakChart({ days }: SystemPeakChartProps) {
               </p>
             </div>
           </div>
-
-
         </div>
       )}
     </div>

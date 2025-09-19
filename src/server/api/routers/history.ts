@@ -356,10 +356,15 @@ export const historyRouter = createTRPCRouter({
           existing.totalRequests += record.count24Hour;
 
           if (isRecent) {
-            existing.recentAvg = (existing.recentAvg * existing.recentDays + record.count24Hour) / (existing.recentDays + 1);
+            existing.recentAvg =
+              (existing.recentAvg * existing.recentDays + record.count24Hour) /
+              (existing.recentDays + 1);
             existing.recentDays += 1;
           } else {
-            existing.previousAvg = (existing.previousAvg * existing.previousDays + record.count24Hour) / (existing.previousDays + 1);
+            existing.previousAvg =
+              (existing.previousAvg * existing.previousDays +
+                record.count24Hour) /
+              (existing.previousDays + 1);
             existing.previousDays += 1;
           }
         }
@@ -367,57 +372,72 @@ export const historyRouter = createTRPCRouter({
 
       // 计算变化率并过滤有效用户
       const allUsers = Array.from(userMap.values());
-      const validUsers = allUsers.filter(user => user.recentDays > 0 && user.previousDays > 0);
+      const validUsers = allUsers.filter(
+        (user) => user.recentDays > 0 && user.previousDays > 0,
+      );
 
       // 如果有效用户太少，降低要求：只要有任一时间段数据即可
-      const users = validUsers.length < 5
-        ? allUsers
-            .filter(user => user.recentDays > 0 || user.previousDays > 0)
-            .map(user => {
-              // 如果只有一个时间段有数据，变化率设为0或基于单一数据计算
-              let changeRate = 0;
-              if (user.previousDays > 0 && user.recentDays > 0) {
-                changeRate = ((user.recentAvg - user.previousAvg) / user.previousAvg) * 100;
-              } else if (user.recentDays > 0 && user.previousDays === 0) {
-                changeRate = 100; // 新用户，视为100%增长
-              } else if (user.previousDays > 0 && user.recentDays === 0) {
-                changeRate = -100; // 用户消失，视为-100%
-              }
+      const users =
+        validUsers.length < 5
+          ? allUsers
+              .filter((user) => user.recentDays > 0 || user.previousDays > 0)
+              .map((user) => {
+                // 如果只有一个时间段有数据，变化率设为0或基于单一数据计算
+                let changeRate = 0;
+                if (user.previousDays > 0 && user.recentDays > 0) {
+                  changeRate =
+                    ((user.recentAvg - user.previousAvg) / user.previousAvg) *
+                    100;
+                } else if (user.recentDays > 0 && user.previousDays === 0) {
+                  changeRate = 100; // 新用户，视为100%增长
+                } else if (user.previousDays > 0 && user.recentDays === 0) {
+                  changeRate = -100; // 用户消失，视为-100%
+                }
+
+                return {
+                  ...user,
+                  changeRate,
+                  avgDailyRequests:
+                    user.recentDays > 0 ? user.recentAvg : user.previousAvg,
+                };
+              })
+          : validUsers.map((user) => {
+              const changeRate =
+                user.previousAvg > 0
+                  ? ((user.recentAvg - user.previousAvg) / user.previousAvg) *
+                    100
+                  : 0;
 
               return {
                 ...user,
                 changeRate,
-                avgDailyRequests: user.recentDays > 0 ? user.recentAvg : user.previousAvg,
+                avgDailyRequests: (user.recentAvg + user.previousAvg) / 2,
               };
-            })
-        : validUsers.map(user => {
-            const changeRate = user.previousAvg > 0
-              ? ((user.recentAvg - user.previousAvg) / user.previousAvg) * 100
-              : 0;
-
-            return {
-              ...user,
-              changeRate,
-              avgDailyRequests: (user.recentAvg + user.previousAvg) / 2,
-            };
-          });
+            });
 
       // 计算变化率的统计信息
-      const changeRates = users.map(u => u.changeRate);
-      const mean = changeRates.reduce((sum, val) => sum + val, 0) / changeRates.length;
-      const variance = changeRates.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / changeRates.length;
+      const changeRates = users.map((u) => u.changeRate);
+      const mean =
+        changeRates.reduce((sum, val) => sum + val, 0) / changeRates.length;
+      const variance =
+        changeRates.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+        changeRates.length;
       const stdDev = Math.sqrt(variance);
 
       // 标记突发增长用户（变化率超过2个标准差且为正增长）
       const surgeThreshold = mean + 2 * stdDev;
       const extremeSurgeThreshold = mean + 3 * stdDev;
 
-      const result = users.map(user => ({
+      const result = users.map((user) => ({
         ...user,
         isSurge: user.changeRate > surgeThreshold && user.changeRate > 50, // 至少50%增长
         zScore: (user.changeRate - mean) / stdDev,
-        surgeLevel: user.changeRate > extremeSurgeThreshold && user.changeRate > 100 ? 'extreme' :
-                   user.changeRate > surgeThreshold && user.changeRate > 50 ? 'moderate' : 'normal'
+        surgeLevel:
+          user.changeRate > extremeSurgeThreshold && user.changeRate > 100
+            ? "extreme"
+            : user.changeRate > surgeThreshold && user.changeRate > 50
+              ? "moderate"
+              : "normal",
       }));
 
       return {
@@ -427,13 +447,13 @@ export const historyRouter = createTRPCRouter({
           stdDev,
           surgeThreshold,
           totalUsers: users.length,
-          surgeCount: result.filter(u => u.isSurge).length,
+          surgeCount: result.filter((u) => u.isSurge).length,
           timeRange: {
             recentDays: halfDays,
             previousDays: halfDays,
-            totalDays
-          }
-        }
+            totalDays,
+          },
+        },
       };
     }),
 
@@ -598,13 +618,16 @@ export const historyRouter = createTRPCRouter({
       .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
 
     // 计算每辆车的生命周期长度
-    const lifespanMap = new Map<string, {
-      carId: string;
-      carType: string;
-      firstSeen: string;
-      lastSeen: string;
-      lifespanDays: number;
-    }>();
+    const lifespanMap = new Map<
+      string,
+      {
+        carId: string;
+        carType: string;
+        firstSeen: string;
+        lastSeen: string;
+        lifespanDays: number;
+      }
+    >();
 
     vehicleLifespans.forEach((record) => {
       const existing = lifespanMap.get(record.carId);
@@ -629,7 +652,10 @@ export const historyRouter = createTRPCRouter({
       .map((vehicle) => {
         const firstDate = new Date(vehicle.firstSeen);
         const lastDate = new Date(vehicle.lastSeen);
-        const lifespanDays = Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const lifespanDays =
+          Math.ceil(
+            (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24),
+          ) + 1;
 
         return {
           ...vehicle,
@@ -640,4 +666,250 @@ export const historyRouter = createTRPCRouter({
 
     return result;
   }),
+
+  // 获取单日请求量排行榜
+  getDailyRequestRanking: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(50).default(10) }))
+    .query(async ({ ctx, input }) => {
+      // 获取所有系统统计汇总数据，按yesterdayTotal降序排列
+      const rankings = await ctx.db
+        .select({
+          dataDate: systemStatsSummary.dataDate,
+          yesterdayTotal: systemStatsSummary.yesterdayTotal,
+          yesterdayUsers: systemStatsSummary.yesterdayUsers,
+        })
+        .from(systemStatsSummary)
+        .orderBy(desc(systemStatsSummary.yesterdayTotal))
+        .limit(input.limit);
+
+      // 添加排名信息
+      const result = rankings.map((record, index) => ({
+        rank: index + 1,
+        date: record.dataDate,
+        totalRequests: record.yesterdayTotal,
+        totalUsers: record.yesterdayUsers,
+        avgRequestsPerUser:
+          record.yesterdayUsers > 0
+            ? Math.round(
+                (record.yesterdayTotal / record.yesterdayUsers) * 100,
+              ) / 100
+            : 0,
+      }));
+
+      return result;
+    }),
+
+  // 获取用户活跃度排行榜
+  getUserActivityRanking: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(100).default(20) }))
+    .query(async ({ ctx, input }) => {
+      // 获取所有用户统计数据，按用户聚合
+      const userStats = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .orderBy(asc(userStatsDetail.userId), desc(userStatsDetail.dataDate));
+
+      // 聚合用户数据
+      const userMap = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          totalRequests: number;
+          activeDays: number;
+          avgDailyRequests: number;
+          lastActiveDate: string;
+          firstActiveDate: string;
+        }
+      >();
+
+      userStats.forEach((record) => {
+        const existing = userMap.get(record.userId);
+        if (!existing) {
+          userMap.set(record.userId, {
+            userId: record.userId,
+            displayName: record.displayName || record.userId,
+            totalRequests: record.count24Hour,
+            activeDays: 1,
+            avgDailyRequests: record.count24Hour,
+            lastActiveDate: record.dataDate,
+            firstActiveDate: record.dataDate,
+          });
+        } else {
+          existing.totalRequests += record.count24Hour;
+          existing.activeDays += 1;
+          existing.avgDailyRequests =
+            Math.round((existing.totalRequests / existing.activeDays) * 100) /
+            100;
+
+          // 更新最后活跃日期
+          if (record.dataDate > existing.lastActiveDate) {
+            existing.lastActiveDate = record.dataDate;
+          }
+
+          // 更新首次活跃日期
+          if (record.dataDate < existing.firstActiveDate) {
+            existing.firstActiveDate = record.dataDate;
+          }
+        }
+      });
+
+      // 转换为数组，按总请求量排序，添加排名
+      const rankings = Array.from(userMap.values())
+        .sort((a, b) => b.totalRequests - a.totalRequests)
+        .slice(0, input.limit)
+        .map((user, index) => ({
+          rank: index + 1,
+          userId: user.userId,
+          displayName: user.displayName,
+          totalRequests: user.totalRequests,
+          activeDays: user.activeDays,
+          avgDailyRequests: user.avgDailyRequests,
+          lastActiveDate: user.lastActiveDate,
+          firstActiveDate: user.firstActiveDate,
+        }));
+
+      return rankings;
+    }),
+
+  // 获取小时级峰值排行榜
+  getHourlyPeakRanking: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(50).default(15) }))
+    .query(async ({ ctx, input }) => {
+      // 获取所有系统统计明细数据，按requestCount降序排列
+      const hourlyPeaks = await ctx.db
+        .select({
+          hourTimestamp: systemStatsDetail.hourTimestamp,
+          requestCount: systemStatsDetail.requestCount,
+          dataDate: systemStatsDetail.dataDate,
+        })
+        .from(systemStatsDetail)
+        .orderBy(desc(systemStatsDetail.requestCount))
+        .limit(input.limit);
+
+      // 添加排名信息和时间解析
+      const result = hourlyPeaks.map((record, index) => {
+        // 解析小时时间戳，格式通常是 "YYYY-MM-DD HH:00:00"
+        const timestamp = new Date(record.hourTimestamp);
+        const hour = timestamp.getHours();
+        const timeLabel = `${hour.toString().padStart(2, "0")}:00`;
+
+        return {
+          rank: index + 1,
+          date: record.dataDate,
+          hour: hour,
+          timeLabel: timeLabel,
+          requestCount: record.requestCount,
+          timestamp: record.hourTimestamp,
+        };
+      });
+
+      return result;
+    }),
+
+  // 获取历史第一名用户排行榜
+  getHistoricalRank1Users: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(50).default(20) }))
+    .query(async ({ ctx, input }) => {
+      // 获取所有用户统计数据，按日期和排名排序
+      const allUserStats = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .orderBy(
+          asc(userStatsDetail.dataDate),
+          asc(userStatsDetail.rank24Hour),
+        );
+
+      // 按日期分组，找出每天的第一名
+      const dailyRank1Map = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          count24Hour: number;
+          dataDate: string;
+        }
+      >();
+
+      allUserStats.forEach((record) => {
+        // 只关注排名第一的用户
+        if (record.rank24Hour === 1) {
+          const existing = dailyRank1Map.get(record.dataDate);
+          // 如果当天还没有记录，或者当前用户的请求量更高，则更新记录
+          if (!existing || record.count24Hour > existing.count24Hour) {
+            dailyRank1Map.set(record.dataDate, {
+              userId: record.userId,
+              displayName: record.displayName || record.userId,
+              count24Hour: record.count24Hour,
+              dataDate: record.dataDate,
+            });
+          }
+        }
+      });
+
+      // 统计每个用户获得第一名的次数
+      const userRank1Count = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          rank1Count: number;
+          totalRequests: number;
+          avgRequestsWhenRank1: number;
+          firstRank1Date: string;
+          lastRank1Date: string;
+          rank1Dates: string[];
+        }
+      >();
+
+      Array.from(dailyRank1Map.values()).forEach((dailyRank1) => {
+        const existing = userRank1Count.get(dailyRank1.userId);
+        if (!existing) {
+          userRank1Count.set(dailyRank1.userId, {
+            userId: dailyRank1.userId,
+            displayName: dailyRank1.displayName,
+            rank1Count: 1,
+            totalRequests: dailyRank1.count24Hour,
+            avgRequestsWhenRank1: dailyRank1.count24Hour,
+            firstRank1Date: dailyRank1.dataDate,
+            lastRank1Date: dailyRank1.dataDate,
+            rank1Dates: [dailyRank1.dataDate],
+          });
+        } else {
+          existing.rank1Count += 1;
+          existing.totalRequests += dailyRank1.count24Hour;
+          existing.avgRequestsWhenRank1 =
+            Math.round((existing.totalRequests / existing.rank1Count) * 100) /
+            100;
+          existing.rank1Dates.push(dailyRank1.dataDate);
+
+          // 更新首次和最后获得第一名的日期
+          if (dailyRank1.dataDate < existing.firstRank1Date) {
+            existing.firstRank1Date = dailyRank1.dataDate;
+          }
+          if (dailyRank1.dataDate > existing.lastRank1Date) {
+            existing.lastRank1Date = dailyRank1.dataDate;
+          }
+        }
+      });
+
+      // 转换为数组，按获得第一名次数排序，添加排名
+      const rankings = Array.from(userRank1Count.values())
+        .sort((a, b) => b.rank1Count - a.rank1Count)
+        .slice(0, input.limit)
+        .map((user, index) => ({
+          rank: index + 1,
+          userId: user.userId,
+          displayName: user.displayName,
+          rank1Count: user.rank1Count,
+          avgRequestsWhenRank1: user.avgRequestsWhenRank1,
+          firstRank1Date: user.firstRank1Date,
+          lastRank1Date: user.lastRank1Date,
+          totalDaysWithData: dailyRank1Map.size, // 总的有数据天数
+          dominanceRate:
+            Math.round((user.rank1Count / dailyRank1Map.size) * 10000) / 100, // 统治率百分比
+        }));
+
+      return rankings;
+    }),
 });
