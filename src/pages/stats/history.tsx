@@ -269,7 +269,7 @@ export default function HistoryPage() {
                 <PersonalUsageChart days={selectedDays} />
 
                 {/* 用户活跃度分布图表 */}
-                <UserActivityDistributionChart />
+                <UserActivityDistributionChart days={30} />
               </div>
             </>
           )}

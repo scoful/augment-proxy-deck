@@ -159,7 +159,7 @@ export default function UserBehaviorAnomalyChart({
                     y={anomalyData.statistics.surgeThreshold}
                     stroke="#ef4444"
                     strokeDasharray="5 5"
-                    label={{ value: "突增阈值", position: "topRight" }}
+                    label={{ value: "突增阈值", position: "top" }}
                   />
                 )}
 

@@ -343,7 +343,7 @@ export const historyRouter = createTRPCRouter({
         if (!userMap.has(userId)) {
           userMap.set(userId, {
             userId: record.userId,
-            displayName: record.displayName,
+            displayName: record.displayName || record.userId,
             recentAvg: isRecent ? record.count24Hour : 0,
             previousAvg: isRecent ? 0 : record.count24Hour,
             recentDays: isRecent ? 1 : 0,
@@ -609,11 +609,7 @@ export const historyRouter = createTRPCRouter({
   getVehicleLifespanAnalysis: publicProcedure.query(async ({ ctx }) => {
     // 获取所有车辆的首次和最后出现日期
     const vehicleLifespans = await ctx.db
-      .select({
-        carId: vehicleStatsDetail.carId,
-        carType: vehicleStatsDetail.carType,
-        dataDate: vehicleStatsDetail.dataDate,
-      })
+      .select()
       .from(vehicleStatsDetail)
       .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
 
@@ -673,11 +669,7 @@ export const historyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // 获取所有系统统计汇总数据，按yesterdayTotal降序排列
       const rankings = await ctx.db
-        .select({
-          dataDate: systemStatsSummary.dataDate,
-          yesterdayTotal: systemStatsSummary.yesterdayTotal,
-          yesterdayUsers: systemStatsSummary.yesterdayUsers,
-        })
+        .select()
         .from(systemStatsSummary)
         .orderBy(desc(systemStatsSummary.yesterdayTotal))
         .limit(input.limit);
@@ -778,11 +770,7 @@ export const historyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // 获取所有系统统计明细数据，按requestCount降序排列
       const hourlyPeaks = await ctx.db
-        .select({
-          hourTimestamp: systemStatsDetail.hourTimestamp,
-          requestCount: systemStatsDetail.requestCount,
-          dataDate: systemStatsDetail.dataDate,
-        })
+        .select()
         .from(systemStatsDetail)
         .orderBy(desc(systemStatsDetail.requestCount))
         .limit(input.limit);

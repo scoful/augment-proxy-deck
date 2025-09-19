@@ -170,7 +170,7 @@ export default function HourlyPeakRanking({
                     {} as Record<string, number>,
                   );
                   const maxPeriod = Object.entries(hourCounts).reduce((a, b) =>
-                    hourCounts[a[0]] > hourCounts[b[0]] ? a : b,
+                    (hourCounts[a[0]] || 0) > (hourCounts[b[0]] || 0) ? a : b,
                   );
                   return maxPeriod[0];
                 })()}
