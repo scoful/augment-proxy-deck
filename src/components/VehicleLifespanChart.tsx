@@ -59,7 +59,7 @@ export default function VehicleLifespanChart() {
       case "social":
         return "#3b82f6"; // 蓝色
       case "black":
-        return "#ef4444"; // 红色
+        return "#8b5cf6"; // 紫色（更柔和）
       default:
         return "#64748b"; // 灰色
     }

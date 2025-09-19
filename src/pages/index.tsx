@@ -127,11 +127,9 @@ export default function Home() {
       title: "历史统计",
       description: dataOverview ? (
         <>
-          用户记录: {formatNumber(dataOverview.recordCounts.userDetail)} |
-          车辆记录: {formatNumber(dataOverview.recordCounts.vehicleDetail)}
+          系统用量累计: {formatNumber(dataOverview.totalSystemRequests || 0)}
           <br />
-          最新数据: {dataOverview.latestDates.user || "暂无"} | 系统记录:{" "}
-          {formatNumber(dataOverview.recordCounts.systemDetail)}
+          最新数据: {dataOverview.latestDates.user || "暂无"}
         </>
       ) : (
         "查看历史数据趋势和长期分析"
