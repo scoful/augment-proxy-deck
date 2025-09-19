@@ -57,6 +57,8 @@ async function handleScheduled(
       console.log("✅ 每日数据采集完成:", result);
     } else {
       console.warn(`⚠️ 未知的Cron调度: ${cron}`);
+      const result = await collectDailyStats(env.DB);
+      console.log("✅ 每日数据采集完成:", result);
     }
   } catch (error) {
     console.error(`❌ Cron任务执行失败 (${cron}):`, error);
