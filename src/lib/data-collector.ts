@@ -9,7 +9,10 @@ interface D1Database {
   exec(query: string): Promise<any>;
 }
 
-import { getDatabase } from "@/db/cloudflare";
+// 使用与tRPC相同的数据库适配机制
+// 在Vercel环境下，webpack会将@/server/api/trpc重定向到trpc-vercel.ts
+// 我们可以通过导入tRPC context来获取正确的数据库连接
+import { createTRPCContext } from "@/server/api/trpc";
 import {
   userStatsDetail,
   userStatsSummary,
@@ -84,7 +87,9 @@ function getYesterdayDateUTC8(): string {
  */
 export async function collectUserStats(d1Database?: D1Database) {
   const startTime = Date.now();
-  const db = getDatabase(d1Database);
+  // 使用tRPC context获取正确的数据库连接
+  const ctx = await createTRPCContext({} as any);
+  const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -155,7 +160,9 @@ export async function collectUserStats(d1Database?: D1Database) {
  */
 export async function collectVehicleStatsSummary(d1Database?: D1Database) {
   const startTime = Date.now();
-  const db = getDatabase(d1Database);
+  // 使用tRPC context获取正确的数据库连接
+  const ctx = await createTRPCContext({} as any);
+  const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -206,7 +213,9 @@ export async function collectVehicleStatsSummary(d1Database?: D1Database) {
  */
 export async function collectVehicleStatsDetail(d1Database?: D1Database) {
   const startTime = Date.now();
-  const db = getDatabase(d1Database);
+  // 使用tRPC context获取正确的数据库连接
+  const ctx = await createTRPCContext({} as any);
+  const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -269,7 +278,9 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
  */
 export async function collectSystemStats(d1Database?: D1Database) {
   const startTime = Date.now();
-  const db = getDatabase(d1Database);
+  // 使用tRPC context获取正确的数据库连接
+  const ctx = await createTRPCContext({} as any);
+  const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
   try {

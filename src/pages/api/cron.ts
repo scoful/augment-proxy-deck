@@ -1,6 +1,6 @@
 /**
  * Vercel Cron Job API Route
- * 每日08:40 UTC (UTC+8 16:40) 执行数据采集任务 - 临时测试时间
+ * 每日16:05 UTC (UTC+8 00:05) 执行数据采集任务
  */
 import type { NextApiRequest, NextApiResponse } from "next";
 import { collectDailyStats } from "@/lib/data-collector";
@@ -32,7 +32,6 @@ export default async function handler(
   }
 
   const startTime = Date.now();
-  console.log("🕐 Vercel Cron triggered: 40 8 * * * (UTC+8 16:40) - 临时测试");
 
   try {
     // 执行每日数据采集任务
