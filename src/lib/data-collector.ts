@@ -87,8 +87,8 @@ function getYesterdayDateUTC8(): string {
  */
 export async function collectUserStats(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接
-  const ctx = createTRPCContext({} as any);
+  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
+  const ctx = await Promise.resolve(createTRPCContext({} as any));
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -160,8 +160,8 @@ export async function collectUserStats(_d1Database?: D1Database) {
  */
 export async function collectVehicleStatsSummary(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接
-  const ctx = createTRPCContext({} as any);
+  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
+  const ctx = await Promise.resolve(createTRPCContext({} as any));
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -213,8 +213,8 @@ export async function collectVehicleStatsSummary(_d1Database?: D1Database) {
  */
 export async function collectVehicleStatsDetail(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接
-  const ctx = createTRPCContext({} as any);
+  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
+  const ctx = await Promise.resolve(createTRPCContext({} as any));
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -278,8 +278,8 @@ export async function collectVehicleStatsDetail(_d1Database?: D1Database) {
  */
 export async function collectSystemStats(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接
-  const ctx = createTRPCContext({} as any);
+  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
+  const ctx = await Promise.resolve(createTRPCContext({} as any));
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
