@@ -13,6 +13,17 @@ import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
 
+// 记住用户的数据结构
+interface RememberedUser {
+  userId: string;
+  displayName: string;
+  lastSelected: number;
+  expiresAt: number;
+}
+
+// localStorage key
+const REMEMBERED_USER_KEY = "personalUsageChart_rememberedUser";
+
 interface PersonalUsageChartProps {
   days: number;
 }
@@ -23,7 +34,75 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [actualSearchQuery, setActualSearchQuery] = useState<string>("");
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [rememberedUser, setRememberedUser] = useState<RememberedUser | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // 工具函数：保存记住的用户
+  const saveRememberedUser = (user: any, shouldRemember: boolean = rememberMe) => {
+    if (!shouldRemember) return;
+
+    const rememberedData: RememberedUser = {
+      userId: user.userId,
+      displayName: user.displayName || user.userId,
+      lastSelected: Date.now(),
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30天后过期
+    };
+
+    try {
+      localStorage.setItem(REMEMBERED_USER_KEY, JSON.stringify(rememberedData));
+      setRememberedUser(rememberedData);
+    } catch (error) {
+      console.warn("无法保存记住的用户:", error);
+    }
+  };
+
+  // 工具函数：加载记住的用户
+  const loadRememberedUser = (): RememberedUser | null => {
+    try {
+      const saved = localStorage.getItem(REMEMBERED_USER_KEY);
+      if (!saved) return null;
+
+      const data: RememberedUser = JSON.parse(saved);
+
+      // 检查是否过期
+      if (Date.now() > data.expiresAt) {
+        localStorage.removeItem(REMEMBERED_USER_KEY);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.warn("无法加载记住的用户:", error);
+      localStorage.removeItem(REMEMBERED_USER_KEY);
+      return null;
+    }
+  };
+
+  // 工具函数：清除记住的用户
+  const forgetRememberedUser = () => {
+    try {
+      localStorage.removeItem(REMEMBERED_USER_KEY);
+      setRememberedUser(null);
+      setRememberMe(false);
+    } catch (error) {
+      console.warn("无法清除记住的用户:", error);
+    }
+  };
+
+  // 工具函数：格式化时间显示
+  const formatLastSelectedTime = (timestamp: number): string => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    const minutes = Math.floor(diff / (60 * 1000));
+
+    if (days > 0) return `${days}天前`;
+    if (hours > 0) return `${hours}小时前`;
+    if (minutes > 0) return `${minutes}分钟前`;
+    return "刚刚";
+  };
 
   // 获取搜索结果
   const { data: searchResults, isLoading: searchLoading } =
@@ -44,6 +123,9 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
     setSelectedUserData(user); // 保存用户数据
     setSearchQuery(user.displayName || user.userId);
     setShowResults(false);
+
+    // 如果开启了记住功能，保存用户信息
+    saveRememberedUser(user);
   };
 
   // 清空选择
@@ -86,6 +168,34 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // 组件初始化时加载记住的用户
+  useEffect(() => {
+    const remembered = loadRememberedUser();
+    if (remembered) {
+      setRememberedUser(remembered);
+      setRememberMe(true);
+
+      // 自动选择记住的用户
+      setSelectedUserId(remembered.userId);
+      setSearchQuery(remembered.displayName);
+      setSelectedUserData({
+        userId: remembered.userId,
+        displayName: remembered.displayName,
+      });
+    }
+  }, []);
+
+  // 监听rememberMe状态变化
+  useEffect(() => {
+    if (!rememberMe && rememberedUser) {
+      // 如果取消勾选"记住我"，清除记住的用户
+      forgetRememberedUser();
+    } else if (rememberMe && selectedUserData && !rememberedUser) {
+      // 如果勾选"记住我"且当前有选中用户但没有记住，立即保存
+      saveRememberedUser(selectedUserData, true);
+    }
+  }, [rememberMe, rememberedUser, selectedUserData]);
 
   // 获取选中用户的趋势数据
   const { data: userTrends, isLoading: trendsLoading } =
@@ -174,6 +284,36 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             >
               搜索
             </button>
+          </div>
+
+          {/* 记住功能控制 */}
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-slate-600">
+                记住我的选择
+              </label>
+            </div>
+
+            {rememberedUser && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">
+                  记住: {rememberedUser.displayName} ({formatLastSelectedTime(rememberedUser.lastSelected)})
+                </span>
+                <button
+                  onClick={forgetRememberedUser}
+                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                >
+                  忘记
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 搜索结果列表 */}

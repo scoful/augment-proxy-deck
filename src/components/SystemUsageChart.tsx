@@ -99,28 +99,24 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
         </div>
       )}
 
-      {/* 统计信息 - 简化显示 */}
+      {/* 统计信息 */}
       {chartData.length > 0 && (
         <div className="mt-4 border-t border-slate-200 pt-4">
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-slate-600">最高日请求量</p>
+              <p className="text-slate-600">最高请求量</p>
               <p className="font-medium text-blue-600">
-                {formatNumber(
-                  Math.max(...chartData.map((d) => d.totalRequests)),
-                )}
+                {formatNumber(Math.max(...chartData.map((d) => d.totalRequests)))}
               </p>
             </div>
             <div>
-              <p className="text-slate-600">最低日请求量</p>
-              <p className="font-medium text-slate-800">
-                {formatNumber(
-                  Math.min(...chartData.map((d) => d.totalRequests)),
-                )}
+              <p className="text-slate-600">最低请求量</p>
+              <p className="font-medium text-green-600">
+                {formatNumber(Math.min(...chartData.map((d) => d.totalRequests)))}
               </p>
             </div>
             <div>
-              <p className="text-slate-600">平均日请求量</p>
+              <p className="text-slate-600">平均请求量</p>
               <p className="font-medium text-slate-800">
                 {formatNumber(
                   Math.round(

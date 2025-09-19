@@ -94,7 +94,7 @@ export const historyRouter = createTRPCRouter({
         .orderBy(asc(vehicleStatsDetail.recordedAt));
     }),
 
-  // 获取系统请求量趋势
+  // 获取系统请求量趋势（包含峰值数据）
   getSystemRequestTrends: publicProcedure
     .input(z.object({ days: z.number().default(7) }))
     .query(async ({ ctx, input }) => {
@@ -102,11 +102,37 @@ export const historyRouter = createTRPCRouter({
       daysAgo.setDate(daysAgo.getDate() - input.days);
       const startDate = daysAgo.toISOString().split("T")[0]!;
 
-      return await ctx.db
+      // 获取系统汇总数据（总量）
+      const summaryData = await ctx.db
         .select()
         .from(systemStatsSummary)
         .where(gte(systemStatsSummary.dataDate, startDate))
         .orderBy(asc(systemStatsSummary.dataDate));
+
+      // 获取系统明细数据（用于计算峰值）
+      const detailData = await ctx.db
+        .select()
+        .from(systemStatsDetail)
+        .where(gte(systemStatsDetail.dataDate, startDate))
+        .orderBy(asc(systemStatsDetail.dataDate));
+
+      // 按日期分组计算每日峰值
+      const dailyPeaks = new Map<string, number>();
+      detailData.forEach((record) => {
+        const date = record.dataDate;
+        const currentPeak = dailyPeaks.get(date) || 0;
+        if (record.requestCount > currentPeak) {
+          dailyPeaks.set(date, record.requestCount);
+        }
+      });
+
+      // 合并汇总数据和峰值数据
+      const result = summaryData.map((summary) => ({
+        ...summary,
+        dailyPeak: dailyPeaks.get(summary.dataDate) || 0,
+      }));
+
+      return result;
     }),
 
   // 获取按小时请求分布（热力图数据）
