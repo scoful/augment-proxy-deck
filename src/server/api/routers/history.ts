@@ -584,4 +584,60 @@ export const historyRouter = createTRPCRouter({
       dailyActiveUsersThird, // 日活跃用户第三高
     };
   }),
+
+  // 获取车辆生命周期长度分析
+  getVehicleLifespanAnalysis: publicProcedure.query(async ({ ctx }) => {
+    // 获取所有车辆的首次和最后出现日期
+    const vehicleLifespans = await ctx.db
+      .select({
+        carId: vehicleStatsDetail.carId,
+        carType: vehicleStatsDetail.carType,
+        dataDate: vehicleStatsDetail.dataDate,
+      })
+      .from(vehicleStatsDetail)
+      .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
+
+    // 计算每辆车的生命周期长度
+    const lifespanMap = new Map<string, {
+      carId: string;
+      carType: string;
+      firstSeen: string;
+      lastSeen: string;
+      lifespanDays: number;
+    }>();
+
+    vehicleLifespans.forEach((record) => {
+      const existing = lifespanMap.get(record.carId);
+      if (!existing) {
+        lifespanMap.set(record.carId, {
+          carId: record.carId,
+          carType: record.carType,
+          firstSeen: record.dataDate,
+          lastSeen: record.dataDate,
+          lifespanDays: 0,
+        });
+      } else {
+        // 更新最后出现日期
+        if (record.dataDate > existing.lastSeen) {
+          existing.lastSeen = record.dataDate;
+        }
+      }
+    });
+
+    // 计算生命周期天数并排序
+    const result = Array.from(lifespanMap.values())
+      .map((vehicle) => {
+        const firstDate = new Date(vehicle.firstSeen);
+        const lastDate = new Date(vehicle.lastSeen);
+        const lifespanDays = Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+        return {
+          ...vehicle,
+          lifespanDays,
+        };
+      })
+      .sort((a, b) => b.lifespanDays - a.lifespanDays); // 按生命长度降序排列
+
+    return result;
+  }),
 });

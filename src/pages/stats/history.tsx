@@ -17,6 +17,7 @@ import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
+import VehicleLifespanChart from "@/components/VehicleLifespanChart";
 
 export default function HistoryPage() {
   const [selectedDays, setSelectedDays] = useState(7);
@@ -273,10 +274,18 @@ export default function HistoryPage() {
 
           {/* 整体分析图表区域（仅在整体分析tab显示） */}
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {/* 用户行为变化检测图表 */}
-              <UserBehaviorAnomalyChart days={14} />
-            </div>
+            <>
+              {/* 车辆生命长度分析图表 - 独占一排 */}
+              <div className="mb-8">
+                <VehicleLifespanChart />
+              </div>
+
+              {/* 其他分析图表 */}
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                {/* 用户行为变化检测图表 */}
+                <UserBehaviorAnomalyChart days={14} />
+              </div>
+            </>
           )}
 
           {/* 榜单区域（仅在榜单tab显示） */}
