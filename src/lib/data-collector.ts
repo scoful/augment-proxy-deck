@@ -85,10 +85,10 @@ function getYesterdayDateUTC8(): string {
  * 采集用户统计数据 (明细 + 汇总)
  * 每日00:05执行
  */
-export async function collectUserStats(d1Database?: D1Database) {
+export async function collectUserStats(_d1Database?: D1Database) {
   const startTime = Date.now();
   // 使用tRPC context获取正确的数据库连接
-  const ctx = await createTRPCContext({} as any);
+  const ctx = createTRPCContext({} as any);
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -158,10 +158,10 @@ export async function collectUserStats(d1Database?: D1Database) {
  * 采集车辆统计汇总数据
  * 每日00:05执行
  */
-export async function collectVehicleStatsSummary(d1Database?: D1Database) {
+export async function collectVehicleStatsSummary(_d1Database?: D1Database) {
   const startTime = Date.now();
   // 使用tRPC context获取正确的数据库连接
-  const ctx = await createTRPCContext({} as any);
+  const ctx = createTRPCContext({} as any);
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -211,10 +211,10 @@ export async function collectVehicleStatsSummary(d1Database?: D1Database) {
  * 采集车辆统计明细数据
  * 每日00:05执行（作为日报数据采集的一部分）
  */
-export async function collectVehicleStatsDetail(d1Database?: D1Database) {
+export async function collectVehicleStatsDetail(_d1Database?: D1Database) {
   const startTime = Date.now();
   // 使用tRPC context获取正确的数据库连接
-  const ctx = await createTRPCContext({} as any);
+  const ctx = createTRPCContext({} as any);
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
@@ -276,10 +276,10 @@ export async function collectVehicleStatsDetail(d1Database?: D1Database) {
  * 采集系统统计数据 (明细 + 汇总)
  * 每日00:05执行，获取昨日完整数据
  */
-export async function collectSystemStats(d1Database?: D1Database) {
+export async function collectSystemStats(_d1Database?: D1Database) {
   const startTime = Date.now();
   // 使用tRPC context获取正确的数据库连接
-  const ctx = await createTRPCContext({} as any);
+  const ctx = createTRPCContext({} as any);
   const db = ctx.db;
   const dataDate = getYesterdayDateUTC8();
 
