@@ -14,13 +14,6 @@ import {
   collectionLogs,
 } from "@/db/schema";
 import { desc, asc, eq, gte, and, like, or } from "drizzle-orm";
-import {
-  collectDailyStats,
-  collectVehicleStatsDetail,
-  collectUserStats,
-  collectVehicleStatsSummary,
-  collectSystemStats,
-} from "@/lib/data-collector";
 
 export const historyRouter = createTRPCRouter({
   // 获取用户活跃度趋势
@@ -174,70 +167,6 @@ export const historyRouter = createTRPCRouter({
           .from(collectionLogs)
           .orderBy(desc(collectionLogs.recordedAt))
           .limit(input.limit);
-      }
-    }),
-
-  // 手动触发数据采集（开发和测试用）
-  triggerDataCollection: publicProcedure
-    .input(
-      z.object({
-        type: z.enum(["daily", "user", "vehicle_summary", "system"]),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        // 在生产环境中，通过 HTTP 请求调用手动触发端点
-        // 这样可以确保使用与 cron trigger 完全相同的逻辑
-        const response = await fetch("/api/manual-trigger", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: input.type,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.error ||
-              `HTTP ${response.status}: ${response.statusText}`,
-          );
-        }
-
-        const result = await response.json();
-        return result;
-      } catch (error) {
-        // 如果 HTTP 请求失败，回退到直接调用数据采集函数
-        console.warn("HTTP 触发失败，回退到直接调用:", error);
-
-        // 获取 D1 数据库实例 - 需要从 Cloudflare Workers 环境中获取
-        let d1Database;
-        try {
-          // 在 Cloudflare Workers 环境中获取 D1 绑定
-          const { getCloudflareContext } = await import(
-            "@opennextjs/cloudflare"
-          );
-          const cloudflareContext = getCloudflareContext(); // 同步调用
-          d1Database = cloudflareContext.env?.DB;
-        } catch {
-          // 在本地开发环境中，使用默认的本地数据库
-          d1Database = undefined;
-        }
-
-        switch (input.type) {
-          case "daily":
-            return await collectDailyStats(d1Database);
-          case "user":
-            return await collectUserStats(d1Database);
-          case "vehicle_summary":
-            return await collectVehicleStatsSummary(d1Database);
-          case "system":
-            return await collectSystemStats(d1Database);
-          default:
-            throw new Error("Invalid collection type");
-        }
       }
     }),
 
