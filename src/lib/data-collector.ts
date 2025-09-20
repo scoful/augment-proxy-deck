@@ -12,7 +12,7 @@ interface D1Database {
 // 使用与tRPC相同的数据库适配机制
 // 在Vercel环境下，webpack会将@/server/api/trpc重定向到trpc-vercel.ts
 // 我们可以通过导入tRPC context来获取正确的数据库连接
-import { createTRPCContext } from "@/server/api/trpc";
+import * as dbSchema from "@/db/schema";
 import {
   userStatsDetail,
   userStatsSummary,
@@ -36,6 +36,21 @@ const API_ENDPOINTS = {
   CAR_STATS: "https://proxy.poolhub.me/api/car-stats",
   HOURLY_STATS: "https://proxy.poolhub.me/api/hourly-stats",
 } as const;
+
+/**
+ * 统一获取数据库连接
+ * - Cloudflare scheduled: 若传入 d1Database，则直接使用 D1 适配器（避免 Node API）
+ * - 其他情况: 通过 tRPC 上下文获取（Vercel -> Turso / Cloudflare fetch -> D1 / 本地 -> SQLite）
+ */
+async function getDb(d1?: D1Database) {
+  if (d1) {
+    const { drizzle } = await import("drizzle-orm/d1");
+    return drizzle(d1 as any, { schema: dbSchema });
+  }
+  const { createTRPCContext } = await import("@/server/api/trpc");
+  const ctx = await Promise.resolve(createTRPCContext({} as any));
+  return ctx.db;
+}
 
 /**
  * 带重试的API请求
@@ -87,9 +102,8 @@ function getYesterdayDateUTC8(): string {
  */
 export async function collectUserStats(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
-  const ctx = await Promise.resolve(createTRPCContext({} as any));
-  const db = ctx.db;
+  // 统一通过 getDb 获取数据库连接（优先使用传入的 D1）
+  const db = await getDb(_d1Database);
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -160,9 +174,8 @@ export async function collectUserStats(_d1Database?: D1Database) {
  */
 export async function collectVehicleStatsSummary(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
-  const ctx = await Promise.resolve(createTRPCContext({} as any));
-  const db = ctx.db;
+  // 统一通过 getDb 获取数据库连接（优先使用传入的 D1）
+  const db = await getDb(_d1Database);
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -213,9 +226,8 @@ export async function collectVehicleStatsSummary(_d1Database?: D1Database) {
  */
 export async function collectVehicleStatsDetail(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
-  const ctx = await Promise.resolve(createTRPCContext({} as any));
-  const db = ctx.db;
+  // 统一通过 getDb 获取数据库连接（优先使用传入的 D1）
+  const db = await getDb(_d1Database);
   const dataDate = getYesterdayDateUTC8();
 
   try {
@@ -278,9 +290,8 @@ export async function collectVehicleStatsDetail(_d1Database?: D1Database) {
  */
 export async function collectSystemStats(_d1Database?: D1Database) {
   const startTime = Date.now();
-  // 使用tRPC context获取正确的数据库连接（统一 Promise 化）
-  const ctx = await Promise.resolve(createTRPCContext({} as any));
-  const db = ctx.db;
+  // 统一通过 getDb 获取数据库连接（优先使用传入的 D1）
+  const db = await getDb(_d1Database);
   const dataDate = getYesterdayDateUTC8();
 
   try {
