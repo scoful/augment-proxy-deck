@@ -25,6 +25,8 @@
     "turso:migrate": "drizzle-kit migrate --config=drizzle.turso.config.ts",
     "turso:studio": "drizzle-kit studio --config=drizzle.turso.config.ts",
     "turso:test": "tsx scripts/test-turso-connection.ts",
+    "export:turso-sql": "tsx scripts/export-turso-data.ts",
+    "export:d1-sql": "npx wrangler d1 export augment-proxy-deck-db --remote --output ./exports/d1-export.sql",
     "collect:daily": "tsx src/lib/test-collection.ts daily",
     "cf:build": "opennextjs-cloudflare build",
     "cf:deploy": "wrangler deploy",

@@ -55,3 +55,4 @@ yarn-error.log*
 .idea
 
 *.code-workspace
+*.sql
