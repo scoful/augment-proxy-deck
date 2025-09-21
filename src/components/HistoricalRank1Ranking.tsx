@@ -80,7 +80,7 @@ export default function HistoricalRank1Ranking({
           暂无数据
         </div>
       ) : (
-        <div className="max-h-80 space-y-3 overflow-y-auto">
+        <div className="space-y-3">
           {rankings.map((user) => {
             const dominanceLevel = getDominanceLevel(user.dominanceRate);
             return (
