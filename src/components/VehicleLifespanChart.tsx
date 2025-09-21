@@ -33,7 +33,9 @@ export default function VehicleLifespanChart() {
                 ? "黑车"
                 : "未知"}
           </p>
-          <p className={`text-sm ${data?.isCurrentlyActive ? 'text-green-600' : 'text-gray-500'}`}>
+          <p
+            className={`text-sm ${data?.isCurrentlyActive ? "text-green-600" : "text-gray-500"}`}
+          >
             状态: {data?.isCurrentlyActive ? "✅ 活跃" : "⚫ 失效"}
           </p>
           <p className="text-xs text-slate-500">
@@ -97,19 +99,31 @@ export default function VehicleLifespanChart() {
         {/* 图例 */}
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded" style={{ backgroundColor: "#10b981" }}></div>
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#10b981" }}
+            ></div>
             <span>社车</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded" style={{ backgroundColor: "#1f2937" }}></div>
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#1f2937" }}
+            ></div>
             <span>黑车</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded" style={{ backgroundColor: "#9ca3af" }}></div>
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#9ca3af" }}
+            ></div>
             <span>失效车辆</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded" style={{ backgroundColor: "#fbbf24" }}></div>
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#fbbf24" }}
+            ></div>
             <span>未知类型</span>
           </div>
         </div>
@@ -167,18 +181,20 @@ export default function VehicleLifespanChart() {
           {/* 核心指标卡片 */}
           <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-slate-50 p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{chartData.length}</p>
+              <p className="text-2xl font-bold text-slate-800">
+                {chartData.length}
+              </p>
               <p className="text-sm text-slate-600">总车辆数</p>
             </div>
             <div className="rounded-lg bg-green-50 p-4 text-center">
               <p className="text-2xl font-bold text-green-600">
-                {chartData.filter(v => v.isCurrentlyActive).length}
+                {chartData.filter((v) => v.isCurrentlyActive).length}
               </p>
               <p className="text-sm text-slate-600">活跃车辆</p>
             </div>
             <div className="rounded-lg bg-gray-50 p-4 text-center">
               <p className="text-2xl font-bold text-gray-500">
-                {chartData.filter(v => !v.isCurrentlyActive).length}
+                {chartData.filter((v) => !v.isCurrentlyActive).length}
               </p>
               <p className="text-sm text-slate-600">失效车辆</p>
             </div>
@@ -201,29 +217,43 @@ export default function VehicleLifespanChart() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded" style={{ backgroundColor: "#10b981" }}></div>
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#10b981" }}
+                    ></div>
                     <span className="text-sm text-slate-600">社车</span>
                   </div>
                   <span className="font-medium text-slate-800">
-                    {chartData.filter(v => v.carType === "social").length} 辆
+                    {chartData.filter((v) => v.carType === "social").length} 辆
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded" style={{ backgroundColor: "#1f2937" }}></div>
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#1f2937" }}
+                    ></div>
                     <span className="text-sm text-slate-600">黑车</span>
                   </div>
                   <span className="font-medium text-slate-800">
-                    {chartData.filter(v => v.carType === "black").length} 辆
+                    {chartData.filter((v) => v.carType === "black").length} 辆
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded" style={{ backgroundColor: "#fbbf24" }}></div>
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#fbbf24" }}
+                    ></div>
                     <span className="text-sm text-slate-600">未知</span>
                   </div>
                   <span className="font-medium text-slate-800">
-                    {chartData.filter(v => v.carType !== "social" && v.carType !== "black").length} 辆
+                    {
+                      chartData.filter(
+                        (v) => v.carType !== "social" && v.carType !== "black",
+                      ).length
+                    }{" "}
+                    辆
                   </span>
                 </div>
               </div>
@@ -248,7 +278,12 @@ export default function VehicleLifespanChart() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">存活率</span>
                   <span className="font-medium text-blue-600">
-                    {((chartData.filter(v => v.isCurrentlyActive).length / chartData.length) * 100).toFixed(1)}%
+                    {(
+                      (chartData.filter((v) => v.isCurrentlyActive).length /
+                        chartData.length) *
+                      100
+                    ).toFixed(1)}
+                    %
                   </span>
                 </div>
               </div>

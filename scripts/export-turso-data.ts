@@ -18,13 +18,13 @@ config();
 
 // 表名列表（按照 schema.ts 中的定义）
 const TABLES = [
-  'user_stats_detail',
-  'user_stats_summary', 
-  'vehicle_stats_detail',
-  'vehicle_stats_summary',
-  'system_stats_detail',
-  'system_stats_summary',
-  'collection_logs'
+  "user_stats_detail",
+  "user_stats_summary",
+  "vehicle_stats_detail",
+  "vehicle_stats_summary",
+  "system_stats_detail",
+  "system_stats_summary",
+  "collection_logs",
 ] as const;
 
 /**
@@ -68,13 +68,13 @@ async function getTableData(client: any, tableName: string) {
  */
 function escapeSqlValue(value: any): string {
   if (value === null || value === undefined) {
-    return 'NULL';
+    return "NULL";
   }
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return `'${value.replace(/'/g, "''")}'`; // 转义单引号
   }
-  if (typeof value === 'boolean') {
-    return value ? '1' : '0'; // SQLite 布尔值
+  if (typeof value === "boolean") {
+    return value ? "1" : "0"; // SQLite 布尔值
   }
   return String(value);
 }
@@ -94,14 +94,14 @@ async function exportTursoToSQL(client: any, outputFile: string) {
   for (const tableName of TABLES) {
     try {
       console.log(`📊 Processing table: ${tableName}`);
-      
+
       // 获取表结构
       const schema = await getTableSchema(client, tableName);
       const columns = schema.map((col: any) => col.name);
-      
+
       // 获取数据
       const data = await getTableData(client, tableName);
-      
+
       if (data.length === 0) {
         sqlContent += `-- Table ${tableName} is empty\n\n`;
         continue;
@@ -113,17 +113,18 @@ async function exportTursoToSQL(client: any, outputFile: string) {
       sqlContent += `-- ========================================\n\n`;
 
       for (const row of data) {
-        const values = columns.map(col => {
-          const value = (row as any)[col];
-          return escapeSqlValue(value);
-        }).join(', ');
+        const values = columns
+          .map((col: string) => {
+            const value = (row as any)[col];
+            return escapeSqlValue(value);
+          })
+          .join(", ");
 
-        sqlContent += `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${values});\n`;
+        sqlContent += `INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${values});\n`;
       }
 
-      sqlContent += '\n';
+      sqlContent += "\n";
       totalRecords += data.length;
-      
     } catch (error) {
       console.warn(`⚠️  Failed to process table ${tableName}:`, error);
       sqlContent += `-- ERROR: Failed to process table ${tableName}: ${error}\n\n`;
@@ -139,27 +140,27 @@ async function exportTursoToSQL(client: any, outputFile: string) {
 
   // 确保输出目录存在
   mkdirSync(dirname(outputFile), { recursive: true });
-  
+
   // 写入文件
-  writeFileSync(outputFile, sqlContent, 'utf8');
+  writeFileSync(outputFile, sqlContent, "utf8");
   console.log(`✅ Turso SQL export completed: ${outputFile}`);
-  console.log(`📈 Export summary: ${totalRecords} total records across ${TABLES.length} tables`);
+  console.log(
+    `📈 Export summary: ${totalRecords} total records across ${TABLES.length} tables`,
+  );
 
   return { totalRecords, outputFile };
 }
-
-
 
 /**
  * 主函数
  */
 async function main() {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const outputFile = `./exports/turso-export-${timestamp}.sql`;
 
   console.log(`🚀 Starting Turso data export...`);
   console.log(`   Output: ${resolve(outputFile)}`);
-  console.log('');
+  console.log("");
 
   try {
     const client = createTursoClient();
@@ -167,14 +168,13 @@ async function main() {
     // 导出 Turso 数据为 SQL
     await exportTursoToSQL(client, outputFile);
 
-    console.log('');
-    console.log('🎉 Turso data export completed successfully!');
-    console.log('');
-    console.log('📋 Generated file:');
+    console.log("");
+    console.log("🎉 Turso data export completed successfully!");
+    console.log("");
+    console.log("📋 Generated file:");
     console.log(`   ${outputFile}`);
-
   } catch (error) {
-    console.error('❌ Export failed:', error);
+    console.error("❌ Export failed:", error);
     process.exit(1);
   }
 }

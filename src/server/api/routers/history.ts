@@ -547,7 +547,10 @@ export const historyRouter = createTRPCRouter({
     const latestRecords = await ctx.db
       .select()
       .from(vehicleStatsDetail)
-      .orderBy(desc(vehicleStatsDetail.dataDate), desc(vehicleStatsDetail.recordedAt));
+      .orderBy(
+        desc(vehicleStatsDetail.dataDate),
+        desc(vehicleStatsDetail.recordedAt),
+      );
 
     // 构建最新状态映射
     latestRecords.forEach((record) => {
@@ -621,7 +624,10 @@ export const historyRouter = createTRPCRouter({
     const latestRecords = await ctx.db
       .select()
       .from(vehicleStatsDetail)
-      .orderBy(desc(vehicleStatsDetail.dataDate), desc(vehicleStatsDetail.recordedAt));
+      .orderBy(
+        desc(vehicleStatsDetail.dataDate),
+        desc(vehicleStatsDetail.recordedAt),
+      );
 
     // 构建最新状态映射
     latestRecords.forEach((record) => {
@@ -658,11 +664,13 @@ export const historyRouter = createTRPCRouter({
           lastSeen: record.dataDate,
           lifespanDays: 0,
           isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
-          records: [{
-            date: record.dataDate,
-            isActive: record.isActive,
-            count24Hour: record.count24Hour,
-          }],
+          records: [
+            {
+              date: record.dataDate,
+              isActive: record.isActive,
+              count24Hour: record.count24Hour,
+            },
+          ],
         });
       } else {
         // 更新最后出现日期
