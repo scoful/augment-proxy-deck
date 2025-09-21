@@ -790,6 +790,90 @@ export const historyRouter = createTRPCRouter({
       return result;
     }),
 
+  // 查询特定用户的排名
+  getUserRankPosition: publicProcedure
+    .input(z.object({
+      userId: z.string(),
+      search: z.string().optional() // 支持用户名搜索
+    }))
+    .query(async ({ ctx, input }) => {
+      // 获取所有用户统计数据
+      const allUserStats = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .orderBy(asc(userStatsDetail.userId), desc(userStatsDetail.dataDate));
+
+      // 聚合用户数据
+      const userMap = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          totalRequests: number;
+          activeDays: number;
+          avgDailyRequests: number;
+          lastActiveDate: string;
+          firstActiveDate: string;
+        }
+      >();
+
+      for (const record of allUserStats) {
+        const userId = record.userId;
+        if (!userMap.has(userId)) {
+          userMap.set(userId, {
+            userId: record.userId,
+            displayName: record.displayName,
+            totalRequests: record.count24Hour,
+            activeDays: 1,
+            avgDailyRequests: record.count24Hour,
+            lastActiveDate: record.dataDate,
+            firstActiveDate: record.dataDate,
+          });
+        } else {
+          const existing = userMap.get(userId)!;
+          existing.totalRequests += record.count24Hour;
+          existing.activeDays += 1;
+          existing.avgDailyRequests = Math.round((existing.totalRequests / existing.activeDays) * 100) / 100;
+
+          if (record.dataDate > existing.lastActiveDate) {
+            existing.lastActiveDate = record.dataDate;
+          }
+          if (record.dataDate < existing.firstActiveDate) {
+            existing.firstActiveDate = record.dataDate;
+          }
+        }
+      }
+
+      // 转换为数组并按总请求量排序
+      const sortedUsers = Array.from(userMap.values())
+        .sort((a, b) => b.totalRequests - a.totalRequests);
+
+      // 查找目标用户的排名
+      const targetUserIndex = sortedUsers.findIndex(user =>
+        user.userId === input.userId ||
+        (input.search && user.displayName.toLowerCase().includes(input.search.toLowerCase()))
+      );
+
+      if (targetUserIndex === -1) {
+        return null;
+      }
+
+      const targetUser = sortedUsers[targetUserIndex]!;
+      const rank = targetUserIndex + 1;
+
+      return {
+        ...targetUser,
+        rank,
+        totalUsers: sortedUsers.length,
+        percentile: Math.round(((sortedUsers.length - rank) / sortedUsers.length) * 100),
+        // 提供前后几名的用户作为上下文
+        context: {
+          above: rank > 1 ? sortedUsers.slice(Math.max(0, targetUserIndex - 2), targetUserIndex) : [],
+          below: rank < sortedUsers.length ? sortedUsers.slice(targetUserIndex + 1, Math.min(sortedUsers.length, targetUserIndex + 3)) : []
+        }
+      };
+    }),
+
   // 获取用户活跃度排行榜
   getUserActivityRanking: publicProcedure
     .input(z.object({ limit: z.number().min(1).max(100).default(20) }))
