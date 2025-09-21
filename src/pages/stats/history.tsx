@@ -193,7 +193,7 @@ export default function HistoryPage() {
                       : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
-                  🏆 各种榜单
+                  🏆 排行榜单
                 </button>
               </nav>
             </div>
@@ -243,7 +243,7 @@ export default function HistoryPage() {
           {/* 榜单说明（仅在榜单tab显示） */}
           {activeTab === "rankings" && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800">各种榜单</h3>
+              <h3 className="text-lg font-semibold text-slate-800">排行榜单</h3>
               <p className="text-sm text-slate-600">
                 展示各类数据排行榜和统计榜单
               </p>
