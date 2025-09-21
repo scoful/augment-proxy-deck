@@ -18,10 +18,12 @@ import { desc, asc, eq, gte, and, like, or } from "drizzle-orm";
 export const historyRouter = createTRPCRouter({
   // 获取单个用户的完整统计信息
   getUserCompleteStats: publicProcedure
-    .input(z.object({
-      userId: z.string(),
-      days: z.number().min(1).max(365).default(30)
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+        days: z.number().min(1).max(365).default(30),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - input.days);
@@ -34,8 +36,8 @@ export const historyRouter = createTRPCRouter({
         .where(
           and(
             eq(userStatsDetail.userId, input.userId),
-            gte(userStatsDetail.dataDate, startDate)
-          )
+            gte(userStatsDetail.dataDate, startDate),
+          ),
         )
         .orderBy(asc(userStatsDetail.dataDate));
 
@@ -44,7 +46,10 @@ export const historyRouter = createTRPCRouter({
       }
 
       // 计算统计信息
-      const totalCount = userRecords.reduce((sum, record) => sum + record.count24Hour, 0);
+      const totalCount = userRecords.reduce(
+        (sum, record) => sum + record.count24Hour,
+        0,
+      );
       const activeDays = userRecords.length;
       const avgCount = Math.round((totalCount / activeDays) * 100) / 100;
       const firstRecord = userRecords[0]!;
@@ -59,7 +64,7 @@ export const historyRouter = createTRPCRouter({
         firstActiveDate: firstRecord.dataDate,
         lastActiveDate: lastRecord.dataDate,
         recordsInRange: userRecords.length,
-        dateRange: `${startDate} to ${new Date().toISOString().split("T")[0]}`
+        dateRange: `${startDate} to ${new Date().toISOString().split("T")[0]}`,
       };
     }),
 
@@ -160,7 +165,7 @@ export const historyRouter = createTRPCRouter({
       const dailyPeaks = new Map<string, number>();
       detailData.forEach((record) => {
         const date = record.dataDate;
-        const currentPeak = dailyPeaks.get(date) || 0;
+        const currentPeak = dailyPeaks.get(date) ?? 0;
         if (record.requestCount > currentPeak) {
           dailyPeaks.set(date, record.requestCount);
         }
@@ -169,7 +174,7 @@ export const historyRouter = createTRPCRouter({
       // 合并汇总数据和峰值数据
       const result = summaryData.map((summary) => ({
         ...summary,
-        dailyPeak: dailyPeaks.get(summary.dataDate) || 0,
+        dailyPeak: dailyPeaks.get(summary.dataDate) ?? 0,
       }));
 
       return result;
@@ -256,7 +261,7 @@ export const historyRouter = createTRPCRouter({
         偶尔使用: 0, // <10
       };
 
-      for (const [userId, data] of userMap) {
+      for (const [, data] of userMap) {
         const avgCount = data.totalCount / data.recordCount;
 
         if (avgCount >= 200) {
@@ -500,7 +505,8 @@ export const historyRouter = createTRPCRouter({
 
       // 计算平均日请求量
       for (const user of userMap.values()) {
-        user.avgCount = Math.round((user.totalCount / user.activeDays) * 100) / 100;
+        user.avgCount =
+          Math.round((user.totalCount / user.activeDays) * 100) / 100;
       }
 
       // 转换为数组并按总量排序，限制结果数量
@@ -792,10 +798,12 @@ export const historyRouter = createTRPCRouter({
 
   // 查询特定用户的排名
   getUserRankPosition: publicProcedure
-    .input(z.object({
-      userId: z.string(),
-      search: z.string().optional() // 支持用户名搜索
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+        search: z.string().optional(), // 支持用户名搜索
+      }),
+    )
     .query(async ({ ctx, input }) => {
       // 获取所有用户统计数据
       const allUserStats = await ctx.db
@@ -822,7 +830,7 @@ export const historyRouter = createTRPCRouter({
         if (!userMap.has(userId)) {
           userMap.set(userId, {
             userId: record.userId,
-            displayName: record.displayName,
+            displayName: record.displayName ?? record.userId,
             totalRequests: record.count24Hour,
             activeDays: 1,
             avgDailyRequests: record.count24Hour,
@@ -833,7 +841,9 @@ export const historyRouter = createTRPCRouter({
           const existing = userMap.get(userId)!;
           existing.totalRequests += record.count24Hour;
           existing.activeDays += 1;
-          existing.avgDailyRequests = Math.round((existing.totalRequests / existing.activeDays) * 100) / 100;
+          existing.avgDailyRequests =
+            Math.round((existing.totalRequests / existing.activeDays) * 100) /
+            100;
 
           if (record.dataDate > existing.lastActiveDate) {
             existing.lastActiveDate = record.dataDate;
@@ -845,13 +855,18 @@ export const historyRouter = createTRPCRouter({
       }
 
       // 转换为数组并按总请求量排序
-      const sortedUsers = Array.from(userMap.values())
-        .sort((a, b) => b.totalRequests - a.totalRequests);
+      const sortedUsers = Array.from(userMap.values()).sort(
+        (a, b) => b.totalRequests - a.totalRequests,
+      );
 
       // 查找目标用户的排名
-      const targetUserIndex = sortedUsers.findIndex(user =>
-        user.userId === input.userId ||
-        (input.search && user.displayName.toLowerCase().includes(input.search.toLowerCase()))
+      const targetUserIndex = sortedUsers.findIndex(
+        (user) =>
+          user.userId === input.userId ||
+          (input.search &&
+            user.displayName
+              .toLowerCase()
+              .includes(input.search.toLowerCase())),
       );
 
       if (targetUserIndex === -1) {
@@ -865,12 +880,26 @@ export const historyRouter = createTRPCRouter({
         ...targetUser,
         rank,
         totalUsers: sortedUsers.length,
-        percentile: Math.round(((sortedUsers.length - rank) / sortedUsers.length) * 100),
+        percentile: Math.round(
+          ((sortedUsers.length - rank) / sortedUsers.length) * 100,
+        ),
         // 提供前后几名的用户作为上下文
         context: {
-          above: rank > 1 ? sortedUsers.slice(Math.max(0, targetUserIndex - 2), targetUserIndex) : [],
-          below: rank < sortedUsers.length ? sortedUsers.slice(targetUserIndex + 1, Math.min(sortedUsers.length, targetUserIndex + 3)) : []
-        }
+          above:
+            rank > 1
+              ? sortedUsers.slice(
+                  Math.max(0, targetUserIndex - 2),
+                  targetUserIndex,
+                )
+              : [],
+          below:
+            rank < sortedUsers.length
+              ? sortedUsers.slice(
+                  targetUserIndex + 1,
+                  Math.min(sortedUsers.length, targetUserIndex + 3),
+                )
+              : [],
+        },
       };
     }),
 

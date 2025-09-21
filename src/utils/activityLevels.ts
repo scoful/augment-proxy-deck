@@ -59,7 +59,9 @@ export const ACTIVITY_LEVELS: ActivityLevel[] = [
 ];
 
 // 根据日均请求量获取活跃度等级
-export function getActivityLevelByAvgRequests(avgRequests: number): ActivityLevel {
+export function getActivityLevelByAvgRequests(
+  avgRequests: number,
+): ActivityLevel {
   for (const level of ACTIVITY_LEVELS) {
     if (avgRequests >= level.minRequests) {
       if (!level.maxRequests || avgRequests <= level.maxRequests) {

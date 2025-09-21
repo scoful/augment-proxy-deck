@@ -49,7 +49,7 @@ export default function VehicleLifespanChart() {
 
   // 处理图表数据
   const chartData =
-    lifespanData?.map((vehicle, index) => ({
+    lifespanData?.map((vehicle) => ({
       carId: vehicle.carId,
       lifespanDays: vehicle.lifespanDays,
       carType: vehicle.carType,

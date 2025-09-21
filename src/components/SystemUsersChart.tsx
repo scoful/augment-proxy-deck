@@ -6,7 +6,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";

@@ -7,12 +7,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
-import { getActivityLevelByAvgRequests, getFormattedActivityName } from "@/utils/activityLevels";
+import {
+  getActivityLevelByAvgRequests,
+  getFormattedActivityName,
+} from "@/utils/activityLevels";
 
 // 记住用户的数据结构
 interface RememberedUser {

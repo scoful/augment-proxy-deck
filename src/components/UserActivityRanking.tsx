@@ -24,21 +24,24 @@ export default function UserActivityRanking({
     api.history.getUserActivityRanking.useQuery({ limit });
 
   // 搜索特定用户排名
-  const { data: userRank, isLoading: searchLoading, refetch: searchUser } =
-    api.history.getUserRankPosition.useQuery(
-      {
-        userId: searchQuery.trim(),
-        search: searchQuery.trim()
-      },
-      {
-        enabled: false // 手动触发
-      }
-    );
+  const {
+    data: userRank,
+    isLoading: searchLoading,
+    refetch: searchUser,
+  } = api.history.getUserRankPosition.useQuery(
+    {
+      userId: searchQuery.trim(),
+      search: searchQuery.trim(),
+    },
+    {
+      enabled: false, // 手动触发
+    },
+  );
 
   // 处理搜索
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      searchUser();
+      void searchUser();
       setShowSearch(true);
     }
   };
@@ -61,7 +64,7 @@ export default function UserActivityRanking({
   };
 
   // 获取排名样式 - 统一样式
-  const getRankStyle = (rank: number) => {
+  const getRankStyle = (_rank: number) => {
     return "bg-slate-100 text-slate-700";
   };
 
@@ -96,7 +99,7 @@ export default function UserActivityRanking({
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6">
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="mb-4 flex items-center gap-3">
           <TrophyIcon className="h-6 w-6 text-yellow-500" />
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-slate-800">
@@ -110,21 +113,21 @@ export default function UserActivityRanking({
 
         {/* 搜索框 */}
         <div className="flex gap-2">
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="搜索用户ID或显示名称查看排名..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full rounded-lg border border-slate-300 pl-10 pr-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              className="w-full rounded-lg border border-slate-300 py-2 pr-4 pl-10 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
-            <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <MagnifyingGlassIcon className="absolute top-2.5 left-3 h-4 w-4 text-slate-400" />
           </div>
           <button
             onClick={handleSearch}
             disabled={!searchQuery.trim() || searchLoading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {searchLoading ? "搜索中..." : "查询排名"}
           </button>
@@ -141,9 +144,11 @@ export default function UserActivityRanking({
 
       {/* 搜索结果显示 */}
       {showSearch && userRank && (
-        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${getRankStyle(userRank.rank)}`}>
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="mb-3 flex items-center gap-3">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${getRankStyle(userRank.rank)}`}
+            >
               {getRankIcon(userRank.rank)}
             </div>
             <div className="flex-1">
@@ -181,23 +186,37 @@ export default function UserActivityRanking({
           </div>
 
           {/* 上下文排名 */}
-          {(userRank.context.above.length > 0 || userRank.context.below.length > 0) && (
-            <div className="mt-3 pt-3 border-t border-blue-200">
-              <p className="text-xs text-slate-500 mb-2">附近排名:</p>
+          {(userRank.context.above.length > 0 ||
+            userRank.context.below.length > 0) && (
+            <div className="mt-3 border-t border-blue-200 pt-3">
+              <p className="mb-2 text-xs text-slate-500">附近排名:</p>
               <div className="space-y-1 text-xs">
                 {userRank.context.above.map((user, index) => (
-                  <div key={user.userId} className="flex justify-between text-slate-600">
-                    <span>#{userRank.rank - userRank.context.above.length + index} {user.displayName}</span>
+                  <div
+                    key={user.userId}
+                    className="flex justify-between text-slate-600"
+                  >
+                    <span>
+                      #{userRank.rank - userRank.context.above.length + index}{" "}
+                      {user.displayName}
+                    </span>
                     <span>{formatNumber(user.totalRequests)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded">
-                  <span>#{userRank.rank} {userRank.displayName} (当前)</span>
+                <div className="flex justify-between rounded bg-blue-100 px-2 py-1 font-medium text-blue-700">
+                  <span>
+                    #{userRank.rank} {userRank.displayName} (当前)
+                  </span>
                   <span>{formatNumber(userRank.totalRequests)}</span>
                 </div>
                 {userRank.context.below.map((user, index) => (
-                  <div key={user.userId} className="flex justify-between text-slate-600">
-                    <span>#{userRank.rank + index + 1} {user.displayName}</span>
+                  <div
+                    key={user.userId}
+                    className="flex justify-between text-slate-600"
+                  >
+                    <span>
+                      #{userRank.rank + index + 1} {user.displayName}
+                    </span>
                     <span>{formatNumber(user.totalRequests)}</span>
                   </div>
                 ))}
@@ -209,7 +228,7 @@ export default function UserActivityRanking({
 
       {/* 未找到搜索结果 */}
       {showSearch && !userRank && !searchLoading && (
-        <div className="mb-6 rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-center">
+        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-center">
           <p className="text-yellow-800">
             未找到用户 "{searchQuery}"，请检查用户ID或显示名称是否正确
           </p>

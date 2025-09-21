@@ -8,7 +8,10 @@ import {
 } from "recharts";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
-import { ACTIVITY_LEVELS, getFormattedActivityName } from "@/utils/activityLevels";
+import {
+  ACTIVITY_LEVELS,
+  getFormattedActivityName,
+} from "@/utils/activityLevels";
 import { useMemo } from "react";
 
 interface UserActivityDistributionChartProps {
@@ -61,7 +64,7 @@ export default function UserActivityDistributionChart({
             },
           ].filter((item) => item.value > 0)
         : [],
-    [distribution]
+    [distribution],
   );
   const totalUsers = chartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -146,16 +149,18 @@ export default function UserActivityDistributionChart({
             </div>
             <div>
               <p className="text-slate-600">最大群体</p>
-              {chartData.length > 0 && (
+              {chartData.length > 0 &&
                 (() => {
-                  const top = chartData.reduce((m, c) => (c.value > m.value ? c : m), chartData[0]!);
+                  const top = chartData.reduce(
+                    (m, c) => (c.value > m.value ? c : m),
+                    chartData[0]!,
+                  );
                   return (
                     <p className="font-medium" style={{ color: top.color }}>
                       {top.name}
                     </p>
                   );
-                })()
-              )}
+                })()}
             </div>
             <div>
               <p className="text-slate-600">总用户数</p>
@@ -167,13 +172,20 @@ export default function UserActivityDistributionChart({
 
           {/* 图例标准说明 */}
           <div className="mt-4 border-t border-slate-200 pt-4">
-            <h4 className="mb-3 text-sm font-medium text-slate-700">活跃度分类标准</h4>
+            <h4 className="mb-3 text-sm font-medium text-slate-700">
+              活跃度分类标准
+            </h4>
             <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
               {ACTIVITY_LEVELS.map((level) => (
                 <div key={level.name} className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: level.color }}></div>
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: level.color }}
+                  ></div>
                   <div>
-                    <span className="font-medium">{getFormattedActivityName(level)}</span>
+                    <span className="font-medium">
+                      {getFormattedActivityName(level)}
+                    </span>
                     <p className="text-slate-600">{level.description}</p>
                   </div>
                 </div>

@@ -94,7 +94,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-blue-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.totalSystemRequests || 0)}
+                      : formatNumber(dataOverview?.totalSystemRequests ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     {dataOverview?.systemStartDate
@@ -115,7 +115,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-red-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.systemPeakUsage || 0)}
+                      : formatNumber(dataOverview?.systemPeakUsage ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     历史最高单日请求量
@@ -134,7 +134,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-green-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.dailyActiveUsersPeak || 0)}
+                      : formatNumber(dataOverview?.dailyActiveUsersPeak ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     历史最高单日活跃用户数
@@ -153,7 +153,7 @@ export default function HistoryPage() {
                   <p className="text-lg font-bold text-slate-800">
                     {overviewLoading
                       ? "..."
-                      : dataOverview?.latestDates.user || "暂无"}
+                      : (dataOverview?.latestDates.user ?? "暂无")}
                   </p>
                 </div>
               </div>
