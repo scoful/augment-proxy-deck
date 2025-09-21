@@ -214,6 +214,18 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       },
     );
 
+  // 获取选中用户的完整统计信息
+  const { data: userCompleteStats, isLoading: statsLoading } =
+    api.history.getUserCompleteStats.useQuery(
+      {
+        userId: selectedUserId,
+        days,
+      },
+      {
+        enabled: !!selectedUserId,
+      },
+    );
+
   // 处理图表数据 - 只显示24小时数据（数据库中实际存在的字段）
   const chartData =
     userTrends?.map((trend) => ({
@@ -362,7 +374,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             <p>请选择用户查看个人用量趋势</p>
           </div>
         </div>
-      ) : trendsLoading ? (
+      ) : trendsLoading || statsLoading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="text-slate-500">加载中...</div>
         </div>
@@ -404,10 +416,11 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       )}
 
       {/* 用户信息和使用模式识别 */}
-      {selectedUserId && selectedUserData && (
+      {selectedUserId && (userCompleteStats || selectedUserData) && (
         <div className="mt-4 border-t border-slate-200 pt-4">
           {(() => {
-            const selectedUser = selectedUserData;
+            // 优先使用完整统计数据，否则使用搜索结果数据
+            const selectedUser = userCompleteStats || selectedUserData;
             if (!selectedUser) return null;
 
             // 使用模式识别

@@ -16,6 +16,53 @@ import {
 import { desc, asc, eq, gte, and, like, or } from "drizzle-orm";
 
 export const historyRouter = createTRPCRouter({
+  // 获取单个用户的完整统计信息
+  getUserCompleteStats: publicProcedure
+    .input(z.object({
+      userId: z.string(),
+      days: z.number().min(1).max(365).default(30)
+    }))
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取用户在指定时间范围内的所有记录
+      const userRecords = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .where(
+          and(
+            eq(userStatsDetail.userId, input.userId),
+            gte(userStatsDetail.dataDate, startDate)
+          )
+        )
+        .orderBy(asc(userStatsDetail.dataDate));
+
+      if (userRecords.length === 0) {
+        return null;
+      }
+
+      // 计算统计信息
+      const totalCount = userRecords.reduce((sum, record) => sum + record.count24Hour, 0);
+      const activeDays = userRecords.length;
+      const avgCount = Math.round((totalCount / activeDays) * 100) / 100;
+      const firstRecord = userRecords[0]!;
+      const lastRecord = userRecords[userRecords.length - 1]!;
+
+      return {
+        userId: input.userId,
+        displayName: firstRecord.displayName,
+        totalCount,
+        avgCount,
+        activeDays,
+        firstActiveDate: firstRecord.dataDate,
+        lastActiveDate: lastRecord.dataDate,
+        recordsInRange: userRecords.length,
+        dateRange: `${startDate} to ${new Date().toISOString().split("T")[0]}`
+      };
+    }),
+
   // 获取用户活跃度趋势
   getUserActivityTrends: publicProcedure
     .input(
@@ -421,7 +468,7 @@ export const historyRouter = createTRPCRouter({
         .where(and(...whereConditions))
         .orderBy(desc(userStatsDetail.count24Hour));
 
-      // 前端去重并聚合
+      // 前端去重并聚合 - 修复累计总请求量计算
       const userMap = new Map();
       for (const record of rawResults) {
         const userId = record.userId;
@@ -429,22 +476,31 @@ export const historyRouter = createTRPCRouter({
           userMap.set(userId, {
             userId: record.userId,
             displayName: record.displayName,
-            totalCount: record.count24Hour,
-            avgCount: record.count24Hour,
+            totalCount: record.count24Hour, // 累计总请求量
+            activeDays: 1, // 活跃天数
             lastActiveDate: record.dataDate,
-            recordCount: 1,
+            firstActiveDate: record.dataDate,
           });
         } else {
           const existing = userMap.get(userId);
-          existing.totalCount += record.count24Hour;
-          existing.recordCount += 1;
-          existing.avgCount =
-            Math.round((existing.totalCount / existing.recordCount) * 100) /
-            100;
+          existing.totalCount += record.count24Hour; // 累加每天的请求量
+          existing.activeDays += 1; // 增加活跃天数
+
+          // 更新最后活跃日期
           if (record.dataDate > existing.lastActiveDate) {
             existing.lastActiveDate = record.dataDate;
           }
+
+          // 更新最早活跃日期
+          if (record.dataDate < existing.firstActiveDate) {
+            existing.firstActiveDate = record.dataDate;
+          }
         }
+      }
+
+      // 计算平均日请求量
+      for (const user of userMap.values()) {
+        user.avgCount = Math.round((user.totalCount / user.activeDays) * 100) / 100;
       }
 
       // 转换为数组并按总量排序，限制结果数量
