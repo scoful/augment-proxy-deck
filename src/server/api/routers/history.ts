@@ -123,6 +123,94 @@ export const historyRouter = createTRPCRouter({
         .orderBy(asc(vehicleStatsSummary.dataDate));
     }),
 
+  // 获取车辆变化动态趋势
+  getVehicleChangeTrends: publicProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+        carType: z.enum(["all", "social", "black"]).default("all"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取指定时间范围内的所有车辆明细数据
+      const vehicleDetails = await ctx.db
+        .select()
+        .from(vehicleStatsDetail)
+        .where(
+          and(
+            gte(vehicleStatsDetail.dataDate, startDate),
+            input.carType === "all"
+              ? undefined
+              : eq(vehicleStatsDetail.carType, input.carType)
+          )
+        )
+        .orderBy(asc(vehicleStatsDetail.dataDate), asc(vehicleStatsDetail.carId));
+
+      // 按日期分组车辆数据
+      const dailyVehicles = new Map<string, Set<string>>();
+      const dailyActiveVehicles = new Map<string, Set<string>>();
+
+      vehicleDetails.forEach((record) => {
+        const date = record.dataDate;
+
+        // 记录当天出现的所有车辆
+        if (!dailyVehicles.has(date)) {
+          dailyVehicles.set(date, new Set());
+        }
+        dailyVehicles.get(date)!.add(record.carId);
+
+        // 记录当天活跃的车辆
+        if (record.isActive) {
+          if (!dailyActiveVehicles.has(date)) {
+            dailyActiveVehicles.set(date, new Set());
+          }
+          dailyActiveVehicles.get(date)!.add(record.carId);
+        }
+      });
+
+      // 获取所有日期并排序
+      const allDates = Array.from(dailyVehicles.keys()).sort();
+
+      // 计算每日变化数据
+      const changeData = [];
+      let previousDayVehicles = new Set<string>();
+      let previousDayActiveVehicles = new Set<string>();
+
+      for (const date of allDates) {
+        const todayVehicles = dailyVehicles.get(date) ?? new Set();
+        const todayActiveVehicles = dailyActiveVehicles.get(date) ?? new Set();
+
+        // 计算新增车辆（今天出现但昨天没有的车辆）
+        const newVehicles = new Set([...todayVehicles].filter(carId => !previousDayVehicles.has(carId)));
+
+        // 计算失效车辆（昨天活跃但今天不活跃的车辆）
+        const inactiveVehicles = new Set([...previousDayActiveVehicles].filter(carId => !todayActiveVehicles.has(carId)));
+
+        const newCount = newVehicles.size;
+        const inactiveCount = inactiveVehicles.size;
+        const netChange = newCount - inactiveCount;
+
+        changeData.push({
+          dataDate: date,
+          newVehicles: newCount,
+          inactiveVehicles: inactiveCount,
+          netChange,
+          totalVehicles: todayVehicles.size,
+          activeVehicles: todayActiveVehicles.size,
+        });
+
+        // 更新前一天的数据
+        previousDayVehicles = todayVehicles;
+        previousDayActiveVehicles = todayActiveVehicles;
+      }
+
+      return changeData;
+    }),
+
   // 获取社车vs黑车对比数据
   getSocialVsBlackComparison: publicProcedure
     .input(z.object({ days: z.number().default(30) }))

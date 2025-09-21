@@ -177,7 +177,7 @@ export default function VehicleAvailabilityChart({
           {/* 车辆数量统计 */}
           <div className="mt-3 grid grid-cols-3 gap-4 border-t border-slate-100 pt-3 text-sm">
             <div>
-              <p className="text-slate-600">最新总车辆</p>
+              <p className="text-slate-600">历史总车辆</p>
               <p className="font-medium text-blue-600">
                 {formatNumber(chartData[chartData.length - 1]?.totalCars || 0)}
               </p>

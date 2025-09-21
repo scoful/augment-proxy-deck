@@ -21,7 +21,7 @@ export const ACTIVITY_LEVELS: ActivityLevel[] = [
     description: "≥200次/天",
   },
   {
-    name: "卷王是你",
+    name: "卷王本王",
     emoji: "👑",
     minRequests: 100,
     maxRequests: 199,

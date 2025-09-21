@@ -15,6 +15,7 @@ import SystemUsageChart from "@/components/SystemUsageChart";
 import SystemPeakChart from "@/components/SystemPeakChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
+import VehicleChangeChart from "@/components/VehicleChangeChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 import VehicleLifespanChart from "@/components/VehicleLifespanChart";
@@ -264,6 +265,9 @@ export default function HistoryPage() {
 
                 {/* 车辆可用性趋势图表 */}
                 <VehicleAvailabilityChart days={selectedDays} />
+
+                {/* 车辆变化动态图表 */}
+                <VehicleChangeChart days={selectedDays} />
 
                 {/* 个人用量趋势图表 */}
                 <PersonalUsageChart days={selectedDays} />
