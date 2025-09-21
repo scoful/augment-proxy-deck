@@ -282,9 +282,8 @@ export default function HistoryPage() {
                 <VehicleLifespanChart />
               </div>
 
-              {/* 其他分析图表 */}
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* 用户行为变化检测图表 */}
+              {/* 用户行为变化检测图表 - 独占一排 */}
+              <div className="mb-8">
                 <UserBehaviorAnomalyChart days={14} />
               </div>
             </>

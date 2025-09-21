@@ -542,6 +542,20 @@ export const historyRouter = createTRPCRouter({
       .from(vehicleStatsDetail)
       .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
 
+    // 获取每个车辆的最新状态
+    const latestStatusMap = new Map<string, boolean>();
+    const latestRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(desc(vehicleStatsDetail.dataDate), desc(vehicleStatsDetail.recordedAt));
+
+    // 构建最新状态映射
+    latestRecords.forEach((record) => {
+      if (!latestStatusMap.has(record.carId)) {
+        latestStatusMap.set(record.carId, record.isActive);
+      }
+    });
+
     // 计算每辆车的生命周期长度
     const lifespanMap = new Map<
       string,
@@ -551,6 +565,7 @@ export const historyRouter = createTRPCRouter({
         firstSeen: string;
         lastSeen: string;
         lifespanDays: number;
+        isCurrentlyActive: boolean;
       }
     >();
 
@@ -563,6 +578,7 @@ export const historyRouter = createTRPCRouter({
           firstSeen: record.dataDate,
           lastSeen: record.dataDate,
           lifespanDays: 0,
+          isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
         });
       } else {
         // 更新最后出现日期
@@ -587,7 +603,97 @@ export const historyRouter = createTRPCRouter({
           lifespanDays,
         };
       })
-      .sort((a, b) => b.lifespanDays - a.lifespanDays); // 按生命长度降序排列
+      .sort((a, b) => b.firstSeen.localeCompare(a.firstSeen)); // 按首次出现时间降序排列（最新在前）
+
+    return result;
+  }),
+
+  // 获取车辆时间轴分析数据（用于时间轴图表）
+  getVehicleTimelineAnalysis: publicProcedure.query(async ({ ctx }) => {
+    // 获取所有车辆的历史数据
+    const vehicleRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
+
+    // 获取每个车辆的最新状态
+    const latestStatusMap = new Map<string, boolean>();
+    const latestRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(desc(vehicleStatsDetail.dataDate), desc(vehicleStatsDetail.recordedAt));
+
+    // 构建最新状态映射
+    latestRecords.forEach((record) => {
+      if (!latestStatusMap.has(record.carId)) {
+        latestStatusMap.set(record.carId, record.isActive);
+      }
+    });
+
+    // 计算每辆车的时间轴数据
+    const timelineMap = new Map<
+      string,
+      {
+        carId: string;
+        carType: string;
+        firstSeen: string;
+        lastSeen: string;
+        lifespanDays: number;
+        isCurrentlyActive: boolean;
+        records: Array<{
+          date: string;
+          isActive: boolean;
+          count24Hour: number;
+        }>;
+      }
+    >();
+
+    vehicleRecords.forEach((record) => {
+      const existing = timelineMap.get(record.carId);
+      if (!existing) {
+        timelineMap.set(record.carId, {
+          carId: record.carId,
+          carType: record.carType,
+          firstSeen: record.dataDate,
+          lastSeen: record.dataDate,
+          lifespanDays: 0,
+          isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
+          records: [{
+            date: record.dataDate,
+            isActive: record.isActive,
+            count24Hour: record.count24Hour,
+          }],
+        });
+      } else {
+        // 更新最后出现日期
+        if (record.dataDate > existing.lastSeen) {
+          existing.lastSeen = record.dataDate;
+        }
+        // 添加记录
+        existing.records.push({
+          date: record.dataDate,
+          isActive: record.isActive,
+          count24Hour: record.count24Hour,
+        });
+      }
+    });
+
+    // 计算生命周期天数并按首次出现时间排序
+    const result = Array.from(timelineMap.values())
+      .map((vehicle) => {
+        const firstDate = new Date(vehicle.firstSeen);
+        const lastDate = new Date(vehicle.lastSeen);
+        const lifespanDays =
+          Math.ceil(
+            (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24),
+          ) + 1;
+
+        return {
+          ...vehicle,
+          lifespanDays,
+        };
+      })
+      .sort((a, b) => b.firstSeen.localeCompare(a.firstSeen)); // 按首次出现时间降序排列（最新在前）
 
     return result;
   }),
