@@ -8,6 +8,8 @@ import {
 } from "recharts";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
+import { ACTIVITY_LEVELS, getFormattedActivityName } from "@/utils/activityLevels";
+import { useMemo } from "react";
 
 interface UserActivityDistributionChartProps {
   days: number;
@@ -22,42 +24,45 @@ export default function UserActivityDistributionChart({
       days,
     });
 
-  // 处理图表数据
-  const chartData = distribution
-    ? [
-        {
-          name: "🔥 卷王",
-          value: distribution.超重度用户,
-          color: "#9333ea",
-          description: "≥200次/天",
-        },
-        {
-          name: "👑 大佬",
-          value: distribution.重度用户,
-          color: "#dc2626",
-          description: "100-199次/天",
-        },
-        {
-          name: "⚡ 活跃分子",
-          value: distribution.中度用户,
-          color: "#ea580c",
-          description: "50-99次/天",
-        },
-        {
-          name: "🧘 佛系用户",
-          value: distribution.轻度用户,
-          color: "#2563eb",
-          description: "10-49次/天",
-        },
-        {
-          name: "👻 路人甲",
-          value: distribution.偶尔使用,
-          color: "#64748b",
-          description: "<10次/天",
-        },
-      ].filter((item) => item.value > 0)
-    : [];
-
+  // 处理图表数据（memo，避免渲染期副作用）
+  const chartData = useMemo(
+    () =>
+      distribution
+        ? [
+            {
+              name: getFormattedActivityName(ACTIVITY_LEVELS[0]!),
+              value: distribution.超重度用户,
+              color: ACTIVITY_LEVELS[0]!.color,
+              description: ACTIVITY_LEVELS[0]!.description,
+            },
+            {
+              name: getFormattedActivityName(ACTIVITY_LEVELS[1]!),
+              value: distribution.重度用户,
+              color: ACTIVITY_LEVELS[1]!.color,
+              description: ACTIVITY_LEVELS[1]!.description,
+            },
+            {
+              name: getFormattedActivityName(ACTIVITY_LEVELS[2]!),
+              value: distribution.中度用户,
+              color: ACTIVITY_LEVELS[2]!.color,
+              description: ACTIVITY_LEVELS[2]!.description,
+            },
+            {
+              name: getFormattedActivityName(ACTIVITY_LEVELS[3]!),
+              value: distribution.轻度用户,
+              color: ACTIVITY_LEVELS[3]!.color,
+              description: ACTIVITY_LEVELS[3]!.description,
+            },
+            {
+              name: getFormattedActivityName(ACTIVITY_LEVELS[4]!),
+              value: distribution.偶尔使用,
+              color: ACTIVITY_LEVELS[4]!.color,
+              description: ACTIVITY_LEVELS[4]!.description,
+            },
+          ].filter((item) => item.value > 0)
+        : [],
+    [distribution]
+  );
   const totalUsers = chartData.reduce((sum, item) => sum + item.value, 0);
 
   // 自定义Tooltip
@@ -112,8 +117,8 @@ export default function UserActivityDistributionChart({
                 paddingAngle={2}
                 dataKey="value"
               >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {chartData.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -141,24 +146,42 @@ export default function UserActivityDistributionChart({
             </div>
             <div>
               <p className="text-slate-600">最大群体</p>
-              <p className="font-medium" style={{ color: chartData[0]?.color }}>
-                {chartData.sort((a, b) => b.value - a.value)[0]?.name}
-              </p>
+              {chartData.length > 0 && (
+                (() => {
+                  const top = chartData.reduce((m, c) => (c.value > m.value ? c : m), chartData[0]!);
+                  return (
+                    <p className="font-medium" style={{ color: top.color }}>
+                      {top.name}
+                    </p>
+                  );
+                })()
+              )}
             </div>
             <div>
-              <p className="text-slate-600">活跃用户占比</p>
+              <p className="text-slate-600">总用户数</p>
               <p className="font-medium text-green-600">
-                {(() => {
-                  const activeUsers = chartData
-                    .filter((item) => !item.name.includes("路人甲"))
-                    .reduce((sum, item) => sum + item.value, 0);
-                  return totalUsers > 0
-                    ? ((activeUsers / totalUsers) * 100).toFixed(1)
-                    : "0";
-                })()}
-                %
+                {formatNumber(totalUsers)}
               </p>
             </div>
+          </div>
+
+          {/* 图例标准说明 */}
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <h4 className="mb-3 text-sm font-medium text-slate-700">活跃度分类标准</h4>
+            <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+              {ACTIVITY_LEVELS.map((level) => (
+                <div key={level.name} className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: level.color }}></div>
+                  <div>
+                    <span className="font-medium">{getFormattedActivityName(level)}</span>
+                    <p className="text-slate-600">{level.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-slate-500">
+              * 基于用户在选定时间范围内的平均日请求量进行分类
+            </p>
           </div>
         </div>
       )}
