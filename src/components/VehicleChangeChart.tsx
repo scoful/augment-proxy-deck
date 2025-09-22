@@ -54,12 +54,13 @@ export default function VehicleChangeChart({
             失效车辆: {formatNumber(Math.abs(data.inactiveVehicles))}
           </p>
           <p className="text-sm text-blue-600">
-            净变化: {data.netChange > 0 ? "+" : ""}{formatNumber(data.netChange)}
+            净变化: {data.netChange > 0 ? "+" : ""}
+            {formatNumber(data.netChange)}
           </p>
           <div className="mt-2 border-t border-slate-100 pt-2">
             <p className="text-xs text-slate-500">
-              总车辆: {formatNumber(data.totalVehicles)} | 
-              活跃: {formatNumber(data.activeVehicles)}
+              总车辆: {formatNumber(data.totalVehicles)} | 活跃:{" "}
+              {formatNumber(data.activeVehicles)}
             </p>
           </div>
         </div>
@@ -69,13 +70,26 @@ export default function VehicleChangeChart({
   };
 
   // 计算统计数据
-  const stats = chartData.length > 0 ? {
-    totalNewVehicles: chartData.reduce((sum, d) => sum + d.newVehicles, 0),
-    totalInactiveVehicles: chartData.reduce((sum, d) => sum + Math.abs(d.inactiveVehicles), 0),
-    avgNetChange: chartData.reduce((sum, d) => sum + d.netChange, 0) / chartData.length,
-    maxNewVehicles: Math.max(...chartData.map(d => d.newVehicles)),
-    maxInactiveVehicles: Math.max(...chartData.map(d => Math.abs(d.inactiveVehicles))),
-  } : null;
+  const stats =
+    chartData.length > 0
+      ? {
+          totalNewVehicles: chartData.reduce(
+            (sum, d) => sum + d.newVehicles,
+            0,
+          ),
+          totalInactiveVehicles: chartData.reduce(
+            (sum, d) => sum + Math.abs(d.inactiveVehicles),
+            0,
+          ),
+          avgNetChange:
+            chartData.reduce((sum, d) => sum + d.netChange, 0) /
+            chartData.length,
+          maxNewVehicles: Math.max(...chartData.map((d) => d.newVehicles)),
+          maxInactiveVehicles: Math.max(
+            ...chartData.map((d) => Math.abs(d.inactiveVehicles)),
+          ),
+        }
+      : null;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -120,10 +134,10 @@ export default function VehicleChangeChart({
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              
+
               {/* 零基准线 */}
               <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="2 2" />
-              
+
               {/* 新增车辆柱状图 */}
               <Bar
                 dataKey="newVehicles"
@@ -132,7 +146,7 @@ export default function VehicleChangeChart({
                 name="新增车辆"
                 radius={[2, 2, 0, 0]}
               />
-              
+
               {/* 失效车辆柱状图（负值） */}
               <Bar
                 dataKey="inactiveVehicles"
@@ -141,7 +155,7 @@ export default function VehicleChangeChart({
                 name="失效车辆"
                 radius={[0, 0, 2, 2]}
               />
-              
+
               {/* 净变化趋势线 */}
               <Line
                 type="monotone"
@@ -174,8 +188,11 @@ export default function VehicleChangeChart({
             </div>
             <div>
               <p className="text-slate-600">平均净变化</p>
-              <p className={`font-medium ${stats.avgNetChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {stats.avgNetChange > 0 ? "+" : ""}{formatNumber(Math.round(stats.avgNetChange))}
+              <p
+                className={`font-medium ${stats.avgNetChange >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {stats.avgNetChange > 0 ? "+" : ""}
+                {formatNumber(Math.round(stats.avgNetChange))}
               </p>
             </div>
             <div>

@@ -145,10 +145,13 @@ export const historyRouter = createTRPCRouter({
             gte(vehicleStatsDetail.dataDate, startDate),
             input.carType === "all"
               ? undefined
-              : eq(vehicleStatsDetail.carType, input.carType)
-          )
+              : eq(vehicleStatsDetail.carType, input.carType),
+          ),
         )
-        .orderBy(asc(vehicleStatsDetail.dataDate), asc(vehicleStatsDetail.carId));
+        .orderBy(
+          asc(vehicleStatsDetail.dataDate),
+          asc(vehicleStatsDetail.carId),
+        );
 
       // 按日期分组车辆数据
       const dailyVehicles = new Map<string, Set<string>>();
@@ -185,10 +188,16 @@ export const historyRouter = createTRPCRouter({
         const todayActiveVehicles = dailyActiveVehicles.get(date) ?? new Set();
 
         // 计算新增车辆（今天出现但昨天没有的车辆）
-        const newVehicles = new Set([...todayVehicles].filter(carId => !previousDayVehicles.has(carId)));
+        const newVehicles = new Set(
+          [...todayVehicles].filter((carId) => !previousDayVehicles.has(carId)),
+        );
 
         // 计算失效车辆（昨天活跃但今天不活跃的车辆）
-        const inactiveVehicles = new Set([...previousDayActiveVehicles].filter(carId => !todayActiveVehicles.has(carId)));
+        const inactiveVehicles = new Set(
+          [...previousDayActiveVehicles].filter(
+            (carId) => !todayActiveVehicles.has(carId),
+          ),
+        );
 
         const newCount = newVehicles.size;
         const inactiveCount = inactiveVehicles.size;
