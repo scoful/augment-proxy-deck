@@ -1,0 +1,38 @@
+name: Custom Guidelines PR Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Generate PR Review with Custom Guidelines
+        uses: augmentcode/review-pr@v0
+        with:
+          augment_session_auth: ${{ secrets.AUGMENT_SESSION_AUTH }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_number: ${{ github.event.pull_request.number }}
+          repo_name: ${{ github.repository }}
+          custom_guidelines: |
+            ### 项目特定要求：
+            - **遵循DRY原则**：Don't Repeat Yourself，避免代码重复，以提高代码的可维护性和可读性
+            - **遵循KISS原则**：Keep It Simple, Stupid，保持代码和设计尽可能简单，避免不必要的复杂性
+            - **遵循YAGNI原则**：You Aren't Gonna Need It，不要实现当前不需要的功能
+            
+            ### 代码质量标准：
+            - 在适当的情况下使用函数式编程模式
+            - 优先使用组合而非继承
+            - 遵循代码库中既定的命名规范
+            - 确保所有异步操作都有适当的错误处理
+            - 检查代码是否存在重复的功能实现，是否可以复用已有函数、类或模块以减少冗余
+            - 检查代码是否遵循项目现有的架构设计，是否存在偏离架构模式的地方
+            - 检查代码中是否存在未完成的 TODO 标记或硬编码值
+            
+            
+            ### 架构考虑：
+            - 新组件应遵循既定的设计模式
+            - 考虑对现有集成的潜在影响
