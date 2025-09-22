@@ -16,6 +16,58 @@ import {
 import { desc, asc, eq, gte, and, like, or } from "drizzle-orm";
 
 export const historyRouter = createTRPCRouter({
+  // 获取单个用户的完整统计信息
+  getUserCompleteStats: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        days: z.number().min(1).max(365).default(30),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取用户在指定时间范围内的所有记录
+      const userRecords = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .where(
+          and(
+            eq(userStatsDetail.userId, input.userId),
+            gte(userStatsDetail.dataDate, startDate),
+          ),
+        )
+        .orderBy(asc(userStatsDetail.dataDate));
+
+      if (userRecords.length === 0) {
+        return null;
+      }
+
+      // 计算统计信息
+      const totalCount = userRecords.reduce(
+        (sum, record) => sum + record.count24Hour,
+        0,
+      );
+      const activeDays = userRecords.length;
+      const avgCount = Math.round((totalCount / activeDays) * 100) / 100;
+      const firstRecord = userRecords[0]!;
+      const lastRecord = userRecords[userRecords.length - 1]!;
+
+      return {
+        userId: input.userId,
+        displayName: firstRecord.displayName,
+        totalCount,
+        avgCount,
+        activeDays,
+        firstActiveDate: firstRecord.dataDate,
+        lastActiveDate: lastRecord.dataDate,
+        recordsInRange: userRecords.length,
+        dateRange: `${startDate} to ${new Date().toISOString().split("T")[0]}`,
+      };
+    }),
+
   // 获取用户活跃度趋势
   getUserActivityTrends: publicProcedure
     .input(
@@ -71,6 +123,103 @@ export const historyRouter = createTRPCRouter({
         .orderBy(asc(vehicleStatsSummary.dataDate));
     }),
 
+  // 获取车辆变化动态趋势
+  getVehicleChangeTrends: publicProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+        carType: z.enum(["all", "social", "black"]).default("all"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取指定时间范围内的所有车辆明细数据
+      const vehicleDetails = await ctx.db
+        .select()
+        .from(vehicleStatsDetail)
+        .where(
+          and(
+            gte(vehicleStatsDetail.dataDate, startDate),
+            input.carType === "all"
+              ? undefined
+              : eq(vehicleStatsDetail.carType, input.carType),
+          ),
+        )
+        .orderBy(
+          asc(vehicleStatsDetail.dataDate),
+          asc(vehicleStatsDetail.carId),
+        );
+
+      // 按日期分组车辆数据
+      const dailyVehicles = new Map<string, Set<string>>();
+      const dailyActiveVehicles = new Map<string, Set<string>>();
+
+      vehicleDetails.forEach((record) => {
+        const date = record.dataDate;
+
+        // 记录当天出现的所有车辆
+        if (!dailyVehicles.has(date)) {
+          dailyVehicles.set(date, new Set());
+        }
+        dailyVehicles.get(date)!.add(record.carId);
+
+        // 记录当天活跃的车辆
+        if (record.isActive) {
+          if (!dailyActiveVehicles.has(date)) {
+            dailyActiveVehicles.set(date, new Set());
+          }
+          dailyActiveVehicles.get(date)!.add(record.carId);
+        }
+      });
+
+      // 获取所有日期并排序
+      const allDates = Array.from(dailyVehicles.keys()).sort();
+
+      // 计算每日变化数据
+      const changeData = [];
+      let previousDayVehicles = new Set<string>();
+      let previousDayActiveVehicles = new Set<string>();
+
+      for (const date of allDates) {
+        const todayVehicles = dailyVehicles.get(date) ?? new Set();
+        const todayActiveVehicles = dailyActiveVehicles.get(date) ?? new Set();
+
+        // 计算新增车辆（今天出现但昨天没有的车辆）
+        const newVehicles = new Set(
+          [...todayVehicles].filter((carId) => !previousDayVehicles.has(carId)),
+        );
+
+        // 计算失效车辆（昨天活跃但今天不活跃的车辆）
+        const inactiveVehicles = new Set(
+          [...previousDayActiveVehicles].filter(
+            (carId) => !todayActiveVehicles.has(carId),
+          ),
+        );
+
+        const newCount = newVehicles.size;
+        const inactiveCount = inactiveVehicles.size;
+        const netChange = newCount - inactiveCount;
+
+        changeData.push({
+          dataDate: date,
+          newVehicles: newCount,
+          inactiveVehicles: inactiveCount,
+          netChange,
+          totalVehicles: todayVehicles.size,
+          activeVehicles: todayActiveVehicles.size,
+        });
+
+        // 更新前一天的数据
+        previousDayVehicles = todayVehicles;
+        previousDayActiveVehicles = todayActiveVehicles;
+      }
+
+      return changeData;
+    }),
+
   // 获取社车vs黑车对比数据
   getSocialVsBlackComparison: publicProcedure
     .input(z.object({ days: z.number().default(30) }))
@@ -113,7 +262,7 @@ export const historyRouter = createTRPCRouter({
       const dailyPeaks = new Map<string, number>();
       detailData.forEach((record) => {
         const date = record.dataDate;
-        const currentPeak = dailyPeaks.get(date) || 0;
+        const currentPeak = dailyPeaks.get(date) ?? 0;
         if (record.requestCount > currentPeak) {
           dailyPeaks.set(date, record.requestCount);
         }
@@ -122,7 +271,7 @@ export const historyRouter = createTRPCRouter({
       // 合并汇总数据和峰值数据
       const result = summaryData.map((summary) => ({
         ...summary,
-        dailyPeak: dailyPeaks.get(summary.dataDate) || 0,
+        dailyPeak: dailyPeaks.get(summary.dataDate) ?? 0,
       }));
 
       return result;
@@ -209,7 +358,7 @@ export const historyRouter = createTRPCRouter({
         偶尔使用: 0, // <10
       };
 
-      for (const [userId, data] of userMap) {
+      for (const [, data] of userMap) {
         const avgCount = data.totalCount / data.recordCount;
 
         if (avgCount >= 200) {
@@ -421,7 +570,7 @@ export const historyRouter = createTRPCRouter({
         .where(and(...whereConditions))
         .orderBy(desc(userStatsDetail.count24Hour));
 
-      // 前端去重并聚合
+      // 前端去重并聚合 - 修复累计总请求量计算
       const userMap = new Map();
       for (const record of rawResults) {
         const userId = record.userId;
@@ -429,22 +578,32 @@ export const historyRouter = createTRPCRouter({
           userMap.set(userId, {
             userId: record.userId,
             displayName: record.displayName,
-            totalCount: record.count24Hour,
-            avgCount: record.count24Hour,
+            totalCount: record.count24Hour, // 累计总请求量
+            activeDays: 1, // 活跃天数
             lastActiveDate: record.dataDate,
-            recordCount: 1,
+            firstActiveDate: record.dataDate,
           });
         } else {
           const existing = userMap.get(userId);
-          existing.totalCount += record.count24Hour;
-          existing.recordCount += 1;
-          existing.avgCount =
-            Math.round((existing.totalCount / existing.recordCount) * 100) /
-            100;
+          existing.totalCount += record.count24Hour; // 累加每天的请求量
+          existing.activeDays += 1; // 增加活跃天数
+
+          // 更新最后活跃日期
           if (record.dataDate > existing.lastActiveDate) {
             existing.lastActiveDate = record.dataDate;
           }
+
+          // 更新最早活跃日期
+          if (record.dataDate < existing.firstActiveDate) {
+            existing.firstActiveDate = record.dataDate;
+          }
         }
+      }
+
+      // 计算平均日请求量
+      for (const user of userMap.values()) {
+        user.avgCount =
+          Math.round((user.totalCount / user.activeDays) * 100) / 100;
       }
 
       // 转换为数组并按总量排序，限制结果数量
@@ -542,6 +701,23 @@ export const historyRouter = createTRPCRouter({
       .from(vehicleStatsDetail)
       .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
 
+    // 获取每个车辆的最新状态
+    const latestStatusMap = new Map<string, boolean>();
+    const latestRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(
+        desc(vehicleStatsDetail.dataDate),
+        desc(vehicleStatsDetail.recordedAt),
+      );
+
+    // 构建最新状态映射
+    latestRecords.forEach((record) => {
+      if (!latestStatusMap.has(record.carId)) {
+        latestStatusMap.set(record.carId, record.isActive);
+      }
+    });
+
     // 计算每辆车的生命周期长度
     const lifespanMap = new Map<
       string,
@@ -551,6 +727,7 @@ export const historyRouter = createTRPCRouter({
         firstSeen: string;
         lastSeen: string;
         lifespanDays: number;
+        isCurrentlyActive: boolean;
       }
     >();
 
@@ -563,6 +740,7 @@ export const historyRouter = createTRPCRouter({
           firstSeen: record.dataDate,
           lastSeen: record.dataDate,
           lifespanDays: 0,
+          isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
         });
       } else {
         // 更新最后出现日期
@@ -587,7 +765,102 @@ export const historyRouter = createTRPCRouter({
           lifespanDays,
         };
       })
-      .sort((a, b) => b.lifespanDays - a.lifespanDays); // 按生命长度降序排列
+      .sort((a, b) => b.firstSeen.localeCompare(a.firstSeen)); // 按首次出现时间降序排列（最新在前）
+
+    return result;
+  }),
+
+  // 获取车辆时间轴分析数据（用于时间轴图表）
+  getVehicleTimelineAnalysis: publicProcedure.query(async ({ ctx }) => {
+    // 获取所有车辆的历史数据
+    const vehicleRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
+
+    // 获取每个车辆的最新状态
+    const latestStatusMap = new Map<string, boolean>();
+    const latestRecords = await ctx.db
+      .select()
+      .from(vehicleStatsDetail)
+      .orderBy(
+        desc(vehicleStatsDetail.dataDate),
+        desc(vehicleStatsDetail.recordedAt),
+      );
+
+    // 构建最新状态映射
+    latestRecords.forEach((record) => {
+      if (!latestStatusMap.has(record.carId)) {
+        latestStatusMap.set(record.carId, record.isActive);
+      }
+    });
+
+    // 计算每辆车的时间轴数据
+    const timelineMap = new Map<
+      string,
+      {
+        carId: string;
+        carType: string;
+        firstSeen: string;
+        lastSeen: string;
+        lifespanDays: number;
+        isCurrentlyActive: boolean;
+        records: Array<{
+          date: string;
+          isActive: boolean;
+          count24Hour: number;
+        }>;
+      }
+    >();
+
+    vehicleRecords.forEach((record) => {
+      const existing = timelineMap.get(record.carId);
+      if (!existing) {
+        timelineMap.set(record.carId, {
+          carId: record.carId,
+          carType: record.carType,
+          firstSeen: record.dataDate,
+          lastSeen: record.dataDate,
+          lifespanDays: 0,
+          isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
+          records: [
+            {
+              date: record.dataDate,
+              isActive: record.isActive,
+              count24Hour: record.count24Hour,
+            },
+          ],
+        });
+      } else {
+        // 更新最后出现日期
+        if (record.dataDate > existing.lastSeen) {
+          existing.lastSeen = record.dataDate;
+        }
+        // 添加记录
+        existing.records.push({
+          date: record.dataDate,
+          isActive: record.isActive,
+          count24Hour: record.count24Hour,
+        });
+      }
+    });
+
+    // 计算生命周期天数并按首次出现时间排序
+    const result = Array.from(timelineMap.values())
+      .map((vehicle) => {
+        const firstDate = new Date(vehicle.firstSeen);
+        const lastDate = new Date(vehicle.lastSeen);
+        const lifespanDays =
+          Math.ceil(
+            (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24),
+          ) + 1;
+
+        return {
+          ...vehicle,
+          lifespanDays,
+        };
+      })
+      .sort((a, b) => b.firstSeen.localeCompare(a.firstSeen)); // 按首次出现时间降序排列（最新在前）
 
     return result;
   }),
@@ -618,6 +891,113 @@ export const historyRouter = createTRPCRouter({
       }));
 
       return result;
+    }),
+
+  // 查询特定用户的排名
+  getUserRankPosition: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        search: z.string().optional(), // 支持用户名搜索
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // 获取所有用户统计数据
+      const allUserStats = await ctx.db
+        .select()
+        .from(userStatsDetail)
+        .orderBy(asc(userStatsDetail.userId), desc(userStatsDetail.dataDate));
+
+      // 聚合用户数据
+      const userMap = new Map<
+        string,
+        {
+          userId: string;
+          displayName: string;
+          totalRequests: number;
+          activeDays: number;
+          avgDailyRequests: number;
+          lastActiveDate: string;
+          firstActiveDate: string;
+        }
+      >();
+
+      for (const record of allUserStats) {
+        const userId = record.userId;
+        if (!userMap.has(userId)) {
+          userMap.set(userId, {
+            userId: record.userId,
+            displayName: record.displayName ?? record.userId,
+            totalRequests: record.count24Hour,
+            activeDays: 1,
+            avgDailyRequests: record.count24Hour,
+            lastActiveDate: record.dataDate,
+            firstActiveDate: record.dataDate,
+          });
+        } else {
+          const existing = userMap.get(userId)!;
+          existing.totalRequests += record.count24Hour;
+          existing.activeDays += 1;
+          existing.avgDailyRequests =
+            Math.round((existing.totalRequests / existing.activeDays) * 100) /
+            100;
+
+          if (record.dataDate > existing.lastActiveDate) {
+            existing.lastActiveDate = record.dataDate;
+          }
+          if (record.dataDate < existing.firstActiveDate) {
+            existing.firstActiveDate = record.dataDate;
+          }
+        }
+      }
+
+      // 转换为数组并按总请求量排序
+      const sortedUsers = Array.from(userMap.values()).sort(
+        (a, b) => b.totalRequests - a.totalRequests,
+      );
+
+      // 查找目标用户的排名
+      const targetUserIndex = sortedUsers.findIndex(
+        (user) =>
+          user.userId === input.userId ||
+          (input.search &&
+            user.displayName
+              .toLowerCase()
+              .includes(input.search.toLowerCase())),
+      );
+
+      if (targetUserIndex === -1) {
+        return null;
+      }
+
+      const targetUser = sortedUsers[targetUserIndex]!;
+      const rank = targetUserIndex + 1;
+
+      return {
+        ...targetUser,
+        rank,
+        totalUsers: sortedUsers.length,
+        percentile: Math.round(
+          ((sortedUsers.length - rank) / sortedUsers.length) * 100,
+        ),
+        // 提供前后几名的用户作为上下文
+        context: {
+          above:
+            rank > 1
+              ? sortedUsers.slice(
+                  Math.max(0, targetUserIndex - 2),
+                  targetUserIndex,
+                )
+              : [],
+          below:
+            rank < sortedUsers.length
+              ? sortedUsers.slice(
+                  targetUserIndex + 1,
+                  Math.min(sortedUsers.length, targetUserIndex + 3),
+                )
+              : [],
+        },
+      };
     }),
 
   // 获取用户活跃度排行榜

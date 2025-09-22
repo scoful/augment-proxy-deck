@@ -3,7 +3,7 @@
  * 生产环境使用Cloudflare Cron Triggers
  * 本地开发通过API手动触发
  */
-import { collectDailyStats, collectVehicleStatsDetail } from "./data-collector";
+import { collectDailyStats } from "./data-collector";
 
 // Cloudflare Cron配置（仅用于文档）
 const CLOUDFLARE_CRON_SCHEDULES = {

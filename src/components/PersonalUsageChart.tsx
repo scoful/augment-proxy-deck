@@ -7,11 +7,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
+import {
+  getActivityLevelByAvgRequests,
+  getFormattedActivityName,
+} from "@/utils/activityLevels";
 
 // 记住用户的数据结构
 interface RememberedUser {
@@ -214,6 +217,18 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       },
     );
 
+  // 获取选中用户的完整统计信息
+  const { data: userCompleteStats, isLoading: statsLoading } =
+    api.history.getUserCompleteStats.useQuery(
+      {
+        userId: selectedUserId,
+        days,
+      },
+      {
+        enabled: !!selectedUserId,
+      },
+    );
+
   // 处理图表数据 - 只显示24小时数据（数据库中实际存在的字段）
   const chartData =
     userTrends?.map((trend) => ({
@@ -362,7 +377,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             <p>请选择用户查看个人用量趋势</p>
           </div>
         </div>
-      ) : trendsLoading ? (
+      ) : trendsLoading || statsLoading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="text-slate-500">加载中...</div>
         </div>
@@ -404,33 +419,18 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       )}
 
       {/* 用户信息和使用模式识别 */}
-      {selectedUserId && selectedUserData && (
+      {selectedUserId && (userCompleteStats || selectedUserData) && (
         <div className="mt-4 border-t border-slate-200 pt-4">
           {(() => {
-            const selectedUser = selectedUserData;
+            // 优先使用完整统计数据，否则使用搜索结果数据
+            const selectedUser = userCompleteStats || selectedUserData;
             if (!selectedUser) return null;
 
-            // 使用模式识别
+            // 活跃度识别
             const avgCount = selectedUser.avgCount;
-            let usagePattern = "";
-            let patternColor = "";
-
-            if (avgCount >= 200) {
-              usagePattern = "🔥 卷王";
-              patternColor = "text-purple-600";
-            } else if (avgCount >= 100) {
-              usagePattern = "👑 大佬";
-              patternColor = "text-red-600";
-            } else if (avgCount >= 50) {
-              usagePattern = "⚡ 活跃分子";
-              patternColor = "text-orange-600";
-            } else if (avgCount >= 10) {
-              usagePattern = "🧘 佛系用户";
-              patternColor = "text-blue-600";
-            } else {
-              usagePattern = "👻 路人甲";
-              patternColor = "text-slate-600";
-            }
+            const activityLevelData = getActivityLevelByAvgRequests(avgCount);
+            const activityLevel = getFormattedActivityName(activityLevelData);
+            const activityColor = activityLevelData.textColor;
 
             return (
               <div className="space-y-3">
@@ -443,9 +443,9 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600">使用模式</p>
-                    <p className={`font-medium ${patternColor}`}>
-                      {usagePattern}
+                    <p className="text-slate-600">活跃度</p>
+                    <p className={`font-medium ${activityColor}`}>
+                      {activityLevel}
                     </p>
                   </div>
                   <div>

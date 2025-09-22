@@ -23,32 +23,14 @@ export default function HistoricalRank1Ranking({
     return name.slice(0, maxLength) + "...";
   };
 
-  // 获取排名图标
+  // 获取排名图标 - 统一使用#x格式
   const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return "👑";
-      case 2:
-        return "🥈";
-      case 3:
-        return "🥉";
-      default:
-        return `#${rank}`;
-    }
+    return `#${rank}`;
   };
 
-  // 获取排名样式
+  // 获取排名样式 - 统一样式
   const getRankStyle = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg";
-      case 2:
-        return "bg-gradient-to-r from-gray-300 to-gray-500 text-white shadow-md";
-      case 3:
-        return "bg-gradient-to-r from-amber-600 to-amber-800 text-white shadow-md";
-      default:
-        return "bg-slate-100 text-slate-700";
-    }
+    return "bg-slate-100 text-slate-700";
   };
 
   // 获取统治力等级
@@ -98,7 +80,7 @@ export default function HistoricalRank1Ranking({
           暂无数据
         </div>
       ) : (
-        <div className="max-h-80 space-y-3 overflow-y-auto">
+        <div className="space-y-3">
           {rankings.map((user) => {
             const dominanceLevel = getDominanceLevel(user.dominanceRate);
             return (
@@ -111,7 +93,7 @@ export default function HistoricalRank1Ranking({
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${getRankStyle(user.rank)}`}
                   >
-                    {user.rank <= 3 ? getRankIcon(user.rank) : `#${user.rank}`}
+                    {getRankIcon(user.rank)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

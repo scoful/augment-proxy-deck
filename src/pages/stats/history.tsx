@@ -15,6 +15,7 @@ import SystemUsageChart from "@/components/SystemUsageChart";
 import SystemPeakChart from "@/components/SystemPeakChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
+import VehicleChangeChart from "@/components/VehicleChangeChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 import VehicleLifespanChart from "@/components/VehicleLifespanChart";
@@ -94,7 +95,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-blue-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.totalSystemRequests || 0)}
+                      : formatNumber(dataOverview?.totalSystemRequests ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     {dataOverview?.systemStartDate
@@ -115,7 +116,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-red-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.systemPeakUsage || 0)}
+                      : formatNumber(dataOverview?.systemPeakUsage ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     历史最高单日请求量
@@ -134,7 +135,7 @@ export default function HistoryPage() {
                   <p className="text-2xl font-bold text-green-600">
                     {overviewLoading
                       ? "..."
-                      : formatNumber(dataOverview?.dailyActiveUsersPeak || 0)}
+                      : formatNumber(dataOverview?.dailyActiveUsersPeak ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     历史最高单日活跃用户数
@@ -153,7 +154,7 @@ export default function HistoryPage() {
                   <p className="text-lg font-bold text-slate-800">
                     {overviewLoading
                       ? "..."
-                      : dataOverview?.latestDates.user || "暂无"}
+                      : (dataOverview?.latestDates.user ?? "暂无")}
                   </p>
                 </div>
               </div>
@@ -192,7 +193,7 @@ export default function HistoryPage() {
                       : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
                 >
-                  🏆 各种榜单
+                  🏆 排行榜单
                 </button>
               </nav>
             </div>
@@ -242,7 +243,7 @@ export default function HistoryPage() {
           {/* 榜单说明（仅在榜单tab显示） */}
           {activeTab === "rankings" && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800">各种榜单</h3>
+              <h3 className="text-lg font-semibold text-slate-800">排行榜单</h3>
               <p className="text-sm text-slate-600">
                 展示各类数据排行榜和统计榜单
               </p>
@@ -265,6 +266,9 @@ export default function HistoryPage() {
                 {/* 车辆可用性趋势图表 */}
                 <VehicleAvailabilityChart days={selectedDays} />
 
+                {/* 车辆变化动态图表 */}
+                <VehicleChangeChart days={selectedDays} />
+
                 {/* 个人用量趋势图表 */}
                 <PersonalUsageChart days={selectedDays} />
 
@@ -282,9 +286,8 @@ export default function HistoryPage() {
                 <VehicleLifespanChart />
               </div>
 
-              {/* 其他分析图表 */}
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* 用户行为变化检测图表 */}
+              {/* 用户行为变化检测图表 - 独占一排 */}
+              <div className="mb-8">
                 <UserBehaviorAnomalyChart days={14} />
               </div>
             </>

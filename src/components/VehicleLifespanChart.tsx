@@ -33,6 +33,11 @@ export default function VehicleLifespanChart() {
                 ? "黑车"
                 : "未知"}
           </p>
+          <p
+            className={`text-sm ${data?.isCurrentlyActive ? "text-green-600" : "text-gray-500"}`}
+          >
+            状态: {data?.isCurrentlyActive ? "✅ 活跃" : "⚫ 失效"}
+          </p>
           <p className="text-xs text-slate-500">
             {data?.firstSeen} ~ {data?.lastSeen}
           </p>
@@ -44,24 +49,29 @@ export default function VehicleLifespanChart() {
 
   // 处理图表数据
   const chartData =
-    lifespanData?.map((vehicle, index) => ({
+    lifespanData?.map((vehicle) => ({
       carId: vehicle.carId,
       lifespanDays: vehicle.lifespanDays,
       carType: vehicle.carType,
       firstSeen: vehicle.firstSeen,
       lastSeen: vehicle.lastSeen,
+      isCurrentlyActive: vehicle.isCurrentlyActive,
       displayName: `${vehicle.carId.slice(-6)}`, // 只显示车辆ID的后6位
     })) || [];
 
-  // 根据车辆类型设置颜色
-  const getBarColor = (carType: string) => {
+  // 根据车辆类型和状态设置颜色（语义化配色）
+  const getBarColor = (carType: string, isActive: boolean) => {
+    if (!isActive) {
+      return "#9ca3af"; // 失效车辆用淡灰色
+    }
+
     switch (carType) {
       case "social":
-        return "#3b82f6"; // 蓝色
+        return "#10b981"; // 社车用绿色
       case "black":
-        return "#8b5cf6"; // 紫色（更柔和）
+        return "#1f2937"; // 黑车用黑色
       default:
-        return "#64748b"; // 灰色
+        return "#fbbf24"; // 未知类型用黄色
     }
   };
 
@@ -83,8 +93,40 @@ export default function VehicleLifespanChart() {
           车辆生命长度分析
         </h3>
         <p className="text-sm text-slate-600">
-          显示每辆车从首次出现到最后活跃的生命周期长度
+          显示每辆车从首次出现到最后活跃的生命周期长度，按新增时间排序
         </p>
+
+        {/* 图例 */}
+        <div className="mt-3 flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#10b981" }}
+            ></div>
+            <span>社车</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#1f2937" }}
+            ></div>
+            <span>黑车</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#9ca3af" }}
+            ></div>
+            <span>失效车辆</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-3 w-3 rounded"
+              style={{ backgroundColor: "#fbbf24" }}
+            ></div>
+            <span>未知类型</span>
+          </div>
+        </div>
       </div>
 
       {chartData.length === 0 ? (
@@ -124,7 +166,7 @@ export default function VehicleLifespanChart() {
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={getBarColor(entry.carType)}
+                    fill={getBarColor(entry.carType, entry.isCurrentlyActive)}
                   />
                 ))}
               </Bar>
@@ -135,71 +177,115 @@ export default function VehicleLifespanChart() {
 
       {/* 统计信息 */}
       {chartData.length > 0 && (
-        <div className="mt-4 border-t border-slate-200 pt-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {/* 基础统计 */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-slate-700">基础统计</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-slate-600">总车辆数</p>
-                  <p className="font-medium text-slate-800">
-                    {chartData.length} 辆
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-600">平均寿命</p>
-                  <p className="font-medium text-slate-800">
-                    {Math.round(
-                      chartData.reduce((sum, v) => sum + v.lifespanDays, 0) /
-                        chartData.length,
-                    )}{" "}
-                    天
-                  </p>
-                </div>
-              </div>
+        <div className="mt-6 border-t border-slate-200 pt-6">
+          {/* 核心指标卡片 */}
+          <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-slate-50 p-4 text-center">
+              <p className="text-2xl font-bold text-slate-800">
+                {chartData.length}
+              </p>
+              <p className="text-sm text-slate-600">总车辆数</p>
             </div>
-
-            {/* 寿命分布 */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-slate-700">寿命分布</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-slate-600">最长寿命</p>
-                  <p className="font-medium text-green-600">
-                    {Math.max(...chartData.map((v) => v.lifespanDays))} 天
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-600">最短寿命</p>
-                  <p className="font-medium text-orange-600">
-                    {Math.min(...chartData.map((v) => v.lifespanDays))} 天
-                  </p>
-                </div>
-              </div>
+            <div className="rounded-lg bg-green-50 p-4 text-center">
+              <p className="text-2xl font-bold text-green-600">
+                {chartData.filter((v) => v.isCurrentlyActive).length}
+              </p>
+              <p className="text-sm text-slate-600">活跃车辆</p>
+            </div>
+            <div className="rounded-lg bg-gray-50 p-4 text-center">
+              <p className="text-2xl font-bold text-gray-500">
+                {chartData.filter((v) => !v.isCurrentlyActive).length}
+              </p>
+              <p className="text-sm text-slate-600">失效车辆</p>
+            </div>
+            <div className="rounded-lg bg-blue-50 p-4 text-center">
+              <p className="text-2xl font-bold text-blue-600">
+                {Math.round(
+                  chartData.reduce((sum, v) => sum + v.lifespanDays, 0) /
+                    chartData.length,
+                )}
+              </p>
+              <p className="text-sm text-slate-600">平均寿命(天)</p>
             </div>
           </div>
 
-          {/* 车辆类型分布 */}
-          <div className="mt-3 border-t border-slate-100 pt-3">
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-slate-600">社车数量</p>
-                <p className="font-medium text-blue-600">
-                  {chartData.filter((v) => v.carType === "social").length} 辆
-                </p>
+          {/* 详细统计 */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* 车辆类型分布 */}
+            <div className="rounded-lg border border-slate-200 p-4">
+              <h4 className="mb-3 font-medium text-slate-700">车辆类型分布</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#10b981" }}
+                    ></div>
+                    <span className="text-sm text-slate-600">社车</span>
+                  </div>
+                  <span className="font-medium text-slate-800">
+                    {chartData.filter((v) => v.carType === "social").length} 辆
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#1f2937" }}
+                    ></div>
+                    <span className="text-sm text-slate-600">黑车</span>
+                  </div>
+                  <span className="font-medium text-slate-800">
+                    {chartData.filter((v) => v.carType === "black").length} 辆
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded"
+                      style={{ backgroundColor: "#fbbf24" }}
+                    ></div>
+                    <span className="text-sm text-slate-600">未知</span>
+                  </div>
+                  <span className="font-medium text-slate-800">
+                    {
+                      chartData.filter(
+                        (v) => v.carType !== "social" && v.carType !== "black",
+                      ).length
+                    }{" "}
+                    辆
+                  </span>
+                </div>
               </div>
-              <div>
-                <p className="text-slate-600">黑车数量</p>
-                <p className="font-medium text-red-600">
-                  {chartData.filter((v) => v.carType === "black").length} 辆
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-600">未知类型</p>
-                <p className="font-medium text-slate-600">
-                  {chartData.filter((v) => v.carType === "unknown").length} 辆
-                </p>
+            </div>
+
+            {/* 寿命统计 */}
+            <div className="rounded-lg border border-slate-200 p-4">
+              <h4 className="mb-3 font-medium text-slate-700">寿命统计</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">最长寿命</span>
+                  <span className="font-medium text-green-600">
+                    {Math.max(...chartData.map((v) => v.lifespanDays))} 天
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">最短寿命</span>
+                  <span className="font-medium text-orange-600">
+                    {Math.min(...chartData.map((v) => v.lifespanDays))} 天
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">存活率</span>
+                  <span className="font-medium text-blue-600">
+                    {(
+                      (chartData.filter((v) => v.isCurrentlyActive).length /
+                        chartData.length) *
+                      100
+                    ).toFixed(1)}
+                    %
+                  </span>
+                </div>
               </div>
             </div>
           </div>

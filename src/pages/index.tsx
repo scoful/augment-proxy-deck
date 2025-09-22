@@ -129,7 +129,7 @@ export default function Home() {
         <>
           系统用量累计: {formatNumber(dataOverview.totalSystemRequests || 0)}
           <br />
-          最新数据: {dataOverview.latestDates.user || "暂无"}
+          最新数据: {dataOverview.latestDates.user ?? "暂无"}
         </>
       ) : (
         "查看历史数据趋势和长期分析"

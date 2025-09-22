@@ -23,7 +23,7 @@ export default async function handler(
     console.warn("❌ Unauthorized cron request:", {
       authHeader: authHeader ? "***" : "missing",
       userAgent: req.headers["user-agent"],
-      ip: req.headers["x-forwarded-for"] || req.connection.remoteAddress,
+      ip: req.headers["x-forwarded-for"] ?? req.connection.remoteAddress,
     });
     return res.status(401).json({
       success: false,
