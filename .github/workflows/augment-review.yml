@@ -2,7 +2,6 @@ name: Auggie Review
 on:
   pull_request:
     types: [opened, synchronize]
-  workflow_dispatch:
 
 jobs:
   review:
@@ -18,3 +17,28 @@ jobs:
           github_token: ${{ secrets.MY_GITHUB_TOKEN }}
           pull_number: ${{ github.event.pull_request.number }}
           repo_name: ${{ github.repository }}
+          custom_guidelines: |
+            ### Project-Specific Requirements:
+            - **Always respond in Chinese**
+            - **TypeScript**: Avoid using `any` type, prefer proper type definitions
+            - **Testing**: All new functions must have corresponding unit tests
+            - **Documentation**: Public APIs require JSDoc comments with examples
+            - **Performance**: Flag any synchronous operations that could block the main thread
+            
+            ### Code Quality Standards:
+            - Use functional programming patterns where appropriate
+            - Prefer composition over inheritance
+            - Follow the established naming conventions in the codebase
+            - Ensure proper error handling for all async operations
+            
+            ### Security Guidelines:
+            - Validate all user inputs at API boundaries
+            - Check for potential XSS vulnerabilities in UI components
+            - Ensure sensitive data is not exposed in logs or error messages
+            - Review authentication and authorization logic carefully
+            
+            ### Architecture Considerations:
+            - New components should follow the established design patterns
+            - Database changes must be backwards compatible
+            - API changes should maintain backwards compatibility when possible
+            - Consider the impact on existing integ
