@@ -244,23 +244,23 @@ export default function VehicleWaterfallChart({
             <h4 className="text-sm font-medium text-slate-700 mb-2">场景说明</h4>
             <div className="grid grid-cols-1 gap-2 text-xs text-slate-600 md:grid-cols-2">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
+                <div className="w-3 h-3 bg-green-500 rounded flex-shrink-0"></div>
                 <span>新增可用：今天新出现且可用的车辆</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <div className="w-3 h-3 bg-blue-500 rounded flex-shrink-0"></div>
                 <span>移除不可用：昨天不可用今天消失的车辆</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                <div className="w-3 h-3 bg-red-500 rounded flex-shrink-0"></div>
                 <span>新增不可用：昨天可用今天不可用的车辆</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-600 rounded"></div>
+                <div className="w-3 h-3 bg-gray-600 rounded flex-shrink-0"></div>
                 <span>当天新增当天不可用：今天新出现但不可用的车辆</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-1 bg-purple-500 rounded"></div>
+                <div className="w-3 h-1 bg-purple-500 rounded flex-shrink-0"></div>
                 <span>净变化：车辆总数的日变化趋势</span>
               </div>
             </div>

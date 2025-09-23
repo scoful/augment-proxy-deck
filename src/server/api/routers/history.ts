@@ -810,6 +810,14 @@ export const historyRouter = createTRPCRouter({
     const vehicleDetailRecords = await ctx.db.select().from(vehicleStatsDetail);
     const systemDetailRecords = await ctx.db.select().from(systemStatsDetail);
 
+    // 获取最新的成功采集时间
+    const latestCollectionLog = await ctx.db
+      .select()
+      .from(collectionLogs)
+      .where(eq(collectionLogs.status, "success"))
+      .orderBy(desc(collectionLogs.recordedAt))
+      .limit(1);
+
     return {
       latestDates: {
         user: latestUserData[0]?.dataDate || null,
@@ -821,6 +829,7 @@ export const historyRouter = createTRPCRouter({
         vehicleDetail: vehicleDetailRecords.length,
         systemDetail: systemDetailRecords.length,
       },
+      latestCollectionTime: latestCollectionLog[0]?.recordedAt || null, // 最新采集时间
       totalSystemRequests, // 累计系统总请求数
       systemStartDate, // 系统统计开始日期
       systemPeakUsage, // 系统用量峰值

@@ -156,6 +156,22 @@ export default function HistoryPage() {
                       ? "..."
                       : (dataOverview?.latestDates.user ?? "暂无")}
                   </p>
+                  {dataOverview?.latestCollectionTime && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      采集时间: {(() => {
+                        // 手动处理UTC时间转换为北京时间（UTC+8）
+                        const utcDate = new Date(dataOverview.latestCollectionTime);
+                        const beijingTime = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
+                        return beijingTime.toLocaleString('zh-CN', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                      })()}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
