@@ -46,9 +46,9 @@ export default function SystemUsageChart({ days }: SystemUsageChartProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">系统总用量趋势</h3>
+        <h3 className="text-lg font-semibold text-slate-800">每日用量趋势</h3>
         <p className="text-sm text-slate-600">
-          显示每日系统总请求量变化（数据截止昨天）
+          显示每日总请求量变化趋势
         </p>
       </div>
 

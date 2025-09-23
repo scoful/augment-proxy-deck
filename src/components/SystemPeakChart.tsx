@@ -66,9 +66,9 @@ export default function SystemPeakChart({ days }: SystemPeakChartProps) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">系统峰值趋势</h3>
+        <h3 className="text-lg font-semibold text-slate-800">峰值趋势</h3>
         <p className="text-sm text-slate-600">
-          显示每日小时级请求峰值变化（瞬时最高负载）
+          显示每日小时级请求峰值变化趋势
         </p>
       </div>
 
