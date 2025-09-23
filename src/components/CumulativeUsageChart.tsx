@@ -117,7 +117,7 @@ export default function CumulativeUsageChart({
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-slate-800">累计用量趋势</h3>
         <p className="text-sm text-slate-600">
-          展示系统用量的累积增长趋势，一天比一天多
+          展示系统用量的累积增长趋势
         </p>
       </div>
 
@@ -184,7 +184,17 @@ export default function CumulativeUsageChart({
                 stroke="#f59e0b"
                 strokeWidth={3}
                 strokeDasharray="8 4"
-                label={`目标: ${formatNumber(targetValue)}`}
+                label={{
+                  value: `目标: ${formatNumber(targetValue)}`,
+                  position: "top",
+                  offset: 10,
+                  style: {
+                    fill: "#f59e0b",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    textAnchor: "middle"
+                  }
+                }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -225,13 +235,7 @@ export default function CumulativeUsageChart({
               </p>
             </div>
           </div>
-
-          {/* 目标线说明 */}
-          <div className="mt-3 text-xs text-slate-500">
-            <p>
-              🎯 目标线设定为当前累计的0.5倍（向上取整到万位），用于参考对比
-            </p>
-          </div>
+          
         </div>
       )}
     </div>

@@ -128,8 +128,7 @@ export default function VehicleWaterfallChart({
           车辆变化场景分析
         </h3>
         <p className="text-sm text-slate-600">
-          分组展示车辆变化的4种场景：正向变化（新增可用、移除不可用）vs
-          负向变化（新增不可用、当天新增当天不可用），紫色折线显示净变化趋势
+          分组展示车辆变化的4种场景
         </p>
       </div>
 
