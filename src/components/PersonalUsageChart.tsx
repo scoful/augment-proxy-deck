@@ -8,7 +8,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { MagnifyingGlassIcon, XMarkIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import {
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
 import {
@@ -246,7 +250,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       const activityLevel = getFormattedActivityName(activityLevelData);
 
       return (
-        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg max-w-xs">
+        <div className="max-w-xs rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
           <p className="text-sm text-blue-600">
             请求量: {formatNumber(data.count24Hour)}
@@ -258,7 +262,7 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
             <p className={`text-sm font-medium ${activityLevelData.textColor}`}>
               活跃度: {activityLevel}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               {activityLevelData.description}
             </p>
           </div>
@@ -457,23 +461,32 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                   <div>
                     <div className="flex items-center gap-1">
                       <p className="text-slate-600">活跃度</p>
-                      <div className="relative group">
-                        <QuestionMarkCircleIcon className="h-4 w-4 text-slate-400 hover:text-slate-600 cursor-help" />
+                      <div className="group relative">
+                        <QuestionMarkCircleIcon className="h-4 w-4 cursor-help text-slate-400 hover:text-slate-600" />
                         {/* 自定义Tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
-                          <div className="bg-slate-800 text-white text-xs rounded-lg p-3 shadow-lg whitespace-nowrap">
-                            <div className="font-medium mb-2">活跃度分类标准</div>
+                        <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform group-hover:block">
+                          <div className="rounded-lg bg-slate-800 p-3 text-xs whitespace-nowrap text-white shadow-lg">
+                            <div className="mb-2 font-medium">
+                              活跃度分类标准
+                            </div>
                             <div className="space-y-1">
                               {ACTIVITY_LEVELS.map((level, index) => (
-                                <div key={index} className="flex items-center gap-2">
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2"
+                                >
                                   <span>{level.emoji}</span>
-                                  <span className="font-medium">{level.name}:</span>
-                                  <span className="text-slate-300">{level.description}</span>
+                                  <span className="font-medium">
+                                    {level.name}:
+                                  </span>
+                                  <span className="text-slate-300">
+                                    {level.description}
+                                  </span>
                                 </div>
                               ))}
                             </div>
                             {/* 箭头 */}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
+                            <div className="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 transform border-t-4 border-r-4 border-l-4 border-transparent border-t-slate-800"></div>
                           </div>
                         </div>
                       </div>

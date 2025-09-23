@@ -291,7 +291,8 @@ export const historyRouter = createTRPCRouter({
       for (const date of allDates) {
         const todayAllVehicles = dailyVehicles.get(date) ?? new Set();
         const todayActiveVehicles = dailyActiveVehicles.get(date) ?? new Set();
-        const todayInactiveVehicles = dailyInactiveVehicles.get(date) ?? new Set();
+        const todayInactiveVehicles =
+          dailyInactiveVehicles.get(date) ?? new Set();
 
         // 场景1：移除失效车辆（昨天失效但今天完全消失）
         const removedInactiveVehicles = new Set(
@@ -328,8 +329,10 @@ export const historyRouter = createTRPCRouter({
         const sameDayInactiveCount = sameDayInactiveVehicles.size;
 
         // 计算净变化
-        const totalVehicleChange = todayAllVehicles.size - previousDayAllVehicles.size;
-        const activeVehicleChange = todayActiveVehicles.size - previousDayActiveVehicles.size;
+        const totalVehicleChange =
+          todayAllVehicles.size - previousDayAllVehicles.size;
+        const activeVehicleChange =
+          todayActiveVehicles.size - previousDayActiveVehicles.size;
 
         waterfallData.push({
           dataDate: date,

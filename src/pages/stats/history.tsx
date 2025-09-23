@@ -16,6 +16,7 @@ import SystemPeakChart from "@/components/SystemPeakChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 import VehicleWaterfallChart from "@/components/VehicleWaterfallChart";
+import CumulativeUsageChart from "@/components/CumulativeUsageChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 import VehicleLifespanChart from "@/components/VehicleLifespanChart";
@@ -158,16 +159,21 @@ export default function HistoryPage() {
                   </p>
                   {dataOverview?.latestCollectionTime && (
                     <p className="mt-1 text-xs text-slate-500">
-                      采集时间: {(() => {
+                      采集时间:{" "}
+                      {(() => {
                         // 手动处理UTC时间转换为北京时间（UTC+8）
-                        const utcDate = new Date(dataOverview.latestCollectionTime);
-                        const beijingTime = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
-                        return beijingTime.toLocaleString('zh-CN', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
+                        const utcDate = new Date(
+                          dataOverview.latestCollectionTime,
+                        );
+                        const beijingTime = new Date(
+                          utcDate.getTime() + 8 * 60 * 60 * 1000,
+                        );
+                        return beijingTime.toLocaleString("zh-CN", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         });
                       })()}
                     </p>
@@ -270,7 +276,10 @@ export default function HistoryPage() {
           {activeTab === "trends" && (
             <>
               <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* 系统总用量趋势图表 */}
+                {/* 累计用量趋势图表 */}
+                <CumulativeUsageChart days={selectedDays} />
+
+                {/* 系统每日用量趋势图表 */}
                 <SystemUsageChart days={selectedDays} />
 
                 {/* 系统峰值趋势图表 */}
