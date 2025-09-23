@@ -116,9 +116,7 @@ export default function CumulativeUsageChart({
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-slate-800">累计用量趋势</h3>
-        <p className="text-sm text-slate-600">
-          展示系统用量的累积增长趋势
-        </p>
+        <p className="text-sm text-slate-600">展示系统用量的累积增长趋势</p>
       </div>
 
       {isLoading ? (
@@ -192,8 +190,8 @@ export default function CumulativeUsageChart({
                     fill: "#f59e0b",
                     fontSize: "12px",
                     fontWeight: "500",
-                    textAnchor: "middle"
-                  }
+                    textAnchor: "middle",
+                  },
                 }}
               />
             </ComposedChart>
@@ -235,7 +233,6 @@ export default function CumulativeUsageChart({
               </p>
             </div>
           </div>
-          
         </div>
       )}
     </div>

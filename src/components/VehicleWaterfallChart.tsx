@@ -127,9 +127,7 @@ export default function VehicleWaterfallChart({
         <h3 className="text-lg font-semibold text-slate-800">
           车辆变化场景分析
         </h3>
-        <p className="text-sm text-slate-600">
-          分组展示车辆变化的4种场景
-        </p>
+        <p className="text-sm text-slate-600">分组展示车辆变化的4种场景</p>
       </div>
 
       {isLoading ? (
