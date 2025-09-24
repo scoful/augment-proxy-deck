@@ -558,8 +558,14 @@ export const historyRouter = createTRPCRouter({
         for (let i = windowSize; i < userHistory.length; i++) {
           // 计算基线统计（前7天）
           const baselineWindow = userHistory.slice(i - windowSize, i);
-          const mean = baselineWindow.reduce((sum, d) => sum + d.count24Hour, 0) / windowSize;
-          const variance = baselineWindow.reduce((sum, d) => sum + Math.pow(d.count24Hour - mean, 2), 0) / windowSize;
+          const mean =
+            baselineWindow.reduce((sum, d) => sum + d.count24Hour, 0) /
+            windowSize;
+          const variance =
+            baselineWindow.reduce(
+              (sum, d) => sum + Math.pow(d.count24Hour - mean, 2),
+              0,
+            ) / windowSize;
           const stdDev = Math.sqrt(variance);
 
           // 当前值
@@ -590,7 +596,7 @@ export const historyRouter = createTRPCRouter({
         anomalies,
         statistics: {
           totalAnomalies: anomalies.length,
-          uniqueUsers: new Set(anomalies.map(a => a.userId)).size,
+          uniqueUsers: new Set(anomalies.map((a) => a.userId)).size,
           dateRange: {
             start: startDate,
             end: new Date().toISOString().split("T")[0],
@@ -604,8 +610,6 @@ export const historyRouter = createTRPCRouter({
         },
       };
     }),
-
-
 
   // 获取活跃用户列表
   getActiveUserList: publicProcedure

@@ -68,8 +68,6 @@ export default function UserActivityRanking({
     return "bg-slate-100 text-slate-700";
   };
 
-
-
   if (isLoading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6">

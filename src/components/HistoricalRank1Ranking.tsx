@@ -117,7 +117,9 @@ export default function HistoricalRank1Ranking({
                     <div className="flex items-center gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-1">
                         <CalendarDaysIcon className="h-4 w-4" />
-                        <span>平均 {formatNumber(user.avgRequestsWhenRank1)}</span>
+                        <span>
+                          平均 {formatNumber(user.avgRequestsWhenRank1)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span>榜一率 {user.dominanceRate}%</span>

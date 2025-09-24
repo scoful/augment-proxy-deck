@@ -26,22 +26,27 @@ export default function TimeSeriesAnomalyChart({
     });
 
   // 处理图表数据
-  const chartData = anomalyData?.anomalies.map((anomaly) => ({
-    x: new Date(anomaly.date).getTime(), // 转换为时间戳用于X轴
-    y: anomaly.anomalyScore,
-    date: anomaly.date,
-    userId: anomaly.userId,
-    displayName: anomaly.displayName,
-    baseline: anomaly.baseline,
-    current: anomaly.current,
-    changeRate: anomaly.changeRate,
-    zScore: anomaly.zScore,
-    // 点的大小基于基线值（基线越小点越大，突出低基数用户）
-    size: Math.max(50, 200 - anomaly.baseline * 2),
-    // 颜色基于异常强度
-    color: anomaly.anomalyScore > 4 ? "#ef4444" : 
-           anomaly.anomalyScore > 3 ? "#f59e0b" : "#10b981",
-  })) || [];
+  const chartData =
+    anomalyData?.anomalies.map((anomaly) => ({
+      x: new Date(anomaly.date).getTime(), // 转换为时间戳用于X轴
+      y: anomaly.anomalyScore,
+      date: anomaly.date,
+      userId: anomaly.userId,
+      displayName: anomaly.displayName,
+      baseline: anomaly.baseline,
+      current: anomaly.current,
+      changeRate: anomaly.changeRate,
+      zScore: anomaly.zScore,
+      // 点的大小基于基线值（基线越小点越大，突出低基数用户）
+      size: Math.max(50, 200 - anomaly.baseline * 2),
+      // 颜色基于异常强度
+      color:
+        anomaly.anomalyScore > 4
+          ? "#ef4444"
+          : anomaly.anomalyScore > 3
+            ? "#f59e0b"
+            : "#10b981",
+    })) || [];
 
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload }: any) => {
@@ -94,10 +99,14 @@ export default function TimeSeriesAnomalyChart({
             <p>暂无异常检测到</p>
             {anomalyData && (
               <p className="mt-2 text-xs">
-                检测参数：基线窗口{anomalyData.statistics.detectionParams.windowSize}天，
-                Z-score阈值{anomalyData.statistics.detectionParams.zScoreThreshold}，
-                变化率阈值{anomalyData.statistics.detectionParams.changeRateThreshold}%，
-                基线限制&lt;{anomalyData.statistics.detectionParams.baselineLimit}
+                检测参数：基线窗口
+                {anomalyData.statistics.detectionParams.windowSize}天，
+                Z-score阈值
+                {anomalyData.statistics.detectionParams.zScoreThreshold}，
+                变化率阈值
+                {anomalyData.statistics.detectionParams.changeRateThreshold}%，
+                基线限制&lt;
+                {anomalyData.statistics.detectionParams.baselineLimit}
               </p>
             )}
           </div>
@@ -119,7 +128,7 @@ export default function TimeSeriesAnomalyChart({
                   type="number"
                   dataKey="x"
                   scale="time"
-                  domain={['dataMin', 'dataMax']}
+                  domain={["dataMin", "dataMax"]}
                   tick={{ fontSize: 12 }}
                   tickFormatter={formatXAxisDate}
                 />
@@ -138,7 +147,7 @@ export default function TimeSeriesAnomalyChart({
                   y={2.5}
                   stroke="#ef4444"
                   strokeDasharray="5 5"
-                  label={{ value: "异常阈值(Z=2.5)", position: "topRight" }}
+                  label={{ value: "异常阈值(Z=2.5)", position: "top" }}
                 />
 
                 {/* 高强度异常阈值线 */}
@@ -146,7 +155,7 @@ export default function TimeSeriesAnomalyChart({
                   y={4}
                   stroke="#dc2626"
                   strokeDasharray="3 3"
-                  label={{ value: "高强度异常(Z=4)", position: "topRight" }}
+                  label={{ value: "高强度异常(Z=4)", position: "top" }}
                 />
 
                 {/* 异常点散点图 */}
@@ -178,13 +187,17 @@ export default function TimeSeriesAnomalyChart({
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {chartData.filter(d => d.baseline < 20).length}
+                    {chartData.filter((d) => d.baseline < 20).length}
                   </p>
                   <p className="text-slate-600">低基数爆发</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
-                    {Math.round(chartData.reduce((sum, d) => sum + d.changeRate, 0) / chartData.length) || 0}%
+                    {Math.round(
+                      chartData.reduce((sum, d) => sum + d.changeRate, 0) /
+                        chartData.length,
+                    ) || 0}
+                    %
                   </p>
                   <p className="text-slate-600">平均变化率</p>
                 </div>
