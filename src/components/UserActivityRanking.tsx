@@ -68,19 +68,6 @@ export default function UserActivityRanking({
     return "bg-slate-100 text-slate-700";
   };
 
-  // 获取活跃度等级
-  const getActivityLevel = (totalRequests: number) => {
-    if (totalRequests >= 10000)
-      return { level: "超级活跃", color: "text-red-600", emoji: "🔥" };
-    if (totalRequests >= 5000)
-      return { level: "非常活跃", color: "text-orange-600", emoji: "⚡" };
-    if (totalRequests >= 2000)
-      return { level: "很活跃", color: "text-yellow-600", emoji: "🌟" };
-    if (totalRequests >= 1000)
-      return { level: "活跃", color: "text-green-600", emoji: "✨" };
-    return { level: "一般", color: "text-blue-600", emoji: "💫" };
-  };
-
   if (isLoading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6">
@@ -242,7 +229,6 @@ export default function UserActivityRanking({
       ) : (
         <div className="space-y-3">
           {rankings.map((user) => {
-            const activityLevel = getActivityLevel(user.totalRequests);
             return (
               <div
                 key={user.userId}
@@ -263,9 +249,6 @@ export default function UserActivityRanking({
                         title={user.displayName}
                       >
                         {truncateDisplayName(user.displayName)}
-                      </span>
-                      <span className={`text-xs ${activityLevel.color}`}>
-                        {activityLevel.emoji} {activityLevel.level}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-slate-600">
@@ -301,7 +284,7 @@ export default function UserActivityRanking({
       {/* 统计信息 */}
       {rankings && rankings.length > 0 && (
         <div className="mt-6 border-t border-slate-200 pt-4">
-          <div className="grid grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">
               <p className="text-slate-600">最活跃用户</p>
               <p className="font-bold text-yellow-600">
@@ -326,12 +309,6 @@ export default function UserActivityRanking({
                   rankings.reduce((sum, u) => sum + u.activeDays, 0) /
                     rankings.length,
                 )}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-slate-600">超级活跃用户</p>
-              <p className="font-bold text-red-600">
-                {rankings.filter((u) => u.totalRequests >= 10000).length}
               </p>
             </div>
           </div>

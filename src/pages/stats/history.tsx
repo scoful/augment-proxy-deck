@@ -18,8 +18,8 @@ import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
 import VehicleWaterfallChart from "@/components/VehicleWaterfallChart";
 import CumulativeUsageChart from "@/components/CumulativeUsageChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
-import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
-import VehicleLifespanChart from "@/components/VehicleLifespanChart";
+import TimeSeriesAnomalyChart from "@/components/TimeSeriesAnomalyChart";
+
 import DailyRequestRanking from "@/components/DailyRequestRanking";
 import UserActivityRanking from "@/components/UserActivityRanking";
 import HourlyPeakRanking from "@/components/HourlyPeakRanking";
@@ -306,14 +306,9 @@ export default function HistoryPage() {
           {/* 整体分析图表区域（仅在整体分析tab显示） */}
           {activeTab === "overview" && (
             <>
-              {/* 车辆生命长度分析图表 - 独占一排 */}
+              {/* 时间序列异常监控图表 - 独占一排 */}
               <div className="mb-8">
-                <VehicleLifespanChart />
-              </div>
-
-              {/* 用户行为变化检测图表 - 独占一排 */}
-              <div className="mb-8">
-                <UserBehaviorAnomalyChart days={14} />
+                <TimeSeriesAnomalyChart days={21} />
               </div>
             </>
           )}
@@ -329,7 +324,7 @@ export default function HistoryPage() {
 
               {/* 第二行：小时级峰值排行榜 和 历史第一名排行榜 */}
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                <HourlyPeakRanking limit={15} />
+                <HourlyPeakRanking limit={10} />
                 <HistoricalRank1Ranking limit={15} />
               </div>
             </div>
