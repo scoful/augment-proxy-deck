@@ -15,7 +15,8 @@ import SystemUsageChart from "@/components/SystemUsageChart";
 import SystemPeakChart from "@/components/SystemPeakChart";
 import SystemUsersChart from "@/components/SystemUsersChart";
 import VehicleAvailabilityChart from "@/components/VehicleAvailabilityChart";
-import VehicleChangeChart from "@/components/VehicleChangeChart";
+import VehicleWaterfallChart from "@/components/VehicleWaterfallChart";
+import CumulativeUsageChart from "@/components/CumulativeUsageChart";
 import UserActivityDistributionChart from "@/components/UserActivityDistributionChart";
 import UserBehaviorAnomalyChart from "@/components/UserBehaviorAnomalyChart";
 import VehicleLifespanChart from "@/components/VehicleLifespanChart";
@@ -78,7 +79,7 @@ export default function HistoryPage() {
               </div>
               <p className="text-sm text-amber-800">
                 <span className="font-medium">数据说明：</span>
-                历史趋势数据截止昨天，不包含当天实时数据。每日凌晨00:05自动采集前一天的完整统计数据。
+                所有数据截止昨天，不包含当天实时数据。每日凌晨00:05~01:00自动采集前一天的完整统计数据。
               </p>
             </div>
           </div>
@@ -91,7 +92,7 @@ export default function HistoryPage() {
                   <ChartBarIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">系统用量累计</p>
+                  <p className="text-sm text-slate-600">用量累计</p>
                   <p className="text-2xl font-bold text-blue-600">
                     {overviewLoading
                       ? "..."
@@ -112,7 +113,7 @@ export default function HistoryPage() {
                   <TruckIcon className="h-6 w-6 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">系统用量峰值</p>
+                  <p className="text-sm text-slate-600">用量峰值</p>
                   <p className="text-2xl font-bold text-red-600">
                     {overviewLoading
                       ? "..."
@@ -156,6 +157,27 @@ export default function HistoryPage() {
                       ? "..."
                       : (dataOverview?.latestDates.user ?? "暂无")}
                   </p>
+                  {dataOverview?.latestCollectionTime && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      采集时间:{" "}
+                      {(() => {
+                        // 手动处理UTC时间转换为北京时间（UTC+8）
+                        const utcDate = new Date(
+                          dataOverview.latestCollectionTime,
+                        );
+                        const beijingTime = new Date(
+                          utcDate.getTime() + 8 * 60 * 60 * 1000,
+                        );
+                        return beijingTime.toLocaleString("zh-CN", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                      })()}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -254,7 +276,10 @@ export default function HistoryPage() {
           {activeTab === "trends" && (
             <>
               <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* 系统总用量趋势图表 */}
+                {/* 累计用量趋势图表 */}
+                <CumulativeUsageChart days={selectedDays} />
+
+                {/* 系统每日用量趋势图表 */}
                 <SystemUsageChart days={selectedDays} />
 
                 {/* 系统峰值趋势图表 */}
@@ -266,8 +291,8 @@ export default function HistoryPage() {
                 {/* 车辆可用性趋势图表 */}
                 <VehicleAvailabilityChart days={selectedDays} />
 
-                {/* 车辆变化动态图表 */}
-                <VehicleChangeChart days={selectedDays} />
+                {/* 车辆变化场景分析图表 */}
+                <VehicleWaterfallChart days={selectedDays} />
 
                 {/* 个人用量趋势图表 */}
                 <PersonalUsageChart days={selectedDays} />

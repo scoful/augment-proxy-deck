@@ -8,12 +8,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline";
 import { api } from "@/utils/api";
 import { formatNumber } from "@/utils/formatters";
 import {
   getActivityLevelByAvgRequests,
   getFormattedActivityName,
+  ACTIVITY_LEVELS,
 } from "@/utils/activityLevels";
 
 // 记住用户的数据结构
@@ -237,12 +242,15 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
       rank24Hour: "rank24Hour" in trend ? trend.rank24Hour : 0,
     })) || [];
 
-  // 自定义Tooltip - 简化显示
+  // 自定义Tooltip - 包含活跃度信息
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
+      const activityLevelData = getActivityLevelByAvgRequests(data.count24Hour);
+      const activityLevel = getFormattedActivityName(activityLevelData);
+
       return (
-        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
+        <div className="max-w-xs rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
           <p className="text-sm text-blue-600">
             请求量: {formatNumber(data.count24Hour)}
@@ -250,6 +258,14 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
           <p className="text-sm text-slate-600">
             排名: {formatNumber(data.rank24Hour)} 名
           </p>
+          <div className="mt-2 border-t border-slate-100 pt-2">
+            <p className={`text-sm font-medium ${activityLevelData.textColor}`}>
+              活跃度: {activityLevel}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {activityLevelData.description}
+            </p>
+          </div>
         </div>
       );
     }
@@ -443,7 +459,38 @@ export default function PersonalUsageChart({ days }: PersonalUsageChartProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600">活跃度</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-slate-600">活跃度</p>
+                      <div className="group relative">
+                        <QuestionMarkCircleIcon className="h-4 w-4 cursor-help text-slate-400 hover:text-slate-600" />
+                        {/* 自定义Tooltip */}
+                        <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform group-hover:block">
+                          <div className="rounded-lg bg-slate-800 p-3 text-xs whitespace-nowrap text-white shadow-lg">
+                            <div className="mb-2 font-medium">
+                              活跃度分类标准
+                            </div>
+                            <div className="space-y-1">
+                              {ACTIVITY_LEVELS.map((level, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span>{level.emoji}</span>
+                                  <span className="font-medium">
+                                    {level.name}:
+                                  </span>
+                                  <span className="text-slate-300">
+                                    {level.description}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            {/* 箭头 */}
+                            <div className="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 transform border-t-4 border-r-4 border-l-4 border-transparent border-t-slate-800"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <p className={`font-medium ${activityColor}`}>
                       {activityLevel}
                     </p>

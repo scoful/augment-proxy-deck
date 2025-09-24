@@ -127,7 +127,7 @@ export default function Home() {
       title: "历史统计",
       description: dataOverview ? (
         <>
-          系统用量累计: {formatNumber(dataOverview.totalSystemRequests || 0)}
+          用量累计: {formatNumber(dataOverview.totalSystemRequests || 0)}
           <br />
           最新数据: {dataOverview.latestDates.user ?? "暂无"}
         </>

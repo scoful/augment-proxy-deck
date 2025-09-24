@@ -220,6 +220,148 @@ export const historyRouter = createTRPCRouter({
       return changeData;
     }),
 
+  // 获取车辆变化瀑布图数据（4种场景分析）
+  getVehicleWaterfallTrends: publicProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(7),
+        carType: z.enum(["all", "social", "black"]).default("all"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - input.days);
+      const startDate = daysAgo.toISOString().split("T")[0]!;
+
+      // 获取指定时间范围内的所有车辆明细数据
+      const vehicleDetails = await ctx.db
+        .select()
+        .from(vehicleStatsDetail)
+        .where(
+          and(
+            gte(vehicleStatsDetail.dataDate, startDate),
+            input.carType === "all"
+              ? undefined
+              : eq(vehicleStatsDetail.carType, input.carType),
+          ),
+        )
+        .orderBy(
+          asc(vehicleStatsDetail.dataDate),
+          asc(vehicleStatsDetail.carId),
+        );
+
+      // 按日期分组车辆数据
+      const dailyVehicles = new Map<string, Set<string>>();
+      const dailyActiveVehicles = new Map<string, Set<string>>();
+      const dailyInactiveVehicles = new Map<string, Set<string>>();
+
+      vehicleDetails.forEach((record) => {
+        const date = record.dataDate;
+
+        // 记录当天出现的所有车辆
+        if (!dailyVehicles.has(date)) {
+          dailyVehicles.set(date, new Set());
+        }
+        dailyVehicles.get(date)!.add(record.carId);
+
+        // 记录当天活跃的车辆
+        if (record.isActive) {
+          if (!dailyActiveVehicles.has(date)) {
+            dailyActiveVehicles.set(date, new Set());
+          }
+          dailyActiveVehicles.get(date)!.add(record.carId);
+        } else {
+          // 记录当天失效的车辆
+          if (!dailyInactiveVehicles.has(date)) {
+            dailyInactiveVehicles.set(date, new Set());
+          }
+          dailyInactiveVehicles.get(date)!.add(record.carId);
+        }
+      });
+
+      // 获取所有日期并排序
+      const allDates = Array.from(dailyVehicles.keys()).sort();
+
+      // 计算瀑布图数据
+      const waterfallData = [];
+      let previousDayAllVehicles = new Set<string>();
+      let previousDayActiveVehicles = new Set<string>();
+      let previousDayInactiveVehicles = new Set<string>();
+
+      for (const date of allDates) {
+        const todayAllVehicles = dailyVehicles.get(date) ?? new Set();
+        const todayActiveVehicles = dailyActiveVehicles.get(date) ?? new Set();
+        const todayInactiveVehicles =
+          dailyInactiveVehicles.get(date) ?? new Set();
+
+        // 场景1：移除失效车辆（昨天失效但今天完全消失）
+        const removedInactiveVehicles = new Set(
+          [...previousDayInactiveVehicles].filter(
+            (carId) => !todayAllVehicles.has(carId),
+          ),
+        );
+
+        // 场景2：新增有效车辆（今天新出现且活跃）
+        const newActiveVehicles = new Set(
+          [...todayActiveVehicles].filter(
+            (carId) => !previousDayAllVehicles.has(carId),
+          ),
+        );
+
+        // 场景3：新增失效车辆（昨天活跃，今天失效）
+        const newlyInactiveVehicles = new Set(
+          [...previousDayActiveVehicles].filter((carId) =>
+            todayInactiveVehicles.has(carId),
+          ),
+        );
+
+        // 场景4：当天失效车辆（今天新出现但失效）
+        const sameDayInactiveVehicles = new Set(
+          [...todayInactiveVehicles].filter(
+            (carId) => !previousDayAllVehicles.has(carId),
+          ),
+        );
+
+        // 计算各场景数量
+        const removedInactiveCount = removedInactiveVehicles.size;
+        const newActiveCount = newActiveVehicles.size;
+        const newlyInactiveCount = newlyInactiveVehicles.size;
+        const sameDayInactiveCount = sameDayInactiveVehicles.size;
+
+        // 计算净变化
+        const totalVehicleChange =
+          todayAllVehicles.size - previousDayAllVehicles.size;
+        const activeVehicleChange =
+          todayActiveVehicles.size - previousDayActiveVehicles.size;
+
+        waterfallData.push({
+          dataDate: date,
+          // 4种场景数据
+          removedInactive: removedInactiveCount,
+          newActive: newActiveCount,
+          newlyInactive: newlyInactiveCount,
+          sameDayInactive: sameDayInactiveCount,
+          // 总量数据
+          totalVehicles: todayAllVehicles.size,
+          activeVehicles: todayActiveVehicles.size,
+          inactiveVehicles: todayInactiveVehicles.size,
+          // 变化数据
+          totalVehicleChange,
+          activeVehicleChange,
+          // 前一天数据（用于瀑布图起始点）
+          previousTotalVehicles: previousDayAllVehicles.size,
+          previousActiveVehicles: previousDayActiveVehicles.size,
+        });
+
+        // 更新前一天的数据
+        previousDayAllVehicles = todayAllVehicles;
+        previousDayActiveVehicles = todayActiveVehicles;
+        previousDayInactiveVehicles = todayInactiveVehicles;
+      }
+
+      return waterfallData;
+    }),
+
   // 获取社车vs黑车对比数据
   getSocialVsBlackComparison: publicProcedure
     .input(z.object({ days: z.number().default(30) }))
@@ -671,6 +813,14 @@ export const historyRouter = createTRPCRouter({
     const vehicleDetailRecords = await ctx.db.select().from(vehicleStatsDetail);
     const systemDetailRecords = await ctx.db.select().from(systemStatsDetail);
 
+    // 获取最新的成功采集时间
+    const latestCollectionLog = await ctx.db
+      .select()
+      .from(collectionLogs)
+      .where(eq(collectionLogs.status, "success"))
+      .orderBy(desc(collectionLogs.recordedAt))
+      .limit(1);
+
     return {
       latestDates: {
         user: latestUserData[0]?.dataDate || null,
@@ -682,6 +832,7 @@ export const historyRouter = createTRPCRouter({
         vehicleDetail: vehicleDetailRecords.length,
         systemDetail: systemDetailRecords.length,
       },
+      latestCollectionTime: latestCollectionLog[0]?.recordedAt || null, // 最新采集时间
       totalSystemRequests, // 累计系统总请求数
       systemStartDate, // 系统统计开始日期
       systemPeakUsage, // 系统用量峰值
