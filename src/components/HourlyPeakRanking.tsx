@@ -11,7 +11,7 @@ interface HourlyPeakRankingProps {
 }
 
 export default function HourlyPeakRanking({
-  limit = 15,
+  limit = 10,
 }: HourlyPeakRankingProps) {
   const { data: rankings, isLoading } =
     api.history.getHourlyPeakRanking.useQuery({ limit });

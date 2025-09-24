@@ -43,43 +43,17 @@ export default function CumulativeUsageChart({
     return dataWithCumulative;
   })();
 
-  // 计算固定目标值（基于当前累计的合理增长目标）
-  const targetValue = (() => {
-    if (chartData.length === 0) return 10000; // 默认目标
-    const currentTotal =
-      chartData[chartData.length - 1]?.cumulativeRequests || 0;
-    if (currentTotal === 0) return 10000; // 如果没有数据，默认1万
-
-    // 设定目标为当前累计的0.5倍，向上取整到万位
-    const targetMultiplier = 0.5;
-    const rawTarget = currentTotal * targetMultiplier;
-
-    // 向上取整到万位，最小目标1万
-    const roundedTarget = Math.max(10000, Math.ceil(rawTarget / 10000) * 10000);
-    return roundedTarget;
-  })();
-
   // 自定义Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
       const data = payload[0]?.payload;
       const actualValue = data.cumulativeRequests;
-      const difference = actualValue - targetValue;
 
       return (
         <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="font-medium text-slate-800">{`日期: ${label}`}</p>
           <p className="text-sm text-green-600">
             累计用量: {formatNumber(actualValue)}
-          </p>
-          <p className="text-sm text-orange-600">
-            目标用量: {formatNumber(targetValue)}
-          </p>
-          <p
-            className={`text-sm ${difference >= 0 ? "text-green-600" : "text-red-600"}`}
-          >
-            {difference >= 0 ? "已达成目标" : "距离目标"}:{" "}
-            {formatNumber(Math.abs(difference))}
           </p>
           <p className="text-sm text-slate-600">
             当日新增: {formatNumber(data.dailyRequests)}
@@ -96,7 +70,6 @@ export default function CumulativeUsageChart({
       ? {
           totalRequests:
             chartData[chartData.length - 1]?.cumulativeRequests || 0,
-          targetRequests: targetValue,
           averageDailyGrowth:
             chartData.length > 1
               ? Math.round(
@@ -106,9 +79,6 @@ export default function CumulativeUsageChart({
               : 0,
           latestDailyIncrease:
             chartData[chartData.length - 1]?.dailyRequests || 0,
-          targetDifference:
-            (chartData[chartData.length - 1]?.cumulativeRequests || 0) -
-            targetValue,
         }
       : null;
 
@@ -158,7 +128,7 @@ export default function CumulativeUsageChart({
                 tickFormatter={(value) => formatNumber(value)}
                 domain={[
                   0,
-                  (dataMax: number) => Math.max(dataMax, targetValue) * 1.1,
+                  (dataMax: number) => dataMax * 1.1, // Y轴只基于实际数据，不受目标线影响
                 ]}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -175,25 +145,6 @@ export default function CumulativeUsageChart({
                 activeDot={{ r: 6, stroke: "#10b981", strokeWidth: 2 }}
                 name="累计用量"
               />
-
-              {/* 水平目标线 */}
-              <ReferenceLine
-                y={targetValue}
-                stroke="#f59e0b"
-                strokeWidth={3}
-                strokeDasharray="8 4"
-                label={{
-                  value: `目标: ${formatNumber(targetValue)}`,
-                  position: "top",
-                  offset: 10,
-                  style: {
-                    fill: "#f59e0b",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    textAnchor: "middle",
-                  },
-                }}
-              />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -202,22 +153,11 @@ export default function CumulativeUsageChart({
       {/* 统计信息 */}
       {stats && (
         <div className="mt-4 border-t border-slate-100 pt-4">
-          <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
             <div>
               <p className="text-slate-600">累计总量</p>
               <p className="font-medium text-green-600">
                 {formatNumber(stats.totalRequests)}
-              </p>
-            </div>
-            <div>
-              <p className="text-slate-600">目标完成度</p>
-              <p
-                className={`font-medium ${stats.targetDifference >= 0 ? "text-green-600" : "text-red-600"}`}
-              >
-                {((stats.totalRequests / stats.targetRequests) * 100).toFixed(
-                  1,
-                )}
-                %
               </p>
             </div>
             <div>

@@ -18,7 +18,7 @@ export default function HistoricalRank1Ranking({
     api.history.getHistoricalRank1Users.useQuery({ limit });
 
   // 截断用户名显示
-  const truncateDisplayName = (name: string, maxLength = 10) => {
+  const truncateDisplayName = (name: string, maxLength = 8) => {
     if (name.length <= maxLength) return name;
     return name.slice(0, maxLength) + "...";
   };
@@ -33,17 +33,17 @@ export default function HistoricalRank1Ranking({
     return "bg-slate-100 text-slate-700";
   };
 
-  // 获取统治力等级
+  // 获取榜一等级
   const getDominanceLevel = (dominanceRate: number) => {
     if (dominanceRate >= 50)
-      return { level: "绝对统治", color: "text-red-600", emoji: "👑" };
+      return { level: "绝对榜一", color: "text-red-600", emoji: "👑" };
     if (dominanceRate >= 30)
-      return { level: "强势统治", color: "text-orange-600", emoji: "🔥" };
+      return { level: "强势榜一", color: "text-orange-600", emoji: "🔥" };
     if (dominanceRate >= 20)
-      return { level: "稳定统治", color: "text-yellow-600", emoji: "⭐" };
+      return { level: "稳定榜一", color: "text-yellow-600", emoji: "⭐" };
     if (dominanceRate >= 10)
-      return { level: "偶尔统治", color: "text-green-600", emoji: "✨" };
-    return { level: "偶然登顶", color: "text-blue-600", emoji: "💫" };
+      return { level: "偶尔榜一", color: "text-green-600", emoji: "✨" };
+    return { level: "偶然榜一", color: "text-blue-600", emoji: "💫" };
   };
 
   if (isLoading) {
@@ -113,21 +113,22 @@ export default function HistoricalRank1Ranking({
                         <TrophyIcon className="h-4 w-4" />
                         <span>登顶 {user.rank1Count} 次</span>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-1">
                         <CalendarDaysIcon className="h-4 w-4" />
-                        <span>统治率 {user.dominanceRate}%</span>
+                        <span>平均 {formatNumber(user.avgRequestsWhenRank1)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>榜一率 {user.dominanceRate}%</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 统计数据 */}
+                {/* 时间范围 */}
                 <div className="text-right">
-                  <div className="text-xl font-bold text-slate-800">
-                    {user.rank1Count}
-                  </div>
                   <div className="space-y-0.5 text-xs text-slate-500">
-                    <div>平均 {formatNumber(user.avgRequestsWhenRank1)}</div>
                     <div>{user.firstRank1Date}</div>
                     <div>~</div>
                     <div>{user.lastRank1Date}</div>
@@ -142,15 +143,15 @@ export default function HistoricalRank1Ranking({
       {/* 统计信息 */}
       {rankings && rankings.length > 0 && (
         <div className="mt-6 border-t border-slate-200 pt-4">
-          <div className="grid grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">
-              <p className="text-slate-600">最强统治者</p>
+              <p className="text-slate-600">绝对榜一</p>
               <p className="font-bold text-yellow-600">
                 {rankings[0]?.rank1Count || 0} 次
               </p>
             </div>
             <div className="text-center">
-              <p className="text-slate-600">平均登顶次数</p>
+              <p className="text-slate-600">平均榜一次数</p>
               <p className="font-bold text-blue-600">
                 {Math.round(
                   rankings.reduce((sum, u) => sum + u.rank1Count, 0) /
@@ -159,17 +160,58 @@ export default function HistoricalRank1Ranking({
               </p>
             </div>
             <div className="text-center">
-              <p className="text-slate-600">强势统治者</p>
-              <p className="font-bold text-green-600">
-                {rankings.filter((u) => u.dominanceRate >= 30).length}
-              </p>
-            </div>
-            <div className="text-center">
               <p className="text-slate-600">总统计天数</p>
               <p className="font-bold text-purple-600">
                 {rankings[0]?.totalDaysWithData || 0}
               </p>
             </div>
+          </div>
+
+          {/* 榜一等级说明 */}
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <h4 className="mb-3 text-sm font-medium text-slate-700">
+              榜一等级标准
+            </h4>
+            <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
+              <div className="flex items-center gap-2">
+                <span className="text-red-600">👑</span>
+                <div>
+                  <span className="font-medium text-red-600">绝对榜一</span>
+                  <p className="text-slate-600">≥50%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-orange-600">🔥</span>
+                <div>
+                  <span className="font-medium text-orange-600">强势榜一</span>
+                  <p className="text-slate-600">30%-49%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-600">⭐</span>
+                <div>
+                  <span className="font-medium text-yellow-600">稳定榜一</span>
+                  <p className="text-slate-600">20%-29%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-green-600">✨</span>
+                <div>
+                  <span className="font-medium text-green-600">偶尔榜一</span>
+                  <p className="text-slate-600">10%-19%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">💫</span>
+                <div>
+                  <span className="font-medium text-blue-600">偶然榜一</span>
+                  <p className="text-slate-600">&lt;10%</p>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-slate-500">
+              * 榜一率 = (获得第一名天数 / 总统计天数) × 100%
+            </p>
           </div>
         </div>
       )}

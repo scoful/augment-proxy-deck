@@ -328,9 +328,12 @@ export const historyRouter = createTRPCRouter({
         const newlyInactiveCount = newlyInactiveVehicles.size;
         const sameDayInactiveCount = sameDayInactiveVehicles.size;
 
-        // 计算净变化
+        // 计算净变化（基于4种场景）
         const totalVehicleChange =
-          todayAllVehicles.size - previousDayAllVehicles.size;
+          newActiveCount +
+          removedInactiveCount -
+          newlyInactiveCount -
+          sameDayInactiveCount;
         const activeVehicleChange =
           todayActiveVehicles.size - previousDayActiveVehicles.size;
 
@@ -519,163 +522,90 @@ export const historyRouter = createTRPCRouter({
       return distribution;
     }),
 
-  // 获取用户行为变化率检测数据
-  getUserBehaviorAnomalies: publicProcedure
-    .input(z.object({ days: z.number().default(10) }))
+  // 获取时间序列异常监控数据
+  getTimeSeriesAnomalies: publicProcedure
+    .input(z.object({ days: z.number().default(21) }))
     .query(async ({ ctx, input }) => {
       const totalDays = input.days;
-      const halfDays = Math.floor(totalDays / 2);
+      const windowSize = 7; // 7天滑动窗口，更稳定的基线
 
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - totalDays);
       const startDate = daysAgo.toISOString().split("T")[0]!;
 
-      const midDate = new Date();
-      midDate.setDate(midDate.getDate() - halfDays);
-      const midDateStr = midDate.toISOString().split("T")[0]!;
-
-      // 获取指定天数内的用户数据
+      // 获取所有用户的历史数据
       const userData = await ctx.db
         .select()
         .from(userStatsDetail)
         .where(gte(userStatsDetail.dataDate, startDate))
-        .orderBy(asc(userStatsDetail.dataDate));
+        .orderBy(asc(userStatsDetail.userId), asc(userStatsDetail.dataDate));
 
-      // 按用户ID和时间段分组计算
-      const userMap = new Map<
-        string,
-        {
-          userId: string;
-          displayName: string;
-          recentAvg: number;
-          previousAvg: number;
-          recentDays: number;
-          previousDays: number;
-          changeRate: number;
-          totalRequests: number;
-        }
-      >();
-
+      // 按用户分组
+      const userMap = new Map<string, any[]>();
       userData.forEach((record) => {
-        const userId = record.userId;
-        const isRecent = record.dataDate >= midDateStr;
-
-        if (!userMap.has(userId)) {
-          userMap.set(userId, {
-            userId: record.userId,
-            displayName: record.displayName || record.userId,
-            recentAvg: isRecent ? record.count24Hour : 0,
-            previousAvg: isRecent ? 0 : record.count24Hour,
-            recentDays: isRecent ? 1 : 0,
-            previousDays: isRecent ? 0 : 1,
-            changeRate: 0,
-            totalRequests: record.count24Hour,
-          });
-        } else {
-          const existing = userMap.get(userId)!;
-          existing.totalRequests += record.count24Hour;
-
-          if (isRecent) {
-            existing.recentAvg =
-              (existing.recentAvg * existing.recentDays + record.count24Hour) /
-              (existing.recentDays + 1);
-            existing.recentDays += 1;
-          } else {
-            existing.previousAvg =
-              (existing.previousAvg * existing.previousDays +
-                record.count24Hour) /
-              (existing.previousDays + 1);
-            existing.previousDays += 1;
-          }
+        if (!userMap.has(record.userId)) {
+          userMap.set(record.userId, []);
         }
+        userMap.get(record.userId)!.push(record);
       });
 
-      // 计算变化率并过滤有效用户
-      const allUsers = Array.from(userMap.values());
-      const validUsers = allUsers.filter(
-        (user) => user.recentDays > 0 && user.previousDays > 0,
-      );
+      // 检测每个用户的异常
+      const anomalies: any[] = [];
 
-      // 如果有效用户太少，降低要求：只要有任一时间段数据即可
-      const users =
-        validUsers.length < 5
-          ? allUsers
-              .filter((user) => user.recentDays > 0 || user.previousDays > 0)
-              .map((user) => {
-                // 如果只有一个时间段有数据，变化率设为0或基于单一数据计算
-                let changeRate = 0;
-                if (user.previousDays > 0 && user.recentDays > 0) {
-                  changeRate =
-                    ((user.recentAvg - user.previousAvg) / user.previousAvg) *
-                    100;
-                } else if (user.recentDays > 0 && user.previousDays === 0) {
-                  changeRate = 100; // 新用户，视为100%增长
-                } else if (user.previousDays > 0 && user.recentDays === 0) {
-                  changeRate = -100; // 用户消失，视为-100%
-                }
+      for (const [userId, userHistory] of userMap.entries()) {
+        if (userHistory.length < windowSize + 1) continue; // 数据不足跳过
 
-                return {
-                  ...user,
-                  changeRate,
-                  avgDailyRequests:
-                    user.recentDays > 0 ? user.recentAvg : user.previousAvg,
-                };
-              })
-          : validUsers.map((user) => {
-              const changeRate =
-                user.previousAvg > 0
-                  ? ((user.recentAvg - user.previousAvg) / user.previousAvg) *
-                    100
-                  : 0;
+        for (let i = windowSize; i < userHistory.length; i++) {
+          // 计算基线统计（前7天）
+          const baselineWindow = userHistory.slice(i - windowSize, i);
+          const mean = baselineWindow.reduce((sum, d) => sum + d.count24Hour, 0) / windowSize;
+          const variance = baselineWindow.reduce((sum, d) => sum + Math.pow(d.count24Hour - mean, 2), 0) / windowSize;
+          const stdDev = Math.sqrt(variance);
 
-              return {
-                ...user,
-                changeRate,
-                avgDailyRequests: (user.recentAvg + user.previousAvg) / 2,
-              };
+          // 当前值
+          const current = userHistory[i].count24Hour;
+          const zScore = stdDev > 0 ? (current - mean) / stdDev : 0;
+          const changeRate = mean > 0 ? ((current - mean) / mean) * 100 : 0;
+
+          // 异常判定：Z-score > 2.5 且变化率 > 100% 且基线 < 100（专注低基数用户）
+          if (zScore > 2.5 && changeRate > 100 && mean < 100) {
+            anomalies.push({
+              date: userHistory[i].dataDate,
+              userId: userHistory[i].userId,
+              displayName: userHistory[i].displayName || userHistory[i].userId,
+              baseline: Math.round(mean),
+              current,
+              zScore: Math.round(zScore * 100) / 100,
+              changeRate: Math.round(changeRate),
+              anomalyScore: Math.round(zScore * 100) / 100,
             });
+          }
+        }
+      }
 
-      // 计算变化率的统计信息
-      const changeRates = users.map((u) => u.changeRate);
-      const mean =
-        changeRates.reduce((sum, val) => sum + val, 0) / changeRates.length;
-      const variance =
-        changeRates.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-        changeRates.length;
-      const stdDev = Math.sqrt(variance);
-
-      // 标记突发增长用户（变化率超过2个标准差且为正增长）
-      const surgeThreshold = mean + 2 * stdDev;
-      const extremeSurgeThreshold = mean + 3 * stdDev;
-
-      const result = users.map((user) => ({
-        ...user,
-        isSurge: user.changeRate > surgeThreshold && user.changeRate > 50, // 至少50%增长
-        zScore: (user.changeRate - mean) / stdDev,
-        surgeLevel:
-          user.changeRate > extremeSurgeThreshold && user.changeRate > 100
-            ? "extreme"
-            : user.changeRate > surgeThreshold && user.changeRate > 50
-              ? "moderate"
-              : "normal",
-      }));
+      // 按日期排序
+      anomalies.sort((a, b) => a.date.localeCompare(b.date));
 
       return {
-        users: result,
+        anomalies,
         statistics: {
-          mean,
-          stdDev,
-          surgeThreshold,
-          totalUsers: users.length,
-          surgeCount: result.filter((u) => u.isSurge).length,
-          timeRange: {
-            recentDays: halfDays,
-            previousDays: halfDays,
-            totalDays,
+          totalAnomalies: anomalies.length,
+          uniqueUsers: new Set(anomalies.map(a => a.userId)).size,
+          dateRange: {
+            start: startDate,
+            end: new Date().toISOString().split("T")[0],
+          },
+          detectionParams: {
+            windowSize,
+            zScoreThreshold: 2.5,
+            changeRateThreshold: 100,
+            baselineLimit: 100,
           },
         },
       };
     }),
+
+
 
   // 获取活跃用户列表
   getActiveUserList: publicProcedure
@@ -842,83 +772,6 @@ export const historyRouter = createTRPCRouter({
       dailyActiveUsersSecond, // 日活跃用户第二高
       dailyActiveUsersThird, // 日活跃用户第三高
     };
-  }),
-
-  // 获取车辆生命周期长度分析
-  getVehicleLifespanAnalysis: publicProcedure.query(async ({ ctx }) => {
-    // 获取所有车辆的首次和最后出现日期
-    const vehicleLifespans = await ctx.db
-      .select()
-      .from(vehicleStatsDetail)
-      .orderBy(asc(vehicleStatsDetail.carId), asc(vehicleStatsDetail.dataDate));
-
-    // 获取每个车辆的最新状态
-    const latestStatusMap = new Map<string, boolean>();
-    const latestRecords = await ctx.db
-      .select()
-      .from(vehicleStatsDetail)
-      .orderBy(
-        desc(vehicleStatsDetail.dataDate),
-        desc(vehicleStatsDetail.recordedAt),
-      );
-
-    // 构建最新状态映射
-    latestRecords.forEach((record) => {
-      if (!latestStatusMap.has(record.carId)) {
-        latestStatusMap.set(record.carId, record.isActive);
-      }
-    });
-
-    // 计算每辆车的生命周期长度
-    const lifespanMap = new Map<
-      string,
-      {
-        carId: string;
-        carType: string;
-        firstSeen: string;
-        lastSeen: string;
-        lifespanDays: number;
-        isCurrentlyActive: boolean;
-      }
-    >();
-
-    vehicleLifespans.forEach((record) => {
-      const existing = lifespanMap.get(record.carId);
-      if (!existing) {
-        lifespanMap.set(record.carId, {
-          carId: record.carId,
-          carType: record.carType,
-          firstSeen: record.dataDate,
-          lastSeen: record.dataDate,
-          lifespanDays: 0,
-          isCurrentlyActive: latestStatusMap.get(record.carId) ?? false,
-        });
-      } else {
-        // 更新最后出现日期
-        if (record.dataDate > existing.lastSeen) {
-          existing.lastSeen = record.dataDate;
-        }
-      }
-    });
-
-    // 计算生命周期天数并排序
-    const result = Array.from(lifespanMap.values())
-      .map((vehicle) => {
-        const firstDate = new Date(vehicle.firstSeen);
-        const lastDate = new Date(vehicle.lastSeen);
-        const lifespanDays =
-          Math.ceil(
-            (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24),
-          ) + 1;
-
-        return {
-          ...vehicle,
-          lifespanDays,
-        };
-      })
-      .sort((a, b) => b.firstSeen.localeCompare(a.firstSeen)); // 按首次出现时间降序排列（最新在前）
-
-    return result;
   }),
 
   // 获取车辆时间轴分析数据（用于时间轴图表）
@@ -1226,7 +1079,7 @@ export const historyRouter = createTRPCRouter({
 
   // 获取小时级峰值排行榜
   getHourlyPeakRanking: publicProcedure
-    .input(z.object({ limit: z.number().min(1).max(50).default(15) }))
+    .input(z.object({ limit: z.number().min(1).max(50).default(10) }))
     .query(async ({ ctx, input }) => {
       // 获取所有系统统计明细数据，按requestCount降序排列
       const hourlyPeaks = await ctx.db
