@@ -46,8 +46,8 @@ export default function SystemUsersChart({ days }: SystemUsersChartProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-800">活跃用户趋势</h3>
-        <p className="text-sm text-slate-600">显示每日活跃用户数量变化</p>
+        <h3 className="text-lg font-semibold text-slate-800">活跃设备趋势</h3>
+        <p className="text-sm text-slate-600">显示每日活跃设备数量变化</p>
       </div>
 
       {isLoading ? (
@@ -101,19 +101,19 @@ export default function SystemUsersChart({ days }: SystemUsersChartProps) {
         <div className="mt-4 border-t border-slate-200 pt-4">
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-slate-600">最高日活跃用户</p>
+              <p className="text-slate-600">最高日活跃设备</p>
               <p className="font-medium text-purple-600">
                 {formatNumber(Math.max(...chartData.map((d) => d.activeUsers)))}
               </p>
             </div>
             <div>
-              <p className="text-slate-600">最低日活跃用户</p>
+              <p className="text-slate-600">最低日活跃设备</p>
               <p className="font-medium text-slate-800">
                 {formatNumber(Math.min(...chartData.map((d) => d.activeUsers)))}
               </p>
             </div>
             <div>
-              <p className="text-slate-600">平均日活跃用户</p>
+              <p className="text-slate-600">平均日活跃设备</p>
               <p className="font-medium text-slate-800">
                 {formatNumber(
                   Math.round(

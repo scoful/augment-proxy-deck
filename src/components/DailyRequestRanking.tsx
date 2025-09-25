@@ -82,7 +82,7 @@ export default function DailyRequestRanking({
                   </div>
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <UserGroupIcon className="h-4 w-4" />
-                    <span>{formatNumber(record.totalUsers)} 活跃用户</span>
+                    <span>{formatNumber(record.totalUsers)} 活跃设备</span>
                   </div>
                 </div>
               </div>
@@ -123,7 +123,7 @@ export default function DailyRequestRanking({
               </p>
             </div>
             <div className="text-center">
-              <p className="text-slate-600">平均用户数</p>
+              <p className="text-slate-600">平均设备数</p>
               <p className="font-bold text-green-600">
                 {formatNumber(
                   Math.round(

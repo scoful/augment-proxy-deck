@@ -139,7 +139,7 @@ export default function HistoryPage() {
                       : formatNumber(dataOverview?.dailyActiveUsersPeak ?? 0)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    历史最高单日活跃用户数
+                    历史最高单日活跃设备数
                   </p>
                 </div>
               </div>

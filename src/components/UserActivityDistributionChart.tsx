@@ -162,12 +162,6 @@ export default function UserActivityDistributionChart({
                   );
                 })()}
             </div>
-            <div>
-              <p className="text-slate-600">总用户数</p>
-              <p className="font-medium text-green-600">
-                {formatNumber(totalUsers)}
-              </p>
-            </div>
           </div>
 
           {/* 图例标准说明 */}
