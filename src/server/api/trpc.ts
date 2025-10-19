@@ -90,7 +90,7 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
  * errors on the backend.
  */
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<ReturnType<typeof createTRPCContext>>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -109,7 +109,8 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  *
  * @see https://trpc.io/docs/server/server-side-calls
  */
-export const createCallerFactory = t.createCallerFactory;
+// v10.0.0 doesn't have createCallerFactory, use createCaller instead
+// export const createCallerFactory = t.createCallerFactory;
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)

@@ -38,11 +38,11 @@
     "@heroicons/react": "^2.2.0",
     "@libsql/client": "^0.15.15",
     "@t3-oss/env-nextjs": "^0.12.0",
-    "@tanstack/react-query": "^5.69.0",
-    "@trpc/client": "^11.0.0",
-    "@trpc/next": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
-    "@trpc/server": "^11.0.0",
+    "@tanstack/react-query": "^4.42.0",
+    "@trpc/client": "10.0.0",
+    "@trpc/next": "10.0.0",
+    "@trpc/react-query": "10.0.0",
+    "@trpc/server": "10.0.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "better-sqlite3": "^12.2.0",
@@ -79,5 +79,12 @@
   "ct3aMetadata": {
     "initVersion": "7.39.3"
   },
-  "packageManager": "pnpm@9.6.0"
+  "packageManager": "pnpm@9.6.0",
+  "browserslist": [
+    "iOS >= 12",
+    "Safari >= 12",
+    "Chrome >= 64",
+    "Firefox >= 67",
+    "Edge >= 79"
+  ]
 }
